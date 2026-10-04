@@ -1,0 +1,13 @@
+# private inputs: never committed, never deployed
+/reference/
+/data/
+
+# build output and tooling
+node_modules/
+dist/
+build/
+.vite/
+*.log
+.env
+.env.*
+!.env.example
