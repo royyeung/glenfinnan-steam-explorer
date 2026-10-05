@@ -41,6 +41,11 @@
     #joyL { left: 24px; }
     #lookHint { position: fixed; right: 24px; bottom: calc(110px + env(safe-area-inset-bottom)); color: var(--dim); font-size: 12px; z-index: 4; }
     #cross { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); z-index: 4; pointer-events: none; }
+    #hotspots { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+    .hs { position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: rgba(216, 180, 90, 0.92); color: #111; font: 700 12px system-ui, sans-serif; pointer-events: auto; cursor: pointer; padding: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+    .hs:focus-visible { outline: 3px solid #fff; }
+    #infoPanel { position: fixed; right: 12px; top: calc(60px + env(safe-area-inset-top)); width: min(340px, calc(100vw - 24px)); background: var(--panel); border-radius: 12px; padding: 12px 14px; z-index: 6; }
+    #infoPanel h3 { margin: 0 0 6px; } #infoPanel p { margin: 0 0 8px; font-size: 14px; } #infoPanel .what { color: var(--dim); }
     [hidden] { display: none !important; }
     @media (max-width: 640px) { #help { display: none; } #hud input[type=range] { width: 80px; } }
     @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
@@ -74,6 +79,8 @@
     </div>
     <div class="group">
       <button class="btn" id="motion" aria-pressed="false" title="Turn the wheels in place (rolling road)">Motion</button>
+      <label>Reverser <input type="range" id="cutoff" min="-100" max="100" step="5" value="65" aria-label="Reverser: forward or backward gear" /></label>
+      <button class="btn" id="infoBtn" aria-pressed="false" title="Show labelled parts">Info</button>
       <label>Time <input type="range" id="hour" min="4" max="22" step="0.25" aria-label="Time of day" /></label>
     </div>
     <div class="group">
@@ -87,6 +94,9 @@
       <button class="btn" id="aboutBtn">About</button>
     </div>
   </div>
+
+  <div id="hotspots" hidden></div>
+  <div id="infoPanel" hidden role="dialog" aria-live="polite"><h3></h3><p class="what"></p><p class="does"></p><button class="btn" id="infoClose">Close</button></div>
 
   <div id="about" hidden role="dialog" aria-modal="true" aria-labelledby="atitle">
     <div class="card">

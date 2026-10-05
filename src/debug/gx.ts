@@ -17,6 +17,9 @@ export function installGX(app: App) {
     setWheelAngle: (deg: number) => { app.setWheelAngle((deg * Math.PI) / 180); app.frame(); },
     setHour: (h: number) => { app.atmosphere.params.hour = h; app.atmosphere.invalidate(); app.frame(); return app.atmosphere.sun; },
     setMotion: (on: boolean) => app.setMotion(on),
+    setCutoff: (c: number) => { app.setCutoff(c); app.frame(); return c; },
+    info: (on: boolean) => { app.hotspots.setVisible(on); app.frame(); },
+    weather: (a: number) => { app.weathering.setAmount(a); app.frame(); },
     silhouette: (on: boolean) => { app.setSilhouette(on); app.frame(); },
     freeCam: (on: boolean) => app.setMode(on ? 'free' : 'orbit'),
     render: () => app.frame(),
@@ -32,20 +35,24 @@ export function installGX(app: App) {
     weakSpecs: () => weakSpecs(B5).map(({ key, spec }) => ({ key, v: +spec.v.toFixed(3), src: spec.src, conf: spec.conf, note: spec.note })),
 
     /** Kinematics over one full wheel revolution: solver rod lengths and scene-node connection gaps. */
-    kinematics: (steps = 360) => {
-      const rig = app.rigs[0], base = rig.measure();
-      let maxLenDev = 0, maxGap = 0, worst = '';
-      for (let i = 0; i <= steps; i++) {
-        app.setWheelAngle((i / steps) * Math.PI * 2);
-        const m = rig.measure();
-        for (const k of Object.keys(m)) maxLenDev = Math.max(maxLenDev, Math.abs(m[k] - base[k]));
-        const g = rig.connectionGaps();
-        for (const [k, v] of Object.entries(g)) if (v > maxGap) { maxGap = v; worst = `${k}@${((i / steps) * 360).toFixed(0)}°`; }
+    kinematics: (steps = 360, cutoffs = [1, 0.65, 0.3, 0, -0.65, -1]) => {
+      const rig = app.rigs[0];
+      let maxLenDev = 0, maxGap = 0, worst = '', worstLen = '';
+      for (const c of cutoffs) {
+        app.setCutoff(c); app.setWheelAngle(0);
+        const base = rig.measure();
+        for (let i = 0; i <= steps; i++) {
+          app.setWheelAngle((i / steps) * Math.PI * 2);
+          const m = rig.measure();
+          for (const k of Object.keys(m)) { const dv = Math.abs(m[k] - base[k]); if (dv > maxLenDev) { maxLenDev = dv; worstLen = `${k}@${c}`; } }
+          const g = rig.connectionGaps();
+          for (const [k, v] of Object.entries(g)) if (v > maxGap) { maxGap = v; worst = `${k}@${((i / steps) * 360).toFixed(0)}° cutoff ${c}`; }
+        }
       }
-      app.setWheelAngle(0);
+      app.setCutoff(0.65); app.setWheelAngle(0);
       const st = rig.state;
       const phase = ((st.right.phi - st.left.phi) * 180) / Math.PI;
-      return { steps, maxRodLengthDeviation_m: maxLenDev, maxConnectionGap_m: maxGap, worst, rightMinusLeftPhaseDeg: phase, rightLeads: rig.geo.rightLeads };
+      return { steps, cutoffs, maxRodLengthDeviation_m: maxLenDev, worstLength: worstLen, maxConnectionGap_m: maxGap, worst, rightMinusLeftPhaseDeg: phase, rightLeads: rig.geo.rightLeads };
     },
 
     /** Human-scale checks for a 1.70 m person against the blockout (numbers, not pictures). */

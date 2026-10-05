@@ -23,6 +23,12 @@ export const VIEWS: Record<string, View> = {
   'motion-l': { kind: 'persp', pos: [5.2, 1.25, 1.2], target: [0.9, 0.95, 0.6], fov: 50 },
   'site-wide': { kind: 'persp', pos: [32, 11, 34], target: [0, 2.4, -3.5], fov: 50 },
   'human-scale': { kind: 'persp', pos: [-9, 1.6, -2.5], target: [-1.4, 1.7, -4.5], fov: 50 },
+  'front-34-r': { kind: 'persp', pos: [-9.5, 2.3, 14.5], target: [0, 1.9, 0.5], fov: 45 },
+  'motion-r': { kind: 'persp', pos: [-5.2, 1.3, 0.6], target: [-0.9, 1.0, 0.2], fov: 50 },
+  'gear-l': { kind: 'persp', pos: [3.6, 1.45, 1.9], target: [1.0, 1.2, 0.7], fov: 45 },
+  'smokebox': { kind: 'persp', pos: [2.4, 2.9, 9.6], target: [0, 2.3, 4.7], fov: 40 },
+  'cab-side-l': { kind: 'persp', pos: [5.2, 2.6, -4.4], target: [1.2, 2.4, -4.6], fov: 45 },
+  'tender-rear': { kind: 'persp', pos: [-4.5, 2.2, -21.5], target: [0, 1.6, -13], fov: 45 },
   'cab-entry': { kind: 'walk', feet: [-2.15, 0.915, -6.0], yaw: -Math.PI / 2, pitch: 0.05 },
   'cab-inside': { kind: 'walk', feet: [0.25, B5.footplateH.v, -5.4], yaw: Math.PI, pitch: -0.12 },
 };

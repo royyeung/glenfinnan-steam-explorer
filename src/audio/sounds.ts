@@ -37,7 +37,7 @@ function loop(ctx: AudioContext, buf: AudioBuffer) {
 
 const filt = (ctx: AudioContext, type: BiquadFilterType, freq: number, Q = 0.7) => new BiquadFilterNode(ctx, { type, frequency: freq, Q });
 
-export interface LocoSoundPoints { chimney: THREE.Vector3; safetyValves: THREE.Vector3; airPump: THREE.Vector3; firehole: THREE.Vector3 }
+export interface LocoSoundPoints { chimney: THREE.Vector3; safetyValves: THREE.Vector3; airPump: THREE.Vector3; firehole: THREE.Vector3; cylL: THREE.Vector3; cylR: THREE.Vector3; injector: THREE.Vector3; motionL: THREE.Vector3; motionR: THREE.Vector3 }
 
 export class Soundscape {
   private a: AudioEngine;
@@ -129,6 +129,47 @@ export class Soundscape {
     fire.gain.gain.value = 0.22;
     loop(ctx, brown).connect(filt(ctx, 'lowpass', 220)).connect(fire.gain);
     loop(ctx, pink).connect(filt(ctx, 'bandpass', 900, 0.5)).connect(filt(ctx, 'lowpass', 1500)).connect(fire.gain);
+  }
+
+  private motionSrc: Record<string, SpatialSource> = {};
+  private white: AudioBuffer | null = null;
+  private lastQuarter = 0;
+  private cocksUntil = 0;
+  private wasMoving = false;
+
+  /** Phase 2: sounds of the motion. Call every simulation step with the driving-wheel angle (rad) and rate (rad/s). */
+  motion(theta: number, omega: number, p: LocoSoundPoints) {
+    const ctx = this.a.ctx;
+    if (!ctx) return;
+    if (!this.white) {
+      this.white = noiseBuffer(ctx, 'white', 3, 41);
+      for (const k of ['cylL', 'cylR', 'motionL', 'motionR', 'injector'] as const) this.motionSrc[k] = this.a.spatial(k, p[k], 3, 1.2);
+      // leaks: a faint constant hiss near the cylinders; injector sings now and then
+      for (const k of ['cylL', 'cylR'] as const) { const g = ctx.createGain(); g.gain.value = 0.025; loop(ctx, this.white).connect(filt(ctx, 'highpass', 3500)).connect(g).connect(this.motionSrc[k].gain); }
+      const inj = this.motionSrc.injector, ig = ctx.createGain(); ig.gain.value = 0; ig.connect(inj.gain);
+      loop(ctx, this.white).connect(filt(ctx, 'bandpass', 2300, 3)).connect(ig);
+      const o = ctx.createOscillator(); o.frequency.value = 1870; const og = ctx.createGain(); og.gain.value = 0.04; o.connect(og).connect(ig); o.start();
+      const sing = () => { const t = ctx.currentTime; ig.gain.setTargetAtTime(0.25, t, 0.4); ig.gain.setTargetAtTime(0, t + 7, 0.6); };
+      this.timers.push(window.setInterval(sing, 47000)); window.setTimeout(sing, 9000);
+    }
+    const moving = Math.abs(omega) > 0.05;
+    if (moving && !this.wasMoving) this.cocksUntil = ctx.currentTime + 15; // driver opens the cylinder cocks to clear water
+    this.wasMoving = moving;
+    const quarter = Math.floor(theta / (Math.PI / 2));
+    if (moving && quarter !== this.lastQuarter) {
+      const t = ctx.currentTime + 0.01, side = ((quarter % 2) + 2) % 2 === 0 ? 'L' : 'R';
+      // clank of the rods reversing at dead centre: short ring plus a thud
+      const src = this.motionSrc[`motion${side}`], o = ctx.createOscillator(), e = ctx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(240 + 40 * this.rand(), t);
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(0.12, t + 0.004); e.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      o.connect(e).connect(src.gain); o.start(t); o.stop(t + 0.14);
+      if (ctx.currentTime < this.cocksUntil) {
+        const n = ctx.createBufferSource(); n.buffer = this.white; const ne = ctx.createGain(), dur = Math.min(0.5, 0.9 / Math.max(0.5, Math.abs(omega)));
+        ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(0.5, t + 0.02); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);
+        n.connect(filt(ctx, 'bandpass', 1600, 0.6)).connect(ne).connect(this.motionSrc[`cyl${side}`].gain); n.start(t, this.rand() * 2, dur + 0.05);
+      }
+    }
+    this.lastQuarter = quarter;
   }
 
   /** Keep loco sources attached to the moving engine. */

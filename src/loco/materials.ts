@@ -4,7 +4,8 @@ import * as THREE from 'three';
 
 export type MatKey =
   | 'paint_black' | 'smokebox' | 'paint_red' | 'steel' | 'wheel' | 'brass'
-  | 'cab_inside' | 'coal' | 'blue_plate' | 'lining' | 'rubber' | 'glass';
+  | 'cab_inside' | 'coal' | 'blue_plate' | 'lining' | 'lining_red' | 'rubber' | 'glass' | 'lamp_lens'
+  | 'decal_cabnum' | 'decal_emblem' | 'decal_emblem_l' | 'decal_numberplate' | 'decal_shedplate' | 'decal_headboard' | 'decal_nameplate' | 'decal_crest';
 
 export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> {
   const m = (name: MatKey, color: number, roughness: number, metalness: number, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
@@ -19,8 +20,19 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     cab_inside: m('cab_inside', 0xd9cdb4, 0.7, 0.0),
     coal: m('coal', 0x0b0b0b, 0.92, 0.0),
     blue_plate: m('blue_plate', 0x1d4fa0, 0.35, 0.0),
-    lining: m('lining', 0xc9b98a, 0.5, 0.0),
+    lining: m('lining', 0xd9cba0, 0.45, 0.0),       // BR cream lining
+    lining_red: m('lining_red', 0xa3241a, 0.45, 0.0),  // BR red lining
     rubber: m('rubber', 0x1a1a1a, 0.9, 0.0),
     glass: m('glass', 0x9fb4c0, 0.05, 0.0, { transparent: true, opacity: 0.25 }),
+    lamp_lens: m('lamp_lens', 0xfff4dc, 0.1, 0.0, { emissive: 0xfff1d0, emissiveIntensity: 0 }),
+    // decals: plain placeholders here; the app paints canvas textures onto them by material name
+    decal_cabnum: m('decal_cabnum', 0xffffff, 0.5, 0.0, { transparent: true }),
+    decal_emblem: m('decal_emblem', 0xffffff, 0.45, 0.0, { transparent: true }),
+    decal_emblem_l: m('decal_emblem_l', 0xffffff, 0.45, 0.0, { transparent: true }), // mirrored lion for the left side
+    decal_numberplate: m('decal_numberplate', 0xffffff, 0.4, 0.0),
+    decal_shedplate: m('decal_shedplate', 0xffffff, 0.4, 0.0, { transparent: true }),
+    decal_headboard: m('decal_headboard', 0xffffff, 0.45, 0.0, { transparent: true }),
+    decal_nameplate: m('decal_nameplate', 0xffffff, 0.35, 0.6),
+    decal_crest: m('decal_crest', 0xffffff, 0.4, 0.2, { transparent: true }),
   };
 }

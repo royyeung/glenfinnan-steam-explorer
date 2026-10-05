@@ -10,7 +10,7 @@ import { params } from './core/params.ts';
 import { Atmosphere } from './render/atmosphere.ts';
 import { Post } from './render/post.ts';
 import { buildSite } from './world/site.ts';
-import { buildEngine, buildTender } from './loco/blockout.ts';
+import { buildEngine, buildTender } from './loco/engine.ts';
 import { blockoutMaterials } from './loco/materials.ts';
 import { LocoRig } from './loco/rig.ts';
 import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine } from './specs/black5.ts';
@@ -19,6 +19,9 @@ import { WalkInputs } from './controls/input.ts';
 import { AudioEngine } from './audio/engine.ts';
 import { Soundscape, type LocoSoundPoints } from './audio/sounds.ts';
 import { VIEWS } from './debug/views.ts';
+import { paintDecals } from './render/decals.ts';
+import { Weathering } from './render/weathering.ts';
+import { HotspotLayer } from './ui/hotspots.ts';
 
 const BASE = import.meta.env.BASE_URL;
 export type Mode = 'orbit' | 'walk' | 'free';
@@ -44,6 +47,10 @@ export class App {
   audio = new AudioEngine();
   sounds = new Soundscape(this.audio);
   rigs: LocoRig[] = [];
+  weathering = new Weathering();
+  hotspots!: HotspotLayer;
+  cutoff = 0.65;
+  private soundPointsCache: LocoSoundPoints | null = null;
   engine = new THREE.LOD();
   tender = new THREE.LOD();
   site!: ReturnType<typeof buildSite>;
@@ -126,6 +133,12 @@ export class App {
     this.tender.position.set(0, 0, -(TENDER_ORIGIN_D - ENGINE_ORIGIN_D));
     this.scene.add(this.engine, this.tender);
     for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
+    // livery decals, lit lamps and procedural weathering
+    paintDecals(this.engine, this.tier.anisotropy); paintDecals(this.tender, this.tier.anisotropy);
+    this.engine.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'lamp_lens') m.emissiveIntensity = 2.5; });
+    for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, false);
+    for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, true);
+    this.hotspots = new HotspotLayer(this.engine, this.tender);
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);
@@ -157,6 +170,9 @@ export class App {
       safetyValves: w(0, B5.fireboxTopH.v + 0.1, B5.safetyValveD.v),
       airPump: w(-1.1, B5.runningPlateH.v + 0.3, 2.2),
       firehole: w(0, 2.0, B5.cabFrontD.v + 0.1),
+      cylL: w(1.0, 0.8, 2.5), cylR: w(-1.0, 0.8, 2.5),
+      injector: w(-0.75, 1.15, 10.6),
+      motionL: w(1.0, 1.0, 5.5), motionR: w(-1.0, 1.0, 5.5),
     };
   }
 
@@ -232,13 +248,17 @@ export class App {
 
   setWheelAngle(theta: number) { this.theta = theta; for (const r of this.rigs) r.setWheelAngle(theta); }
 
+  setCutoff(c: number) { this.cutoff = c; for (const r of this.rigs) r.setCutoff(c); }
+
   /** Advance the simulation by n fixed steps (used directly in deterministic mode). */
   step(n = 1) {
     const h = 1 / SIM_HZ;
     for (let i = 0; i < n; i++) {
       this.simTime += h;
       if (this.mode === 'walk') { this.inputs.update(); this.walker.step(h); }
-      if (this.motionOn) this.setWheelAngle(this.theta + (this.motionSpeed / (B5.driverDia.v / 2)) * h);
+      const omega = this.motionOn ? this.motionSpeed / (B5.driverDia.v / 2) : 0;
+      if (this.motionOn) this.setWheelAngle(this.theta + omega * h);
+      if (this.audio.running) this.sounds.motion(this.theta, omega, this.soundPointsCache ??= this.soundPoints());
     }
   }
 
@@ -264,6 +284,7 @@ export class App {
     else if (this.orbit.enabled) this.orbit.update();
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     this.atmosphere.update(this.simTime);
+    this.weathering.update();
     this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera);
     const t0 = performance.now();
     this.renderer.info.reset();
@@ -272,6 +293,7 @@ export class App {
     else this.post.render(this.scene, this.camera);
     this.gpuTimerEnd();
     this.frameMs = performance.now() - t0;
+    this.hotspots?.update(this.camera, this.canvas.clientWidth || innerWidth, this.canvas.clientHeight || innerHeight);
   }
 
   private gpuTimerBegin() {

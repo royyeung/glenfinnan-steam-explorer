@@ -1,29 +1,29 @@
 {
- "generated": "2026-10-05T13:32:00.105Z",
+ "generated": "2026-10-05T17:20:16.240Z",
  "files": {
   "engine_lod0.glb": {
-   "bytes": 135204,
-   "tris": 11468
+   "bytes": 381908,
+   "tris": 37894
   },
   "engine_lod1.glb": {
-   "bytes": 91716,
-   "tris": 6239
+   "bytes": 261856,
+   "tris": 20818
   },
   "engine_lod2.glb": {
-   "bytes": 58488,
-   "tris": 3229
+   "bytes": 154964,
+   "tris": 10218
   },
   "tender_lod0.glb": {
-   "bytes": 42512,
-   "tris": 3292
+   "bytes": 106708,
+   "tris": 10892
   },
   "tender_lod1.glb": {
-   "bytes": 31020,
-   "tris": 1944
+   "bytes": 70272,
+   "tris": 5687
   },
   "tender_lod2.glb": {
-   "bytes": 20704,
-   "tris": 1020
+   "bytes": 40004,
+   "tris": 2741
   },
   "../textures/ballast_color.ktx2": {
    "bytes": 190229

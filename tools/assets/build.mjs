@@ -7,7 +7,7 @@ import { Document, NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, weld, simplify, meshopt, prune } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
-import { buildEngine, buildTender } from '../../src/loco/blockout.ts';
+import { buildEngine, buildTender } from '../../src/loco/engine.ts';
 import { blockoutMaterials } from '../../src/loco/materials.ts';
 import { setDetail } from '../../src/loco/geom.ts';
 

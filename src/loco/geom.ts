@@ -140,3 +140,62 @@ export class Batch {
     return out;
   }
 }
+
+/** Pipe through points (Catmull-Rom), e.g. feed pipes, hoses, handrails. */
+export function pipe(points: THREE.Vector3[], r: number, radial = 8, tension = 0.5) {
+  const curve = new THREE.CatmullRomCurve3(points, false, 'catmullrom', tension);
+  const g = new THREE.TubeGeometry(curve, Math.max(4, Math.round(points.length * 8 * DETAIL)), r, segs(radial), false);
+  return norm(g);
+}
+
+/** Ring around the Z axis (boiler band / lining band) at z, centre (x, y). */
+export function bandZ(R: number, width: number, thick: number, z: number, x: number, y: number, seg = 48) {
+  const outer = new THREE.CylinderGeometry(R + thick, R + thick, width, segs(seg), 1, true);
+  outer.rotateX(Math.PI / 2); outer.translate(x, y, z);
+  return norm(outer);
+}
+
+/** Rounded rectangle outline points [u, v] (counter-clockwise). */
+export function roundedRect(u0: number, v0: number, u1: number, v1: number, r: number, n = 6): [number, number][] {
+  const pts: [number, number][] = [];
+  const corner = (cu: number, cv: number, a0: number) => { for (let i = 0; i <= n; i++) { const a = a0 + (i / n) * (Math.PI / 2); pts.push([cu + Math.cos(a) * r, cv + Math.sin(a) * r]); } };
+  corner(u1 - r, v0 + r, -Math.PI / 2); corner(u1 - r, v1 - r, 0); corner(u0 + r, v1 - r, Math.PI / 2); corner(u0 + r, v0 + r, Math.PI);
+  return pts;
+}
+
+/**
+ * A lining stripe following a closed outline drawn in the side (z, y) plane at lateral x, as a
+ * thin raised band: outline offset outward by w/2 and inward by w/2.
+ */
+export function liningSide(outline: [number, number][], w: number, x0: number, x1: number) {
+  const off = (pts: [number, number][], d: number) => pts.map((p, i) => {
+    const a = pts[(i - 1 + pts.length) % pts.length], b = pts[(i + 1) % pts.length];
+    const tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    return [p[0] + (ty / l) * d, p[1] - (tx / l) * d] as [number, number];
+  });
+  return extrudeSide(off(outline, w / 2), x0, x1, [off(outline, -w / 2).reverse()]);
+}
+
+/** Small hemispherical rivet heads on a plane facing +Z (front) or +X (side). */
+export function rivets(points: THREE.Vector3[], r: number, facing: 'x' | '-x' | 'z' | '-z') {
+  const gs: THREE.BufferGeometry[] = [];
+  for (const p of points) {
+    const g = new THREE.SphereGeometry(r, 6, 3, 0, Math.PI * 2, 0, Math.PI / 2);
+    if (facing === 'z') g.rotateX(Math.PI / 2); else if (facing === '-z') g.rotateX(-Math.PI / 2);
+    else if (facing === 'x') g.rotateZ(-Math.PI / 2); else g.rotateZ(Math.PI / 2);
+    g.translate(p.x, p.y, p.z); gs.push(norm(g));
+  }
+  return gs.length ? mergeGeometries(gs, false)! : new THREE.BufferGeometry();
+}
+
+/** Box rotated about X (pitch) — for parts aligned with the line of stroke. */
+export function boxAlong(len: number, h: number, w: number, at: THREE.Vector3, pitch: number) {
+  const g = new THREE.BoxGeometry(w, h, len);
+  g.rotateX(-pitch); g.translate(at.x, at.y, at.z);
+  return norm(g);
+}
+
+/** Rounded box: extruded rounded rectangle section (x,y) along z. */
+export function roundBox(x0: number, y0: number, x1: number, y1: number, z0: number, z1: number, r: number) {
+  return extrudeSection(roundedRect(x0, y0, x1, y1, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2), 4), z0, z1);
+}

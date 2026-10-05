@@ -71,6 +71,10 @@ function wireUI() {
   setMode(app.mode === 'walk' ? 'walk' : 'orbit');
   const motion = $('motion');
   motion.onclick = () => { app.setMotion(!app.motionOn); motion.setAttribute('aria-pressed', String(app.motionOn)); };
+  const cut = $<HTMLInputElement>('cutoff');
+  cut.oninput = () => app.setCutoff(Number(cut.value) / 100);
+  const info = $('infoBtn');
+  info.onclick = () => { app.hotspots.setVisible(!app.hotspots.visible); info.setAttribute('aria-pressed', String(app.hotspots.visible)); };
   const hour = $<HTMLInputElement>('hour');
   hour.value = String(app.atmosphere.params.hour);
   hour.oninput = () => { app.atmosphere.params.hour = Number(hour.value); app.atmosphere.invalidate(); };
