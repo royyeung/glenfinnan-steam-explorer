@@ -4,7 +4,7 @@
 // bracket, link girder, reversing shaft) are added to the engine's batch.
 import * as THREE from 'three';
 import { B5, zEngine } from '../../specs/black5.ts';
-import { Batch, boxMinMax, cylBetween, cylX, roundBox } from '../geom.ts';
+import { Batch, DETAIL, boxMinMax, cylBetween, cylX, roundBox } from '../geom.ts';
 import { motionGeometry, valveGearGeometry } from '../layout.ts';
 import { solveMotion, strokeDir } from '../motion/solver.ts';
 import { arc } from './wheels.ts';
@@ -30,8 +30,8 @@ function named(name: string, b: Batch, mats: Mats) {
 }
 
 /** Fluted rod with bosses: section h x t, length L, boss radii at each end. */
-function rod(L: number, h0: number, h1: number, t: number, boss0: number, boss1: number, flute = true) {
-  const b = new Batch(), n = 6;
+function rod(L: number, h0: number, h1: number, t: number, boss0: number, boss1: number, fluteIn = true) {
+  const b = new Batch(), n = 6, flute = fluteIn && DETAIL >= 1; // flutes only on the close-up model
   for (let i = 0; i < n; i++) { // taper in n segments
     const z0 = (i / n) * L, z1 = ((i + 1) / n) * L, h = h0 + (h1 - h0) * ((i + 0.5) / n);
     b.add('steel', boxMinMax(-t / 2, -h / 2, z0, t / 2, h / 2, z1));

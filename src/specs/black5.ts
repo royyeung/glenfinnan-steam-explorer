@@ -110,7 +110,7 @@ export const B5: SpecTable = {
   cabFrontD: spec(10.06, photo, 'medium'),
   cabRoofRearD: spec(12.64, photo, 'medium', '±0.10'),
   cabRoofH: spec(3.71, photo, 'medium'),
-  cabSideBottomH: spec(1.63, photo, 'medium'),
+  cabSideBottomH: spec(1.33, photo, 'medium', 'below the number panel (panel bottom 1.40); corrected in Phase 2'),
   cabWidth: spec(2.62, 'estimate', 'estimate', 'not measurable from photos (perspective)'),
   cabWindowFrontD: spec(10.32, photo, 'medium'),
   cabWindowRearD: spec(11.52, photo, 'medium'),

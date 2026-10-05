@@ -101,9 +101,13 @@ export function running(b: Batch) {
   }
   b.add('steel', pipe([new THREE.Vector3(-rpW + 0.3, rpH + 0.05, z(v('lubricator2D') - 0.15)), new THREE.Vector3(-rpW + 0.35, rpH + 0.05, z(5.6)), new THREE.Vector3(-rpW + 0.3, rpH + 0.04, z(3.4)), new THREE.Vector3(-v('cylLateral'), rpH - 0.1, z(3.0))], 0.012));
   const axles = engineAxlesD();
-  for (const s of [1, -1]) for (const d of [axles.lead - 0.7, axles.drive - 0.75, axles.trail + 0.7]) {
-    b.add('paint_black', cylZ(0.07, 0.07, z(d) - 0.07, z(d) + 0.07, s * (rpW - 0.2), rpH + 0.04, 12).rotateX(0));
-    b.add('steel', cylBetween(new THREE.Vector3(s * (rpW - 0.2), rpH, z(d)), new THREE.Vector3(s * (rpW - 0.25), 0.25, z(d + 0.35)), 0.016, 6));
+  // sandbox fillers on the running plate; sand pipes come down inside the rods to just in front of
+  // the leading and driving wheels' treads (and behind the driving wheels for running backwards)
+  const rD0 = v('driverDia') / 2, xt = v('wheelTreadOffset');
+  for (const s of [1, -1]) for (const [d, ahead] of [[axles.lead, true], [axles.drive, true], [axles.drive, false]] as const) {
+    const dd = ahead ? d - rD0 - 0.06 : d + rD0 + 0.06;
+    if (ahead) b.add('paint_black', latheY([[0, 0], [0.07, 0], [0.07, 0.05], [0.05, 0.07], [0, 0.07]], s * 0.8, rpH, z(dd), 12));
+    b.add('steel', pipe([new THREE.Vector3(s * 0.66, rpH - 0.3, z(dd)), new THREE.Vector3(s * 0.7, 0.7, z(dd)), new THREE.Vector3(s * xt, 0.12, z(dd) + (ahead ? -0.04 : 0.04))], 0.016, 6));
   }
 
   // --- nameplate brackets (plates themselves are decals in livery) and AWS/TPWS electrical boxes

@@ -80,6 +80,7 @@ The 35 reference images downloaded so far are listed with author and licence in 
 |---|---|---|---|
 | Wheel arrangement | 4-6-0 (UIC 2′C h2): two-cylinder, superheated | S1, S3 | High |
 | Driving-wheel spokes | About 20 (counted on S33, rear driver) | photo:S33 | Medium |
+| Cab entrance | d 11.79–12.43 m (0.64 m), half-height gate top at h 2.59 m; cab side bottom h 1.33 m; number panel h 1.40–2.23 m | photo:S33 | Medium |
 | Gauge | 4 ft 8½ in (1.435 m) | S1 | High |
 | Built | 842 locos, 1934–1951 | S1, S3 | High |
 | Driving wheels | 6 ft 0 in (1.829 m) diameter | S1, S31 | High |

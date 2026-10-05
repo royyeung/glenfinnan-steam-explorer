@@ -1,0 +1,32 @@
+{
+ "state": "running",
+ "levels": [
+  {
+   "view": "site-wide",
+   "rmsDb": -34.6,
+   "peakDb": -23.6
+  },
+  {
+   "view": "front-34-l",
+   "rmsDb": -30.6,
+   "peakDb": -18.3
+  },
+  {
+   "view": "cab-inside",
+   "rmsDb": -28.8,
+   "peakDb": -16.5
+  },
+  {
+   "view": "human-scale",
+   "rmsDb": -30.1,
+   "peakDb": -18.5
+  }
+ ],
+ "muted": {
+  "view": "front-34-l",
+  "rmsDb": null,
+  "peakDb": null
+ },
+ "pass": true,
+ "errors": []
+}

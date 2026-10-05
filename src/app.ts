@@ -139,6 +139,8 @@ export class App {
     for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, false);
     for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, true);
     this.hotspots = new HotspotLayer(this.engine, this.tender);
+    // Low tier: small moving parts do not cast shadows (saves ~40 shadow-pass draw calls on phones)
+    if (this.tierName === 'low') for (const lod of [this.engine, this.tender]) lod.traverse((o) => { if ((o as THREE.Mesh).isMesh && /^(rod_|vg_|xh_|pr_|cab_gate)/.test(o.name)) o.castShadow = false; });
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);

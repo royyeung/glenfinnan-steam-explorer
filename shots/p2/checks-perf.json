@@ -1,0 +1,302 @@
+[
+ {
+  "viewport": "1280x720",
+  "tier": "low",
+  "view": "front-34-l",
+  "msPerFrame": 3914.7,
+  "msCpuSubmit": 8.3,
+  "stats": {
+   "tier": "low",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 147,
+   "triangles": 154730,
+   "textures": 18,
+   "geometries": 79,
+   "textureMB": 16.9,
+   "frameMsCPU": 5.2,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "1280x720",
+  "tier": "low",
+  "view": "site-wide",
+  "msPerFrame": 3215.4,
+  "msCpuSubmit": 6.9,
+  "stats": {
+   "tier": "low",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 139,
+   "triangles": 92272,
+   "textures": 18,
+   "geometries": 131,
+   "textureMB": 16.9,
+   "frameMsCPU": 7.8,
+   "frameMsGPU": 3907.72,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "1280x720",
+  "tier": "medium",
+  "view": "front-34-l",
+  "msPerFrame": 6293.3,
+  "msCpuSubmit": 10.4,
+  "stats": {
+   "tier": "medium",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 206,
+   "triangles": 161427,
+   "textures": 35,
+   "geometries": 80,
+   "textureMB": 16.9,
+   "frameMsCPU": 5.7,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "1280x720",
+  "tier": "medium",
+  "view": "site-wide",
+  "msPerFrame": 5477.3,
+  "msCpuSubmit": 7.3,
+  "stats": {
+   "tier": "medium",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 190,
+   "triangles": 96361,
+   "textures": 35,
+   "geometries": 132,
+   "textureMB": 16.9,
+   "frameMsCPU": 6.2,
+   "frameMsGPU": 6186.78,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "1280x720",
+  "tier": "high",
+  "view": "front-34-l",
+  "msPerFrame": 10581.7,
+  "msCpuSubmit": 14.8,
+  "stats": {
+   "tier": "high",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 396,
+   "triangles": 322838,
+   "textures": 37,
+   "geometries": 80,
+   "textureMB": 16.9,
+   "frameMsCPU": 14,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "1280x720",
+  "tier": "high",
+  "view": "site-wide",
+  "msPerFrame": 9172,
+  "msCpuSubmit": 13.6,
+  "stats": {
+   "tier": "high",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 364,
+   "triangles": 192706,
+   "textures": 37,
+   "geometries": 132,
+   "textureMB": 16.9,
+   "frameMsCPU": 14.4,
+   "frameMsGPU": 10548.79,
+   "dpr": 1,
+   "px": [
+    1280,
+    720
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "low",
+  "view": "front-34-l",
+  "msPerFrame": 1638.4,
+  "msCpuSubmit": 9.4,
+  "stats": {
+   "tier": "low",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 147,
+   "triangles": 154730,
+   "textures": 18,
+   "geometries": 79,
+   "textureMB": 16.9,
+   "frameMsCPU": 7.2,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "low",
+  "view": "site-wide",
+  "msPerFrame": 1230.4,
+  "msCpuSubmit": 6.4,
+  "stats": {
+   "tier": "low",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 139,
+   "triangles": 92272,
+   "textures": 18,
+   "geometries": 131,
+   "textureMB": 16.9,
+   "frameMsCPU": 7.3,
+   "frameMsGPU": 1592.94,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "medium",
+  "view": "front-34-l",
+  "msPerFrame": 2505,
+  "msCpuSubmit": 10.5,
+  "stats": {
+   "tier": "medium",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 206,
+   "triangles": 161427,
+   "textures": 35,
+   "geometries": 80,
+   "textureMB": 16.9,
+   "frameMsCPU": 8.5,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "medium",
+  "view": "site-wide",
+  "msPerFrame": 2057.1,
+  "msCpuSubmit": 5.8,
+  "stats": {
+   "tier": "medium",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 190,
+   "triangles": 96361,
+   "textures": 35,
+   "geometries": 132,
+   "textureMB": 16.9,
+   "frameMsCPU": 6.7,
+   "frameMsGPU": 2463.64,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "high",
+  "view": "front-34-l",
+  "msPerFrame": 4360.4,
+  "msCpuSubmit": 23.2,
+  "stats": {
+   "tier": "high",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 396,
+   "triangles": 322838,
+   "textures": 37,
+   "geometries": 80,
+   "textureMB": 16.9,
+   "frameMsCPU": 12.8,
+   "frameMsGPU": -1,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ },
+ {
+  "viewport": "844x390 (touch)",
+  "tier": "high",
+  "view": "site-wide",
+  "msPerFrame": 3704.7,
+  "msCpuSubmit": 15.7,
+  "stats": {
+   "tier": "high",
+   "reason": "chosen",
+   "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+   "calls": 364,
+   "triangles": 192706,
+   "textures": 37,
+   "geometries": 132,
+   "textureMB": 16.9,
+   "frameMsCPU": 17.5,
+   "frameMsGPU": 4389.89,
+   "dpr": 1,
+   "px": [
+    844,
+    390
+   ]
+  },
+  "errors": 0
+ }
+]

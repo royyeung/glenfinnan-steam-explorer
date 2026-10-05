@@ -8,7 +8,7 @@ Private, unofficial, educational WebGL recreation of LMS Black Five 45407 "The L
 
 Private inputs go in `reference/` (photos plus `captions.md`; see `docs/captions-template.md`) and `data/` (raw terrain downloads). Both are git-ignored and never deployed.
 
-Status: Phase 1 (foundations) done: live at https://royyeung.dev/glenfinnan/ (noindex; bots get 403).
+Status: Phase 2 (locomotive exterior) done: live at https://royyeung.dev/glenfinnan/ (noindex; bots get 403).
 
 ## Working on it
 

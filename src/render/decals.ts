@@ -12,10 +12,10 @@ function canvas(w: number, h: number) {
 }
 
 function cabNumber() {
-  const { c, g } = canvas(1024, 410);
+  const { c, g } = canvas(1024, 534); // panel 1.15 x 0.60 m; numerals about 0.26 m tall as on S33
   g.fillStyle = CREAM; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-  g.font = `600 70px ${FONT}`; g.fillText('5MT', 512, 120);
-  g.font = `600 235px ${FONT}`; g.fillText('45407', 512, 360);
+  g.font = `600 66px ${FONT}`; g.fillText('5MT', 512, 150);
+  g.font = `600 300px ${FONT}`; g.fillText('45407', 512, 420);
   return c;
 }
 

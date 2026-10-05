@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 1 (foundations) complete on 2026-10-05, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 2".**
+**Status:** Phase 2 (locomotive exterior) complete on 2026-10-05, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 3".**
 
 ---
 
@@ -310,6 +310,16 @@ Every phase ends the same way:
 - the budgets are met per tier;
 - every info hotspot has a label.
 
+**Result (2026-10-05).** Details in `shots/p2/NOTES.md`.
+
+- [x] **Kinematics** at all cut-offs: 6 reverser settings × 720 steps, both sides. Every link length constant (1.8e-15 m); every joint in the scene coincides (2e-15 m).
+- [x] **Overlays within tolerance:** chimney +0.7 cm, dome 0, buffers 1 pixel, tender tops 0. Cab roof +5 cm from the estimated roof ventilator.
+- [x] **Side-by-side with S33:** no unexplained major difference. Eight remaining differences are listed in NOTES (estimated valve-gear proportions, simplified artwork, mirrored left side, representative hidden detail).
+- [x] **Budgets met on every tier** (Low brought down from 189 to 147 draw calls).
+- [x] **Info hotspots:** 39 labelled parts.
+- [x] **Sound:** motion clank, drain cocks, leaks, injector. Audio check passes.
+- [x] **Human scale:** the measured 0.64 m cab entrance with gates; the walk reaches the footplate.
+
 ### Phase 3: Cab interior
 
 - **Footplate:** enterable, with steps and handrails at the right height.
@@ -386,5 +396,6 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 ## 12. Change log
 
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
+- 2026-10-05: Phase 2 built and verified (engine and tender exterior, full valve gear, livery, weathering, info mode, motion sounds).
 - 2026-10-05: Phase 1 built, verified and deployed (see Phase 1 Result). Domain-wide bot blocking added to Caddy. Sound plan added (§6a).
 - 2026-10-05: Your answers applied: repo live; folders inside the project; terrain = OS Terrain 50 + shaped near-field; first coach = standard-class TSO; no basic auth; test devices = Galaxy S26 Ultra + Windows 11 laptop (Chrome). Reference photos collected from Wikimedia Commons; REFERENCE §2/§6/§9 updated from dated 2025 photos.

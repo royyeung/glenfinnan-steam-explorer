@@ -27,9 +27,9 @@ function linedPanel(b: Batch, zf: number, zr: number, y0: number, y1: number, r:
 export function engineLivery(b: Batch) {
   const z = zEngine, { cw } = cabShape(), rpW = v('runningPlateWidth') / 2, rpH = v('runningPlateH');
   for (const s of [1, -1]) {
-    // cab side panel around the number (measured d 10.25-11.56, h 1.70-2.23)
-    linedPanel(b, z(10.25), z(11.56), 1.7, 2.23, 0.06, s * (cw + 0.001), s);
-    b.add('decal_cabnum', sideDecal(1.05, 0.42, s * (cw + 0.006), 1.97, z(10.9), s));
+    // cab side panel around the number (measured d 10.25-11.56, h 1.40-2.23)
+    linedPanel(b, z(10.25), z(11.56), 1.4, 2.23, 0.06, s * (cw + 0.001), s);
+    b.add('decal_cabnum', sideDecal(1.15, 0.6, s * (cw + 0.006), 1.82, z(10.9), s));
     // valance: red line along the running-plate edge
     if (DETAIL >= 0.5) b.add('lining_red', boxMinMax(s * (rpW + 0.001), rpH - 0.13, z(v('cabFrontD')), s * (rpW + 0.004), rpH - 0.12, z(v('runningPlateDropD'))));
     // cylinder ends lined red
@@ -52,6 +52,6 @@ export function tenderLivery(b: Batch) {
   const z = zTender, tw = v('tenderWidth') / 2;
   for (const s of [1, -1]) {
     linedPanel(b, z(12.62), z(18.85), 1.28, 2.5, 0.12, s * (tw + 0.001), s);
-    b.add(s > 0 ? 'decal_emblem_l' : 'decal_emblem', sideDecal(0.66, 0.6, s * (tw + 0.006), 2.13, z(15.66), s));
+    b.add(s > 0 ? 'decal_emblem_l' : 'decal_emblem', sideDecal(0.9, 0.82, s * (tw + 0.006), 2.0, z(15.66), s)); // ~0.8 m tall on S33
   }
 }
