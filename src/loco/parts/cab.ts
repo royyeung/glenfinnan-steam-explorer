@@ -65,7 +65,7 @@ export function cab(b: Batch) {
       b.add('steel', pipe([new THREE.Vector3(ix, 1.1, iz), new THREE.Vector3(ix, 0.6, iz - 0.1), new THREE.Vector3(ix, 0.3, iz - 0.15)], 0.02));
     }
   }
-  b.add('cab_inside', boxMinMax(-cw + 0.03, v('footplateH') - 0.04, z(cf), cw - 0.03, v('footplateH'), z(v('engineRearD'))));
+  b.add('smokebox', boxMinMax(-cw + 0.03, v('footplateH') - 0.04, z(cf), cw - 0.03, v('footplateH'), z(v('engineRearD')))); // footplate (detailed in Phase 3)
 }
 
 function dedupe(pts: [number, number][]) {

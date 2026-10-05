@@ -112,6 +112,7 @@ export class LocoRig {
       gaps[n('cr')] = Math.max(d(at(n('rod_cr'), L(0)), drive), d(at(n('rod_cr'), L(drive.distanceTo(trail))), trail));
       gaps[n('cn')] = Math.max(d(at(n('rod_cn'), L(0)), at(n('xh'), L(0))), d(at(n('rod_cn'), L(B5.conRodLength.v)), drive));
       gaps[n('er')] = Math.max(d(at(n('vg_er'), L(0)), rpin), d(at(n('vg_er'), L(vg.eccentricRod)), at(n('vg_link'), new THREE.Vector3(0, -vg.footOffset, 0))));
+      this.nodes.get(n('vg_rr'))!.updateWorldMatrix(true, false); this.nodes.get(n('vg_link'))!.updateWorldMatrix(true, false);
       const dieLocal = new THREE.Vector3(0, 0, 0).applyMatrix4(this.nodes.get(n('vg_rr'))!.matrixWorld).applyMatrix4(new THREE.Matrix4().copy(this.nodes.get(n('vg_link'))!.matrixWorld).invert());
       gaps[n('die_on_link')] = Math.abs(dieLocal.z); // the die must sit on the link's axis
       gaps[n('rr_cl')] = d(at(n('vg_rr'), L(vg.radiusRod)), at(n('vg_cl'), L(0)));

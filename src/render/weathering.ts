@@ -90,7 +90,7 @@ export class Weathering {
                 roughnessFactor = clamp(roughnessFactor + (big - 0.5) * 0.3 * W, 0.12, 0.8);
               #elif ${kid} == 4
                 diffuseColor.rgb = mix(diffuseColor.rgb, grimeCol, W * 0.45 * smoothstep(0.4, 0.8, big));
-                float chip = W * smoothstep(0.82, 0.9, wNoise(p * 30.0));
+                float chip = W * 0.5 * smoothstep(0.9, 0.97, wNoise(p * 30.0));
                 diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.05), chip);
                 roughnessFactor = clamp(roughnessFactor + 0.2 * W * big, 0.0, 1.0);
                 wBump = chip;

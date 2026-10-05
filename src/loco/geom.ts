@@ -197,5 +197,6 @@ export function boxAlong(len: number, h: number, w: number, at: THREE.Vector3, p
 
 /** Rounded box: extruded rounded rectangle section (x,y) along z. */
 export function roundBox(x0: number, y0: number, x1: number, y1: number, z0: number, z1: number, r: number) {
+  if (x1 <= x0 || y1 <= y0) throw new Error(`roundBox: inverted extents x ${x0}..${x1}, y ${y0}..${y1}`);
   return extrudeSection(roundedRect(x0, y0, x1, y1, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2), 4), z0, z1);
 }

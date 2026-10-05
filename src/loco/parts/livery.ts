@@ -43,7 +43,8 @@ export function engineLivery(b: Batch) {
   const B = boilerShape();
   if (DETAIL >= 0.5) for (const d of bandPositions()) for (const dd of [-0.05, 0.05]) b.add('lining_red', bandZ(B.radiusAt(d) + 0.002, 0.008, 0.002, z(d + dd), 0, B.centreAt(d)));
   // headboard on the top lamp iron (blue arched board, 2025 photos)
-  const hb = new THREE.PlaneGeometry(0.95, 0.32); hb.translate(0, v('smokeboxTopH') - 0.05, z(v('smokeboxFrontD') - 0.08));
+  // headboard hangs on the top lamp iron, overlapping the top of the smokebox door (2025 photos)
+  const hb = new THREE.PlaneGeometry(0.95, 0.32); hb.translate(0, v('smokeboxTopH') - 0.2, z(v('smokeboxDoorD') - 0.12));
   b.add('decal_headboard', hb);
 }
 

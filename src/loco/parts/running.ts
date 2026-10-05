@@ -96,7 +96,7 @@ export function running(b: Batch) {
 
   // --- along the running plate: lubricators (right, measured), sandbox fillers, pipes
   for (const d of [v('lubricator1D'), v('lubricator2D')]) {
-    b.add('paint_black', roundBox(-rpW + 0.12, rpH, z(d + 0.15), -rpW + 0.42, rpH + 0.26, z(d - 0.15), 0.03));
+    b.add('paint_black', roundBox(-rpW + 0.12, rpH, -rpW + 0.42, rpH + 0.26, z(d + 0.15), z(d - 0.15), 0.03));
     b.add('steel', cylZ(0.04, 0.04, z(d) - 0.02, z(d) + 0.02, -rpW + 0.27, rpH + 0.3, 10));
   }
   b.add('steel', pipe([new THREE.Vector3(-rpW + 0.3, rpH + 0.05, z(v('lubricator2D') - 0.15)), new THREE.Vector3(-rpW + 0.35, rpH + 0.05, z(5.6)), new THREE.Vector3(-rpW + 0.3, rpH + 0.04, z(3.4)), new THREE.Vector3(-v('cylLateral'), rpH - 0.1, z(3.0))], 0.012));

@@ -74,3 +74,21 @@ Shed plate on the smokebox door (2023): **65J**, the BR code of Fort William she
 - **Perspective:** S33 is not a true orthographic elevation. The camera stood close beside the line at the viaduct end, and the loco may sit on the curve. The scale cross-checks agree to 0.4 % over the loco; local errors of about ±5 cm are expected, and ±10–25 cm on hidden undergear.
 - **Dark undergear:** wheels and frames are hard to resolve. Positions of hidden parts come from the cross-checked wheelbase, not from the photo.
 - **Widths:** these are from one head-on photo and a standard-practice assumption. Cab and tender widths are not measured (perspective); they are estimates.
+
+## Phase 2 details (S33, same scale and conventions)
+
+| Feature | Pixel (x, y) | d (m) | h (m) | Note |
+|---|---|---|---|---|
+| Expansion link centre (trunnion) | ≈ 3307, 3241 | 5.76 | 1.44 | Between leading and driving axles. Replaces the Phase 1 estimate (5.15 / 1.30). |
+| Combination lever | ≈ 3809–3875, 3283–3421 | 3.6–3.35 | 1.26–0.68 | Partly hidden: low confidence |
+| Outside steam pipe casing | x 4031–4108, y 2948–3137 | 2.69–2.35 | 2.69–1.88 | Rounded top; light (weathered) in the photo |
+| Mechanical lubricators (2) | x 2844–2915, 2946–3016 | 7.73–7.43, 7.30–7.00 | 1.88–2.14 | On the right-hand running plate |
+| Nameplate | x 3331–3606 | 5.66–4.49 | ≈ 2.0–2.15 | Arched, crest above at h ≈ 2.3 |
+| Boiler bands (red-lined) | x 2930, 3213, 3519 | 7.37, 6.16, 4.86 | | |
+| Cab number panel lining | x 1946–2254, y 3055–3250 | 11.56–10.25 | 2.23–1.70 | Cream outer and red inner line |
+| Tender panel lining | x 226–1722, y 2991–3282 | 18.86–12.51 | 2.51–1.27 | Rounded corners |
+| Tender emblem centre | 980, 3080 | 15.66 | 2.13 | About 0.66 m wide |
+| Front footsteps | x 4407–4509 | 1.08–0.65 | 1.02–0.30 | Below the front drop plate |
+| Driving-wheel spokes | | | | About 20 per wheel (counted on the rear driver) |
+
+All "photo:S33" values in `src/specs/black5.ts` are flagged medium (or low where the part is partly hidden).

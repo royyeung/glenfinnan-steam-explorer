@@ -32,8 +32,9 @@ export function tenderBody(b: Batch) {
   const prof = tenderSideProfile();
   for (const s of [1, -1]) b.add('paint_black', extrudeSide(prof, s * tw, s * (tw - 0.03)));
   // front bulkhead with coal doors and the shovelling plate, rear coal plate
-  b.add('paint_black', boxMinMax(-tw, top, z(front + 0.02), tw, 2.95, z(front + 0.06)));
-  b.add('paint_black', boxMinMax(-0.4, top - 0.65, z(front - 0.01), 0.4, top + 0.25, z(front + 0.02)));
+  // front bulkhead and coal doors: grimy, coal-dusted (matt)
+  b.add('smokebox', boxMinMax(-tw, top, z(front + 0.02), tw, 2.95, z(front + 0.06)));
+  b.add('smokebox', boxMinMax(-0.4, top - 0.65, z(front - 0.01), 0.4, top + 0.25, z(front + 0.02)));
   b.add('paint_black', boxMinMax(-tw + 0.03, top, z(step - 0.32), tw - 0.03, side - 0.1, z(step - 0.28)));
   // coal heap: bumpy surface between the sides (procedural lumps)
   const coal = new THREE.PlaneGeometry(2 * tw - 0.1, step - 0.4 - (front + 0.12), Math.round(18 * DETAIL) + 2, Math.round(40 * DETAIL) + 2);

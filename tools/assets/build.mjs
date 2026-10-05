@@ -36,7 +36,8 @@ function toDocument(root) {
       const geo = o.geometry, prim = doc.createPrimitive().setMaterial(material(o.material));
       prim.setAttribute('POSITION', acc(new Float32Array(geo.getAttribute('position').array), 'VEC3'));
       if (geo.getAttribute('normal')) prim.setAttribute('NORMAL', acc(new Float32Array(geo.getAttribute('normal').array), 'VEC3'));
-      if (geo.getAttribute('uv')) prim.setAttribute('TEXCOORD_0', acc(new Float32Array(geo.getAttribute('uv').array), 'VEC2'));
+      // only decal panels need UVs (everything else is shaded procedurally): keeps files small
+      if (geo.getAttribute('uv') && /^decal_/.test(o.material.name)) prim.setAttribute('TEXCOORD_0', acc(new Float32Array(geo.getAttribute('uv').array), 'VEC2'));
       if (geo.index) prim.setIndices(acc(new Uint32Array(geo.index.array), 'SCALAR'));
       n.setMesh(doc.createMesh(o.name).addPrimitive(prim));
     }
@@ -58,7 +59,8 @@ for (const [name, build] of [['engine', buildEngine], ['tender', buildTender]]) 
     const doc = toDocument(root);
     const steps = [dedup(), weld()];
     if (LODS[l].ratio < 1) steps.push(simplify({ simplifier: MeshoptSimplifier, ratio: LODS[l].ratio, error: LODS[l].error, lockBorder: false }));
-    steps.push(prune({ keepLeaves: true }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+    // keepAttributes: decal panels get their textures at runtime, so their UVs must survive pruning
+    steps.push(prune({ keepLeaves: true, keepAttributes: true }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
     await doc.transform(...steps);
     const file = `${OUT}/${name}_lod${l}.glb`;
     await io.write(file, doc);
