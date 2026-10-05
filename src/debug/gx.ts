@@ -62,7 +62,7 @@ export function installGX(app: App) {
       const seq = (from: number) => { const lv = [B5.cabStepLowerH.v, B5.cabStepUpperH.v, floor].filter((h) => h > from + 0.01); return lv.map((h, i) => h - (i ? lv[i - 1] : from)); };
       const rises = seq(SITE.platformHeight.v);
       const fromBallast = seq(0);
-      const doorway = B5.cabRoofRearD.v - B5.cabOpeningFrontD.v;
+      const doorway = B5.cabOpeningRearD.v - B5.cabOpeningFrontD.v;
       return {
         avatar: AVATAR,
         cabHeadroom_m: +(roofUnder - floor).toFixed(3), headroomOK: roofUnder - floor >= AVATAR.height + 0.05,

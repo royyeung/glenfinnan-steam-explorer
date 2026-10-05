@@ -43,7 +43,7 @@ export function tenderBody(b: Batch) {
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), zz = p.getZ(i), edge = 1 - Math.pow(Math.abs(x) / tw, 4);
     const lump = 0.05 * Math.sin(x * 23.1 + zz * 7.3) * Math.cos(zz * 19.7 - x * 5.1) + 0.03 * Math.sin(x * 51 + zz * 43);
-    p.setY(i, side - 0.12 + 0.2 * edge + lump);
+    p.setY(i, side - 0.3 + 0.18 * edge + lump); // heaped just below the side sheets (S33)
   }
   coal.computeVertexNormals();
   coal.translate(0, 0, (z(front + 0.12) + z(step - 0.4)) / 2);
@@ -66,8 +66,8 @@ export function tenderBody(b: Batch) {
     b.add('paint_black', boxMinMax(s * (fr - 0.03), 0.55, z(rear), s * fr, bot - 0.05, z(front + 0.05)));
     for (const d of tenderAxlesD()) {
       b.add('paint_black', boxMinMax(s * (fr - 0.02), r - 0.2, z(d) - 0.17, s * (fr + 0.14), r + 0.2, z(d) + 0.17));
-      b.add('steel', boxMinMax(s * (fr - 0.01), r + 0.21, z(d) - 0.55, s * (fr + 0.12), r + 0.29, z(d) + 0.55));
-      for (const k of [0.1, 0.2]) b.add('steel', boxMinMax(s * (fr + 0.0), r + 0.21 - k * 0.3, z(d) - 0.55 + k * 1.6, s * (fr + 0.11), r + 0.24 - k * 0.3, z(d) + 0.55 - k * 1.6));
+      b.add('paint_black', boxMinMax(s * (fr - 0.01), r + 0.21, z(d) - 0.55, s * (fr + 0.12), r + 0.29, z(d) + 0.55));
+      for (const k of [0.1, 0.2]) b.add('paint_black', boxMinMax(s * (fr + 0.0), r + 0.21 - k * 0.3, z(d) - 0.55 + k * 1.6, s * (fr + 0.11), r + 0.24 - k * 0.3, z(d) + 0.55 - k * 1.6));
       if (DETAIL >= 0.5) {
         const bz = z(d) - r - 0.06, hx = s * v('wheelTreadOffset');
         b.add('paint_black', boxMinMax(hx - 0.04, r - 0.2, bz - 0.04, hx + 0.04, bot - 0.06, bz + 0.04));

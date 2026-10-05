@@ -21,8 +21,9 @@ export function wheel(b: Batch, o: WheelOpts) {
   const { r, x, outward } = o, tread = 0.14, flange = 0.03;
   const rimIn = r - 0.075, hubR = Math.max(0.12, r * 0.17), face = x + outward * tread / 2;
   // tyre with flange on the inside, bright tread
-  b.add('steel', ring(r, r - 0.045, x - tread / 2, x + tread / 2));
-  b.add('steel', ring(r + flange, r - 0.02, x - outward * (tread / 2) - 0.014, x - outward * (tread / 2) + 0.014));
+  b.add('wheel', ring(r, r - 0.045, x - tread / 2, x + tread / 2));                       // tyre (painted faces)
+  { const t = new THREE.CylinderGeometry(r + 0.001, r + 0.001, tread - 0.004, 56, 1, true); t.rotateZ(Math.PI / 2); t.translate(x, 0, 0); b.add('steel', t); } // worn bright tread (open band)
+  b.add('wheel', ring(r + flange, r - 0.02, x - outward * (tread / 2) - 0.014, x - outward * (tread / 2) + 0.014));
   b.add('wheel', ring(r - 0.045, rimIn, x - tread / 2 + 0.012, x + tread / 2 - 0.012));
   b.add('wheel', cylX(hubR, tread + 0.06, x + outward * 0.02, 0, 0, 24));
   b.add('steel', cylX(0.085, 0.03, face + outward * 0.04, 0, 0, 16)); // axle end

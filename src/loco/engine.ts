@@ -5,7 +5,7 @@ import { B5, zTender } from '../specs/black5.ts';
 import { Batch } from './geom.ts';
 import { engineLayout, motionGeometry, valveGearGeometry } from './layout.ts';
 import { boiler } from './parts/boiler.ts';
-import { cab } from './parts/cab.ts';
+import { cab, cabGates } from './parts/cab.ts';
 import { engineLivery, tenderLivery } from './parts/livery.ts';
 import { PLANES, buildMotionParts, motionStatic } from './parts/motion.ts';
 import { running } from './parts/running.ts';
@@ -39,6 +39,7 @@ export function buildEngine(mats: Mats): THREE.Group {
   ];
   for (const [name, a, wb] of sets) { const g = group(name, wb, mats); g.position.set(0, a.y, a.z); E.add(g); }
   for (const g of buildMotionParts(mats)) E.add(g);
+  for (const g of cabGates(mats)) E.add(g);
   return E;
 }
 

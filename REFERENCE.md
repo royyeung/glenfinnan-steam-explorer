@@ -79,6 +79,7 @@ The 35 reference images downloaded so far are listed with author and licence in 
 | Item | Value | Source | Confidence |
 |---|---|---|---|
 | Wheel arrangement | 4-6-0 (UIC 2′C h2): two-cylinder, superheated | S1, S3 | High |
+| Driving-wheel spokes | About 20 (counted on S33, rear driver) | photo:S33 | Medium |
 | Gauge | 4 ft 8½ in (1.435 m) | S1 | High |
 | Built | 842 locos, 1934–1951 | S1, S3 | High |
 | Driving wheels | 6 ft 0 in (1.829 m) diameter | S1, S31 | High |
@@ -201,6 +202,12 @@ Their exact count and positions are **UNVERIFIED**.
 | Driven axle | **UNVERIFIED** (middle coupled axle expected for a 4-6-0 with outside cylinders) | none | Confirm from photos |
 | Return crank throw and angle; eccentric rod; expansion link radius and trunnion position; radius rod; combination lever ratio (lap + lead); union link; valve travel | **UNVERIFIED** | none | Needs a valve-gear drawing (D02). Otherwise these are solved to plausible valve events and **flagged as estimated**. |
 | Balance weights (shape and size per wheel) | **UNVERIFIED** | none | Photo L13 |
+
+**Phase 2 status (2026-10-05):** the full Walschaerts gear is built and animated (`src/loco/motion/walschaerts.ts`).
+- **From photo S33 (medium):** expansion-link centre at d 5.76 m, h 1.44 m; combination lever near d 3.45 m (low, partly hidden).
+- **Estimated:** return-crank throw 0.15 m at 90° to the crank, link foot 0.40 m, die range ±0.24 m, lever proportions 0.10 / 0.70 m, crosshead arm 0.20 m, reversing-shaft position.
+- **Derived link lengths** (closing exactly at mid gear): eccentric rod, radius rod, union link, lifting link.
+- **Results:** valve travel 189 mm in full forward gear, 89 mm in mid gear (lap + lead), 193 mm in full back gear. Die slip ±3–34 mm. Plausible, not verified.
 
 **Plan if no drawing arrives.** Build the linkage as an exact pinned-joint solver, so it can never disconnect. Choose link lengths so that:
 

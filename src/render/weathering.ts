@@ -84,10 +84,10 @@ export class Weathering {
                 roughnessFactor = clamp(roughnessFactor - oil * 0.35 + brake * 0.25, 0.05, 1.0);
                 wBump = fine * 0.4 + brake * 0.6;
               #elif ${kid} == 3
-                float film = W * smoothstep(0.4, 0.8, mid);
-                diffuseColor.rgb *= mix(1.0, 0.72, film);
+                float film = W * (0.35 + 0.65 * smoothstep(0.3, 0.75, mid));
+                diffuseColor.rgb *= mix(1.0, 0.45, film);
                 diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.3, 0.2, 0.12), W * 0.18 * smoothstep(0.6, 0.85, big));
-                roughnessFactor = clamp(roughnessFactor + (big - 0.5) * 0.3 * W, 0.12, 0.8);
+                roughnessFactor = clamp(roughnessFactor + (big - 0.3) * 0.35 * W, 0.15, 0.8);
               #elif ${kid} == 4
                 diffuseColor.rgb = mix(diffuseColor.rgb, grimeCol, W * 0.45 * smoothstep(0.4, 0.8, big));
                 float chip = W * 0.5 * smoothstep(0.9, 0.97, wNoise(p * 30.0));

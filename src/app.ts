@@ -248,6 +248,16 @@ export class App {
 
   setWheelAngle(theta: number) { this.theta = theta; for (const r of this.rigs) r.setWheelAngle(theta); }
 
+  private gateOpen = 0;
+  /** Cab gates swing open when you walk up to the cab, and close again when you leave. */
+  private updateGates(dt: number) {
+    const lvl = this.engine.levels[0]?.object; if (!lvl) return;
+    const near = this.mode === 'walk' && this.walker.feet.distanceTo(new THREE.Vector3(0, B5.footplateH.v, zEngine(12.1))) < 2.6;
+    this.gateOpen = THREE.MathUtils.clamp(this.gateOpen + (near ? 1 : -1) * dt * 1.5, 0, 1);
+    const a = THREE.MathUtils.smoothstep(this.gateOpen, 0, 1) * 1.45;
+    for (const l of this.engine.levels) for (const [n, s] of [['cab_gate_L', 1], ['cab_gate_R', -1]] as const) { const g = l.object.getObjectByName(n); if (g) g.rotation.y = s * a; }
+  }
+
   setCutoff(c: number) { this.cutoff = c; for (const r of this.rigs) r.setCutoff(c); }
 
   /** Advance the simulation by n fixed steps (used directly in deterministic mode). */
@@ -282,6 +292,7 @@ export class App {
     }
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) this.orbit.update();
+    this.updateGates(params.fixed ? 1 : dt);
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     this.atmosphere.update(this.simTime);
     this.weathering.update();

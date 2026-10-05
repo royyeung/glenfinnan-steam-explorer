@@ -118,8 +118,8 @@ export function running(b: Batch) {
   for (const d of [axles.lead, axles.drive, axles.trail]) for (const s of [1, -1]) {
     const x = s * (fw + 0.07);
     b.add('paint_black', boxMinMax(x - 0.08, rD - 0.18, z(d) - 0.17, x + 0.08, rD + 0.2, z(d) + 0.17));
-    b.add('steel', boxMinMax(x - 0.06, rD - 0.42, z(d) - 0.55, x + 0.06, rD - 0.33, z(d) + 0.55));
-    b.add('steel', boxMinMax(x - 0.05, rD - 0.33, z(d) - 0.05, x + 0.05, rD - 0.18, z(d) + 0.05));
+    b.add('paint_black', boxMinMax(x - 0.06, rD - 0.42, z(d) - 0.55, x + 0.06, rD - 0.33, z(d) + 0.55));
+    b.add('paint_black', boxMinMax(x - 0.05, rD - 0.33, z(d) - 0.05, x + 0.05, rD - 0.18, z(d) + 0.05));
     if (DETAIL >= 0.5) {
       const bz = z(d) + rD + 0.05, hx = s * (v('wheelTreadOffset'));
       b.add('paint_black', boxMinMax(hx - 0.04, rD - 0.25, bz - 0.04, hx + 0.04, rD + 0.55, bz + 0.04));

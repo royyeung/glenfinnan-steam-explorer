@@ -50,6 +50,9 @@ export const HOTSPOTS: Hotspot[] = [
   { id: 'tenderwheels', name: 'Tender wheels and springs', what: 'Three axles with axleboxes and leaf springs on outside frames.', does: 'Carry the heavy tender smoothly; brake blocks act on the wheel treads.', d: 15.7, h: 0.9, x: 1.12, on: 'tender' },
 ];
 
+/** Shown at any distance; the rest appear as you come closer (de-clutters the overview). */
+const MAIN = new Set(['chimney', 'smokebox', 'buffers', 'bogie', 'cylinder', 'drivers', 'link', 'boiler', 'dome', 'firebox', 'cab', 'tender', 'coal', 'nameplate']);
+
 export class HotspotLayer {
   private el: HTMLElement;
   private panel: HTMLElement;
@@ -85,6 +88,7 @@ export class HotspotLayer {
   update(camera: THREE.Camera, w: number, h: number) {
     if (!this.visible) return;
     const p = new THREE.Vector3(), camPos = camera.getWorldPosition(new THREE.Vector3());
+    const placed: [number, number][] = [];
     for (const m of this.marks) {
       const root = m.h.on === 'engine' ? this.engine : this.tender;
       p.copy(m.local); root.localToWorld(p);
@@ -93,9 +97,11 @@ export class HotspotLayer {
       const farSide = Math.abs(m.h.x) > 0.3 && Math.sign(m.h.x) !== Math.sign(camLocal.x) && Math.abs(camLocal.x) > 1.5;
       const dist = p.distanceTo(camPos);
       p.project(camera);
-      const show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && dist < 45;
+      const sx = ((p.x + 1) / 2) * w, sy = ((1 - p.y) / 2) * h;
+      let show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && dist < 45 && (dist < 14 || MAIN.has(m.h.id));
+      if (show && placed.some(([x, y]) => Math.hypot(x - sx, y - sy) < 30)) show = false; // no overlapping markers
       m.el.hidden = !show;
-      if (show) m.el.style.transform = `translate(${((p.x + 1) / 2) * w - 13}px, ${((1 - p.y) / 2) * h - 13}px)`;
+      if (show) { placed.push([sx, sy]); m.el.style.transform = `translate(${sx - 13}px, ${sy - 13}px)`; }
     }
   }
 }
