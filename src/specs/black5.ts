@@ -42,6 +42,23 @@ export const B5: SpecTable = {
   conRodLateral: spec(0.98, 'estimate', 'estimate', 'same plane as cylinder centre line'),
   rightSideLeads: spec(1, 'estimate', 'estimate', '1 = right crank leads left by 90°'),
 
+  // --- Walschaerts valve gear (no drawing available: positions estimated from photos, lengths derived) ---
+  valveGearLateral: spec(1.08, 'estimate', 'estimate', 'plane of radius rod / combination lever'),
+  returnCrankThrow: spec(0.15, 'estimate', 'estimate', 'return-crank pin from the main crankpin'),
+  returnCrankAngleDeg: spec(-90, 'estimate', 'estimate', 'return crank relative to main crank'),
+  trunnionD: spec(5.15, 'estimate', 'estimate', 'expansion link pivot; photo S33 shows it above the leading coupled wheel'),
+  trunnionH: spec(1.3, 'estimate', 'estimate'),
+  linkFootOffset: spec(0.4, 'estimate', 'estimate', 'trunnion to eccentric-rod pin'),
+  dieRange: spec(0.24, 'estimate', 'estimate', 'die travel either side of the trunnion at full gear'),
+  valveSpindleD: spec(3.35, 'estimate', 'estimate', 'combination lever position'),
+  leverTopToValve: spec(0.1, 'estimate', 'estimate'),
+  leverValveToBottom: spec(0.7, 'estimate', 'estimate'),
+  crossheadArmDrop: spec(0.2, 'estimate', 'estimate'),
+  liftPivotD: spec(5.12, 'estimate', 'estimate', 'reversing shaft'),
+  liftPivotH: spec(1.66, 'estimate', 'estimate'),
+  liftArm: spec(0.33, 'estimate', 'estimate'),
+  liftSlotNominal: spec(0.35, 'estimate', 'estimate'),
+
   // --- buffers & beam ---
   bufferH: spec(1.04, photo, 'medium'),
   bufferCentres: spec(ft(5, 8.5), 'standard-practice', 'medium'),
