@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+  <title>Glenfinnan Steam Explorer (unofficial)</title>
+  <style>
+    :root { --ink: #f2efe6; --dim: #b8b2a3; --panel: rgba(16, 18, 20, 0.78); --accent: #d8b45a; --red: #a3281c; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0c0d; color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; touch-action: none; }
+    canvas#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    button, select, input { font: inherit; color: inherit; }
+    .btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; padding: 8px 12px; min-height: 40px; cursor: pointer; }
+    .btn:hover, .btn:focus-visible { background: rgba(255, 255, 255, 0.16); outline: 2px solid var(--accent); outline-offset: 1px; }
+    .btn[aria-pressed="true"] { background: var(--accent); color: #111; border-color: var(--accent); }
+    #loading { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #23272b, #0b0c0d 70%); z-index: 20; padding: 24px; }
+    #loading .card { max-width: 560px; width: 100%; }
+    #loading h1 { font-size: clamp(22px, 5vw, 34px); margin: 0 0 4px; letter-spacing: 0.02em; }
+    #loading .sub { color: var(--dim); margin: 0 0 22px; }
+    .bar { height: 6px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+    #loadText { color: var(--dim); font-size: 13px; margin-top: 8px; min-height: 1.4em; }
+    #start { margin-top: 18px; font-size: 17px; padding: 12px 22px; display: none; }
+    .note { margin-top: 22px; font-size: 12.5px; color: var(--dim); border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 12px; }
+    #hud { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; pointer-events: none; z-index: 5; }
+    #hud > * { pointer-events: auto; }
+    #hud .group { display: flex; gap: 6px; background: var(--panel); border-radius: 10px; padding: 6px; align-items: center; }
+    #hud label { font-size: 13px; color: var(--dim); display: flex; gap: 6px; align-items: center; }
+    #hud input[type=range] { width: 110px; accent-color: var(--accent); }
+    #title { position: fixed; top: calc(10px + env(safe-area-inset-top)); left: 12px; background: var(--panel); padding: 6px 10px; border-radius: 8px; font-size: 13px; color: var(--dim); z-index: 5; }
+    #title b { color: var(--ink); }
+    #help { position: fixed; top: calc(10px + env(safe-area-inset-top)); right: 12px; background: var(--panel); padding: 8px 10px; border-radius: 8px; font-size: 12.5px; color: var(--dim); max-width: 280px; z-index: 5; }
+    #about { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; z-index: 30; padding: 20px; }
+    #about .card { background: #16191c; border-radius: 12px; max-width: 620px; max-height: 85vh; overflow: auto; padding: 18px 20px; }
+    #about h2 { margin-top: 0; }
+    #about li { margin: 4px 0; }
+    #perf { position: fixed; top: 54px; left: 12px; background: rgba(0, 0, 0, 0.72); font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; border-radius: 8px; white-space: pre; z-index: 6; pointer-events: none; }
+    .joy { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); background: rgba(0, 0, 0, 0.18); z-index: 4; touch-action: none; }
+    .joy i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
+    #joyL { left: 24px; }
+    #lookHint { position: fixed; right: 24px; bottom: calc(110px + env(safe-area-inset-bottom)); color: var(--dim); font-size: 12px; z-index: 4; }
+    #cross { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); z-index: 4; pointer-events: none; }
+    [hidden] { display: none !important; }
+    @media (max-width: 640px) { #help { display: none; } #hud input[type=range] { width: 80px; } }
+    @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="view" aria-label="3D view of the locomotive"></canvas>
+
+  <div id="loading" role="dialog" aria-modal="true" aria-labelledby="ltitle">
+    <div class="card">
+      <h1 id="ltitle">Glenfinnan Steam Explorer</h1>
+      <p class="sub">LMS Black Five 45407 “The Lancashire Fusilier” · Phase 1 foundations</p>
+      <div class="bar" aria-hidden="true"><i id="loadBar"></i></div>
+      <div id="loadText" role="status" aria-live="polite">Preparing…</div>
+      <button id="start" class="btn">Start (sound on)</button>
+      <p class="note">Unofficial private educational project. Not affiliated with or endorsed by West Coast Railways, Riley &amp; Son, Network Rail, Historic Environment Scotland or the owners of 45407. “The Jacobite” is West Coast Railways’ service name. Built from published references and photographs; see About for sources and what is still estimated.</p>
+    </div>
+  </div>
+
+  <div id="title" hidden><b>45407</b> · blockout · <span id="modeName">Orbit</span></div>
+  <div id="help" hidden></div>
+  <div id="perf" hidden></div>
+  <div id="cross" hidden></div>
+  <div id="joyL" class="joy" hidden><i></i></div>
+  <div id="lookHint" hidden>drag right side to look</div>
+
+  <div id="hud" hidden>
+    <div class="group" role="group" aria-label="View mode">
+      <button class="btn" id="mOrbit" aria-pressed="true">Orbit</button>
+      <button class="btn" id="mWalk" aria-pressed="false">Walk</button>
+    </div>
+    <div class="group">
+      <button class="btn" id="motion" aria-pressed="false" title="Turn the wheels in place (rolling road)">Motion</button>
+      <label>Time <input type="range" id="hour" min="4" max="22" step="0.25" aria-label="Time of day" /></label>
+    </div>
+    <div class="group">
+      <button class="btn" id="mute" aria-pressed="false" aria-label="Mute sound">Sound on</button>
+      <label>Vol <input type="range" id="vol" min="0" max="1" step="0.05" value="0.8" aria-label="Volume" /></label>
+    </div>
+    <div class="group">
+      <select class="btn" id="quality" aria-label="Quality">
+        <option value="auto">Auto</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+      <button class="btn" id="aboutBtn">About</button>
+    </div>
+  </div>
+
+  <div id="about" hidden role="dialog" aria-modal="true" aria-labelledby="atitle">
+    <div class="card">
+      <h2 id="atitle">About this project</h2>
+      <p>An <b>unofficial, private, educational</b> recreation of LMS Stanier Class 5 No. 45407 and its train on the Glenfinnan Viaduct. It is not affiliated with or endorsed by West Coast Railways, Riley &amp; Son (E) Ltd, Network Rail, Historic Environment Scotland or the locomotive’s owners.</p>
+      <h3>Accuracy (Phase 1)</h3>
+      <p>This is a blockout: proportions come from published figures and from measurements of dated 2023–2025 photographs, scaled from the 6 ft driving wheels. Values still marked as estimates are listed below and in the project’s REFERENCE.md.</p>
+      <ul id="estList"></ul>
+      <h3>Credits</h3>
+      <ul>
+        <li>Textures: Poly Haven “Gravel Stones” and “Aerial Grass Rock”, CC0.</li>
+        <li>Software: three.js (MIT), three-mesh-bvh (MIT), lil-gui (MIT), Basis Universal transcoder (Apache-2.0), glTF-Transform and meshoptimizer (MIT).</li>
+        <li>Terrain (from Phase 5): OS Terrain 50, contains OS data © Crown copyright and database right; Scottish LiDAR where published, © Crown copyright Scottish Government.</li>
+        <li>Sound: procedural (Web Audio), no recordings.</li>
+      </ul>
+      <button class="btn" id="aboutClose">Close</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

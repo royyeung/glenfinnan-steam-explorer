@@ -1,0 +1,5 @@
+{
+  "_note": "CC0 textures from Poly Haven (https://polyhaven.com/license). Raw downloads go to data/cc0/ (git-ignored); KTX2 output to public/textures/.",
+  "ballast": { "id": "gravel_stones", "res": "1k", "maps": ["Diffuse", "nor_gl", "Rough"] },
+  "ground": { "id": "aerial_grass_rock", "res": "1k", "maps": ["Diffuse", "nor_gl", "Rough"] }
+}

@@ -1,0 +1,317 @@
+// Application: renderer, scene, loading, modes (orbit / walk / free), fixed-step simulation,
+// sound, quality tier and the hooks used by the verification harness.
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { TIERS, detectTier, type Tier, type TierSpec, type GpuInfo } from './core/quality.ts';
+import { params } from './core/params.ts';
+import { Atmosphere } from './render/atmosphere.ts';
+import { Post } from './render/post.ts';
+import { buildSite } from './world/site.ts';
+import { buildEngine, buildTender } from './loco/blockout.ts';
+import { blockoutMaterials } from './loco/materials.ts';
+import { LocoRig } from './loco/rig.ts';
+import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine } from './specs/black5.ts';
+import { Walker } from './controls/walk.ts';
+import { WalkInputs } from './controls/input.ts';
+import { AudioEngine } from './audio/engine.ts';
+import { Soundscape, type LocoSoundPoints } from './audio/sounds.ts';
+import { VIEWS } from './debug/views.ts';
+
+const BASE = import.meta.env.BASE_URL;
+export type Mode = 'orbit' | 'walk' | 'free';
+const SIM_HZ = 120;
+
+export class App {
+  readonly canvas: HTMLCanvasElement;
+  readonly renderer: THREE.WebGLRenderer;
+  readonly scene = new THREE.Scene();
+  readonly persp = new THREE.PerspectiveCamera(50, 1, 0.05, 20000);
+  readonly ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 500);
+  camera: THREE.Camera = this.persp;
+  tierName: Tier;
+  tier: TierSpec;
+  tierReason: string;
+  gpu: GpuInfo;
+  atmosphere!: Atmosphere;
+  post!: Post;
+  orbit!: OrbitControls;
+  walker = new Walker();
+  inputs!: WalkInputs;
+  mode: Mode = 'orbit';
+  audio = new AudioEngine();
+  sounds = new Soundscape(this.audio);
+  rigs: LocoRig[] = [];
+  engine = new THREE.LOD();
+  tender = new THREE.LOD();
+  site!: ReturnType<typeof buildSite>;
+  simTime = 0;
+  theta = 0;
+  motionOn = false;
+  motionSpeed = 10 / 3.6; // m/s on the "rolling road"
+  ready = false;
+  silhouette = false;
+  frameMs = 0;
+  gpuMs = -1;
+  private acc = 0;
+  private last = performance.now();
+  private timer: { ext: { TIME_ELAPSED_EXT: number; GPU_DISJOINT_EXT: number } | null; queries: WebGLQuery[] } = { ext: null, queries: [] };
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, preserveDrawingBuffer: params.shot !== null });
+    const det = detectTier(this.renderer);
+    this.gpu = det.gpu;
+    const forced = params.q ?? (localStorage.getItem('gse.quality') as Tier | 'auto' | null);
+    this.tierName = forced && forced !== 'auto' && forced in TIERS ? forced : det.tier;
+    this.tierReason = forced && forced !== 'auto' ? 'chosen' : det.reason;
+    this.tier = TIERS[this.tierName];
+    const r = this.renderer;
+    r.outputColorSpace = THREE.SRGBColorSpace;
+    r.toneMapping = THREE.AgXToneMapping;
+    r.toneMappingExposure = 1.0;
+    r.shadowMap.enabled = true;
+    r.shadowMap.type = THREE.PCFShadowMap;
+    r.info.autoReset = false;
+    this.audio.hrtf = this.tier.hrtf;
+    const gl = r.getContext() as WebGL2RenderingContext;
+    this.timer.ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+  }
+
+  async load(progress: (f: number, text: string) => void) {
+    const r = this.renderer;
+    this.resize();
+    this.atmosphere = new Atmosphere(r, this.scene, this.persp, this.tier);
+    this.post = new Post(r, this.scene, this.persp, this.tier);
+    this.resize();
+
+    // asset sizes for an honest byte-based progress bar
+    const manifest = await (await fetch(`${BASE}models/manifest.json`)).json() as { files: Record<string, { bytes: number }> };
+    const total = Object.values(manifest.files).reduce((s, f) => s + f.bytes, 0);
+    const loaded = new Map<string, number>();
+    const tick = (name: string, bytes: number) => { loaded.set(name, bytes); const sum = [...loaded.values()].reduce((a, b) => a + b, 0); progress(Math.min(1, sum / total), `Loading ${name} (${(sum / 1048576).toFixed(1)} of ${(total / 1048576).toFixed(1)} MB)`); };
+
+    const ktx2 = new KTX2Loader().setTranscoderPath(`${BASE}basis/`).detectSupport(r);
+    const tex = async (name: string) => {
+      const t = await ktx2.loadAsync(`${BASE}textures/${name}.ktx2`, (e) => tick(`${name}.ktx2`, e.loaded));
+      t.anisotropy = Math.min(this.tier.anisotropy, r.capabilities.getMaxAnisotropy());
+      tick(`${name}.ktx2`, manifest.files[`../textures/${name}.ktx2`]?.bytes ?? 0);
+      return t;
+    };
+    const [bc, bn, br, gc, gn, gr] = await Promise.all(['ballast_color', 'ballast_normal', 'ballast_rough', 'ground_color', 'ground_normal', 'ground_rough'].map(tex));
+    this.site = buildSite({ ballast: { color: bc, normal: bn, rough: br }, ground: { color: gc, normal: gn, rough: gr } });
+    this.scene.add(this.site.group);
+
+    // locomotive: compressed GLB LODs (default) or live generation (?live=1, for development)
+    const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx2);
+    const lodDist = [0, 28, 120];
+    for (const [lod, name, build] of [[this.engine, 'engine', buildEngine], [this.tender, 'tender', buildTender]] as const) {
+      for (let l = 0; l < 3; l++) {
+        let root: THREE.Object3D;
+        if (params.live) { root = build(blockoutMaterials()); if (l > 0) continue; }
+        else {
+          const file = `${name}_lod${l}.glb`;
+          const g = await gltf.loadAsync(`${BASE}models/${file}`, (e) => tick(file, e.loaded));
+          tick(file, manifest.files[file].bytes);
+          root = g.scene.children[0] ?? g.scene;
+        }
+        root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+        lod.addLevel(root, lodDist[l]);
+      }
+    }
+    this.engine.name = 'engineLOD'; this.tender.name = 'tenderLOD';
+    this.engine.position.set(0, 0, 0);
+    this.tender.position.set(0, 0, -(TENDER_ORIGIN_D - ENGINE_ORIGIN_D));
+    this.scene.add(this.engine, this.tender);
+    for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
+    this.atmosphere.register(this.scene);
+
+    // walking colliders: ground, ballast, platform + the full-detail engine and tender
+    this.scene.updateMatrixWorld(true);
+    this.walker.setColliders([...this.site.colliders, this.engine.levels[0].object, this.tender.levels[0].object]);
+    this.inputs = new WalkInputs(this.canvas, this.walker.input);
+
+    // controls
+    this.orbit = new OrbitControls(this.persp, this.canvas);
+    this.orbit.enableDamping = true; this.orbit.dampingFactor = 0.08;
+    this.orbit.minDistance = 1.5; this.orbit.maxDistance = 150; this.orbit.maxPolarAngle = 1.53;
+    this.setView('front-34-l');
+
+    // sound (starts on the first user gesture)
+    this.audio.onStart(() => {
+      this.sounds.ambience(new THREE.Vector3(-60, -0.5, -40));
+      this.sounds.locoIdle(this.soundPoints());
+    });
+
+    addEventListener('resize', () => this.resize());
+    this.ready = true;
+    progress(1, 'Ready');
+  }
+
+  /** World positions of sound sources on the engine. Air pump position is an estimate (REFERENCE §2). */
+  soundPoints(): LocoSoundPoints {
+    const w = (x: number, y: number, d: number) => this.engine.localToWorld(new THREE.Vector3(x, y, zEngine(d)));
+    return {
+      chimney: w(0, B5.height.v, B5.chimneyD.v),
+      safetyValves: w(0, B5.fireboxTopH.v + 0.1, B5.safetyValveD.v),
+      airPump: w(-1.1, B5.runningPlateH.v + 0.3, 2.2),
+      firehole: w(0, 2.0, B5.cabFrontD.v + 0.1),
+    };
+  }
+
+  resize() {
+    const dpr = Math.min(devicePixelRatio || 1, this.tier.dprCap);
+    const w = this.canvas.clientWidth || innerWidth, h = this.canvas.clientHeight || innerHeight;
+    this.renderer.setPixelRatio(dpr);
+    this.renderer.setSize(w, h, false);
+    this.persp.aspect = w / h; this.persp.updateProjectionMatrix();
+    this.post?.composer?.setPixelRatio(dpr);
+    this.post?.setSize(w, h);
+    this.updateOrtho();
+  }
+
+  private orthoView: { dir: string; centre: [number, number, number]; pxPerM: number } | null = null;
+  private updateOrtho() {
+    if (!this.orthoView) return;
+    const w = this.canvas.clientWidth || innerWidth, h = this.canvas.clientHeight || innerHeight;
+    const hw = w / this.orthoView.pxPerM / 2, hh = h / this.orthoView.pxPerM / 2;
+    Object.assign(this.ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
+    this.ortho.updateProjectionMatrix();
+  }
+
+  setCamera(cam: THREE.Camera) {
+    this.camera = cam;
+    this.post.setCamera(cam);
+    this.atmosphere.setCamera(cam === this.ortho ? this.persp : cam);
+  }
+
+  setMode(m: Mode) {
+    this.mode = m;
+    this.inputs.enabled = m === 'walk';
+    this.orbit.enabled = m !== 'walk';
+    if (m === 'free') { this.orbit.maxPolarAngle = Math.PI; this.orbit.minDistance = 0.05; }
+    else { this.orbit.maxPolarAngle = 1.53; this.orbit.minDistance = 1.5; }
+    if (m === 'walk' && this.camera !== this.persp) this.setCamera(this.persp);
+    if (m !== 'walk' && document.pointerLockElement) document.exitPointerLock();
+    this.persp.fov = m === 'walk' ? 72 : 50; this.persp.updateProjectionMatrix();
+  }
+
+  /** Apply a named fixed view (see debug/views.ts). */
+  setView(name: string) {
+    const v = VIEWS[name];
+    if (!v) throw new Error(`unknown view ${name}`);
+    this.orthoView = null;
+    this.site.group.visible = v.kind !== 'ortho';
+    if (v.kind === 'persp') {
+      this.setMode('orbit'); this.setCamera(this.persp);
+      this.persp.fov = v.fov; this.persp.updateProjectionMatrix();
+      this.persp.position.set(...v.pos); this.orbit.target.set(...v.target); this.orbit.update();
+    } else if (v.kind === 'walk') {
+      this.setMode('walk');
+      this.walker.teleport(...v.feet, v.yaw); this.walker.pitch = v.pitch; this.walker.applyTo(this.persp);
+    } else {
+      this.setMode('orbit'); this.orbit.enabled = false;
+      this.orthoView = { dir: v.dir, centre: v.centre, pxPerM: v.pxPerM };
+      const [cx, cy, cz] = v.centre, D = 120;
+      const pos: Record<string, [number, number, number]> = { left: [cx + D, cy, cz], right: [cx - D, cy, cz], front: [cx, cy, cz + D], top: [cx, cy + D, cz] };
+      this.ortho.position.set(...pos[v.dir]);
+      this.ortho.up.set(0, v.dir === 'top' ? 0 : 1, v.dir === 'top' ? -1 : 0);
+      this.ortho.lookAt(cx, cy, cz);
+      this.ortho.near = 1; this.ortho.far = 400;
+      this.updateOrtho();
+      this.setCamera(this.ortho);
+    }
+  }
+
+  setMotion(on: boolean) { this.motionOn = on; }
+
+  setWheelAngle(theta: number) { this.theta = theta; for (const r of this.rigs) r.setWheelAngle(theta); }
+
+  /** Advance the simulation by n fixed steps (used directly in deterministic mode). */
+  step(n = 1) {
+    const h = 1 / SIM_HZ;
+    for (let i = 0; i < n; i++) {
+      this.simTime += h;
+      if (this.mode === 'walk') { this.inputs.update(); this.walker.step(h); }
+      if (this.motionOn) this.setWheelAngle(this.theta + (this.motionSpeed / (B5.driverDia.v / 2)) * h);
+    }
+  }
+
+  setSilhouette(on: boolean) {
+    this.silhouette = on;
+    this.site.group.visible = !on;
+    this.atmosphere.sky.visible = !on;
+    this.scene.overrideMaterial = on ? new THREE.MeshBasicMaterial({ color: 0x000000 }) : null;
+    this.scene.background = on ? new THREE.Color(0xffffff) : null;
+    (this.scene.fog as THREE.FogExp2).density = on ? 0 : this.atmosphere.params.haze;
+  }
+
+  frame() {
+    const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000);
+    this.last = now;
+    if (!params.fixed) {
+      this.acc += dt;
+      const n = Math.min(24, Math.floor(this.acc * SIM_HZ));
+      this.acc -= n / SIM_HZ;
+      this.step(n);
+    }
+    if (this.mode === 'walk') this.walker.applyTo(this.persp);
+    else if (this.orbit.enabled) this.orbit.update();
+    this.atmosphere.update(this.simTime);
+    this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera);
+    const t0 = performance.now();
+    this.renderer.info.reset();
+    this.gpuTimerBegin();
+    if (this.silhouette) this.renderer.render(this.scene, this.camera);
+    else this.post.render(this.scene, this.camera);
+    this.gpuTimerEnd();
+    this.frameMs = performance.now() - t0;
+  }
+
+  private gpuTimerBegin() {
+    const ext = this.timer.ext; if (!ext) return;
+    const gl = this.renderer.getContext() as WebGL2RenderingContext;
+    const q = gl.createQuery(); if (!q) return;
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, q); this.timer.queries.push(q);
+  }
+  private gpuTimerEnd() {
+    const ext = this.timer.ext; if (!ext) return;
+    const gl = this.renderer.getContext() as WebGL2RenderingContext;
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    while (this.timer.queries.length) {
+      const q = this.timer.queries[0];
+      if (!gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE)) break;
+      if (!gl.getParameter(ext.GPU_DISJOINT_EXT)) this.gpuMs = gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6;
+      gl.deleteQuery(q); this.timer.queries.shift();
+    }
+  }
+
+  /** Texture memory estimate (bytes) from all textures in the scene + render targets ignored. */
+  textureBytes() {
+    const seen = new Set<THREE.Texture>(); let bytes = 0;
+    this.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (!m) return;
+      for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'] as const) {
+        const t = m[k]; if (!t || seen.has(t)) continue; seen.add(t);
+        const img = t.image as { width: number; height: number } | undefined;
+        if (!img) continue;
+        const compressed = (t as THREE.CompressedTexture).isCompressedTexture;
+        bytes += img.width * img.height * (compressed ? 1 : 4) * 1.333; // BC7/ASTC ~1 B/px, ETC/BC1 less; mip chain +33 %
+      }
+    });
+    return bytes;
+  }
+
+  stats() {
+    const i = this.renderer.info;
+    return {
+      tier: this.tierName, reason: this.tierReason, gpu: this.gpu.renderer,
+      calls: i.render.calls, triangles: i.render.triangles, textures: i.memory.textures, geometries: i.memory.geometries,
+      textureMB: +(this.textureBytes() / 1048576).toFixed(1), frameMsCPU: +this.frameMs.toFixed(2), frameMsGPU: +this.gpuMs.toFixed(2),
+      dpr: this.renderer.getPixelRatio(), px: [this.renderer.domElement.width, this.renderer.domElement.height],
+    };
+  }
+}

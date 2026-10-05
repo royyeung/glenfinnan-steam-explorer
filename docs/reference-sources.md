@@ -41,7 +41,7 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Description: 45407 at Mallaig on The Jacobite
 
 ### web/45407/Black_5_45407_with_a_support_coach_working_5Z07_Carnforth_Steamtown_to_Northallerton_Wensleydale_passes_York_011123_(53302898046).jpg
-- Reference ID: L01 candidate (side, York 2023)
+- Reference ID: L06/L16 (rear 3/4, York 2023)
 - Date taken: 2023-11-01 11:10
 - Author: Foulger Rail Photos from Basingstoke, UK
 - Licence: CC BY-SA 2.0
@@ -50,7 +50,7 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Description: Black 5 45407 with a support coach working 5Z07 Carnforth Steamtown to Northallerton Wensleydale passes York 011123
 
 ### web/45407/Black_5_45407_with_a_support_coach_working_5Z07_Carnforth_Steamtown_to_Northallerton_Wensleydale_passes_York_011123_(53303268459).jpg
-- Reference ID: L01 candidate (side, York 2023)
+- Reference ID: L05 (head-on, York 2023)
 - Date taken: 2023-11-01 11:10
 - Author: Foulger Rail Photos from Basingstoke, UK
 - Licence: CC BY-SA 2.0
@@ -95,7 +95,7 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Description: Lancashire Fusilier 
 
 ### web/45407/The_Jacobite_Express_(55068802046).jpg
-- Reference ID: L02 (left side, Oct 2025, emblem, nameplate)
+- Reference ID: L01 (RIGHT side broadside, Oct 2025, emblem, nameplate)
 - Date taken: Taken on 22 October 2025
 - Author: Eric Kilby from Somerville, MA, USA
 - Licence: CC BY-SA 4.0
@@ -104,7 +104,7 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Description: Passing close by at the end of the Glenfinnan Viaduct
 
 ### web/45407/The_Lancashire_Fusilier_-_45407_-_geograph.org.uk_-_8035578.jpg
-- Reference ID: L03/L15 (front 3/4 left, Apr 2025)
+- Reference ID: L04/L15 (front 3/4 right, Apr 2025)
 - Date taken: 2025-04-30
 - Author: Dave Thompson 
 - Licence: CC BY-SA 2.0
@@ -122,7 +122,7 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Description: The Lancashire Fusilier 
 
 ### web/45407/The_Lancashire_Fusilier_-_geograph.org.uk_-_8039158.jpg
-- Reference ID: L03 (front 3/4 left, Apr 2025)
+- Reference ID: L04 (front 3/4 right, Apr 2025)
 - Date taken: 2025-04-30
 - Author: Dave Thompson 
 - Licence: CC BY-SA 2.0

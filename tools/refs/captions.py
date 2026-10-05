@@ -2,11 +2,11 @@ import json, glob, os, re
 R = '/ref'
 groups = {'45407': 'Locomotive 45407', 'jacobite': 'The Jacobite train, 2024-2025', 'coach-cab': 'Mk2 coaches (West Coast Railways) and Black Five cab'}
 # map file-name fragments to REFERENCE.md photo IDs
-ids = [('55068802046', 'L02 (left side, Oct 2025, emblem, nameplate)'), ('8035578', 'L03/L15 (front 3/4 left, Apr 2025)'),
-       ('8039158', 'L03 (front 3/4 left, Apr 2025)'), ('8039169', 'L05 (front end, Apr 2025)'), ('8034822', 'L05/L21 (front, running, Apr 2025)'),
+ids = [('55068802046', 'L01 (RIGHT side broadside, Oct 2025, emblem, nameplate)'), ('8035578', 'L04/L15 (front 3/4 right, Apr 2025)'),
+       ('8039158', 'L04 (front 3/4 right, Apr 2025)'), ('8039169', 'L05 (front end, Apr 2025)'), ('8034822', 'L05/L21 (front, running, Apr 2025)'),
        ('Glenfinnan_Viaduct_-_Jacobite_Express', 'L21/V01 (45407 on the viaduct with headboard, Oct 2025)'),
-       ('Caledonian_Canal', 'L06 (tender rear with headboard, tender-first, Sep 2025)'), ('53302898046', 'L01 candidate (side, York 2023)'),
-       ('53303268459', 'L01 candidate (side, York 2023)'), ('29995070996', 'L08 (boiler top: dome and top feed, 2016)'),
+       ('Caledonian_Canal', 'L06 (tender rear with headboard, tender-first, Sep 2025)'), ('53302898046', 'L06/L16 (rear 3/4, York 2023)'),
+       ('53303268459', 'L05 (head-on, York 2023)'), ('29995070996', 'L08 (boiler top: dome and top feed, 2016)'),
        ('Black_5_Cab', 'C01 (backhead of a Black Five; NOT 45407)'), ('footplate', 'C02/C03 (44871 footplate)'), ('One_lump', 'C09/C11 (firing, a Black Five)'),
        ('5249', 'T01 (WCR maroon Mk2 TSO 5249, 2017)'), ('5236', 'T01 (WCR maroon Mk2 SO 5236, 2016)'), ('9104', 'T01 (WCR Mk2 BSO 9104)'),
        ('13440', 'T01 (WCR Mk2a FK 13440)'), ('M5125_(6776934181)', 'T01 (WCR maroon Mk2 TSO M5125, 2009)'),

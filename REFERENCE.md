@@ -392,9 +392,9 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 
 **Status 2026-10-05:** I have collected 35 openly licensed web photos myself (list in `docs/reference-sources.md`, files in `reference/web/`).
 
-- **Covered:** L02, L03, L05, L06 (tender-first), L08, L21, a Black Five backhead (class-level C01), and the 44871 footplate.
+- **Covered:** L01 (right side, Oct 2025; my first notes wrongly called it the left side), L04 (front three-quarter right), L05 (head-on), L06 (tender-first), L08, L21, a Black Five backhead (class-level C01), and the 44871 footplate.
 - **Covered:** Mk2 TSO exterior (T01) and interior (T07/T09); classic viaduct views (V01).
-- **Still missing:** true broadside elevations of 45407 from both sides (L01/L02 at long lens), close motion shots (L09/L10), 45407's own cab (C01–C13) and any drawings (D01–D06).
+- **Still missing:** a broadside of the LEFT side (L02) and a long-lens L01, close motion shots (L09/L10), 45407's own cab (C01–C13) and any drawings (D01–D06).
 
 The list below is the full wish-list. Anything you come across helps, but nothing is required from you.
 
