@@ -25,7 +25,7 @@ export class Post {
     this.renderPass = new RenderPass(scene, camera);
     c.addPass(this.renderPass);
     if (tier.ao) { this.gtao = new GTAOPass(scene, camera, size.x, size.y); this.gtao.blendIntensity = 0.75; c.addPass(this.gtao); }
-    if (tier.bloom) { this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.15, 0.25, 6.0); c.addPass(this.bloom); }
+    if (tier.bloom) { this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.1, 0.2, 30.0); c.addPass(this.bloom); }
     c.addPass(new OutputPass());
     if (tier.smaa) c.addPass(new SMAAPass());
     this.composer = c;

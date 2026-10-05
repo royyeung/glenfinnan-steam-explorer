@@ -3,7 +3,7 @@
 // named nodes so the same scene graph works whether generated live or loaded from GLB.
 import * as THREE from 'three';
 import { B5, tenderAxlesD, zEngine, zTender } from '../specs/black5.ts';
-import { Batch, boxMinMax, cylBetween, cylX, cylZ, extrudeSection, extrudeSide, latheY, loftZ } from './geom.ts';
+import { Batch, DETAIL, boxMinMax, cylBetween, cylX, cylZ, extrudeSection, extrudeSide, latheY, loftZ } from './geom.ts';
 import { engineLayout, motionGeometry } from './layout.ts';
 import { solveMotion, strokeDir } from './motion/solver.ts';
 import type { MatKey } from './materials.ts';
@@ -13,8 +13,8 @@ type Mats = Record<MatKey, THREE.Material>;
 
 // ---------------------------------------------------------------- wheels
 
-function arcPoints(r: number, a0: number, a1: number, n: number): [number, number][] {
-  const pts: [number, number][] = [];
+function arcPoints(r: number, a0: number, a1: number, nIn: number): [number, number][] {
+  const n = Math.max(4, Math.round(nIn * DETAIL)), pts: [number, number][] = [];
   for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * (i / n); pts.push([Math.cos(a) * r, Math.sin(a) * r]); }
   return pts;
 }
@@ -22,11 +22,15 @@ function arcPoints(r: number, a0: number, a1: number, n: number): [number, numbe
 /** One wheel centred at (x, 0, 0) in wheelset space, lying in the (z, y) plane. */
 function wheel(b: Batch, r: number, x: number, spokes: number, crankPhi: number | null, outward: number) {
   const tyreW = 0.14, rimR = r - 0.07, hubR = Math.max(0.13, r * 0.17);
-  b.add('wheel', cylX(r, tyreW, x, 0, 0, 48));                                         // tyre + rim (solid disc edge)
+  const ring = (ro: number, ri: number, x0: number, x1: number) => {
+    const outer = arcPoints(ro, 0, Math.PI * 2, 48), inner = arcPoints(ri, Math.PI * 2, 0, 48);
+    return extrudeSide(outer, x0, x1, [inner]);
+  };
+  b.add('steel', ring(r, r - 0.04, x - tyreW / 2, x + tyreW / 2));                    // tyre (bright tread and face)
+  b.add('wheel', ring(r - 0.04, rimR - 0.03, x - tyreW / 2 + 0.01, x + tyreW / 2 - 0.01)); // rim
   b.add('wheel', cylX(hubR, tyreW + 0.08, x + outward * 0.02, 0, 0, 20));            // hub
-  b.add('steel', cylX(r, 0.012, x + outward * (tyreW / 2 + 0.004), 0, 0, 48));        // bright tyre face ring (read as tyre edge)
-  b.add('wheel', cylX(rimR, 0.016, x + outward * (tyreW / 2 + 0.010), 0, 0, 48));     // rim face hides the ring centre
-  for (let i = 0; i < spokes; i++) {
+  if (DETAIL < 0.4) b.add('wheel', cylX(rimR - 0.02, 0.05, x, 0, 0, 24)); // far LOD: plain disc instead of spokes
+  else for (let i = 0; i < spokes; i++) {
     const a = (i / spokes) * Math.PI * 2, L = rimR - hubR, mid = (rimR + hubR) / 2;
     const g = new THREE.BoxGeometry(0.05, L, 0.05);
     g.rotateX(Math.PI / 2 - a);
@@ -159,25 +163,25 @@ export function buildEngine(mats: Mats): THREE.Group {
   const tfBase = barrelTopAt(v('topFeedD')) - 0.1;
   b.add('paint_black', boxMinMax(-0.2, tfBase, z(v('topFeedD') - 0.15), 0.2, v('topFeedTopH') - 0.08, z(v('topFeedD') + 0.15)));
   b.add('paint_black', cylZ(0.12, 0.12, z(v('topFeedD') - 0.15), z(v('topFeedD') + 0.15), 0, v('topFeedTopH') - 0.12, 20));
-  for (const dd of [-0.09, 0.09]) b.add('brass', latheY([[0, 0], [0.08, 0], [0.07, 0.1], [0.05, 0.13], [0, 0.14]], 0, fT - 0.02, z(v('safetyValveD') + dd), 16));
+  if (DETAIL >= 0.5) for (const dd of [-0.09, 0.09]) b.add('brass', latheY([[0, 0], [0.08, 0], [0.07, 0.1], [0.05, 0.13], [0, 0.14]], 0, fT - 0.02, z(v('safetyValveD') + dd), 16));
   b.add('brass', latheY([[0, 0], [0.03, 0], [0.03, 0.12], [0.05, 0.14], [0.05, 0.26], [0, 0.27]], 0.25, fT - 0.02, z(v('cabFrontD') - 0.35), 12));
 
   // handrails along the boiler (both sides)
-  for (const s of [1, -1]) b.add('steel', cylBetween(new THREE.Vector3(s * (sbR + 0.06), sbY + 0.25, z(v('smokeboxFrontD') + 0.1)), new THREE.Vector3(s * (rR + 0.08), yb + rR + 0.35, z(v('barrelRearD'))), 0.016, 8));
+  if (DETAIL >= 0.5) for (const s of [1, -1]) b.add('steel', cylBetween(new THREE.Vector3(s * (sbR + 0.06), sbY + 0.25, z(v('smokeboxFrontD') + 0.1)), new THREE.Vector3(s * (rR + 0.08), yb + rR + 0.35, z(v('barrelRearD'))), 0.016, 8));
 
   // nameplates (both sides) above the running plate
   for (const s of [1, -1]) b.add('brass', boxMinMax(s * 0.93, rpH + 0.1, z(5.85), s * 0.95, rpH + 0.36, z(4.75)));
 
   // cab: front plate with spectacles, sides with windows, roof, floor, steps, handrails
   const cw = v('cabWidth') / 2, eave = 3.45, roof = v('cabRoofH'), cf = v('cabFrontD');
-  const roofArc = (r: number) => { const sag = roof - eave, R = (cw * cw + sag * sag) / (2 * sag), yc = roof - R, a = Math.asin(cw / R);
+  const roofArc = (r: number, half = cw) => { const sag = roof - eave, R = (cw * cw + sag * sag) / (2 * sag), yc = roof - R, a = Math.asin(half / R);
     return arcPoints(R + r, Math.PI / 2 + a, Math.PI / 2 - a, 18).map(([x, y]) => [x, y + yc] as [number, number]); };
   const front: [number, number][] = [[-cw, rpH], [cw, rpH], ...roofArc(0).reverse()];
   const spect = (s: number) => arcPoints(0.17, 0, Math.PI * 2, 16).map(([x, y]) => [x + s * 0.62, y + 3.12] as [number, number]).reverse();
   b.add('paint_black', extrudeSection(front, z(cf), z(cf + 0.025), [spect(1), spect(-1)]));
-  const roofBand = [...roofArc(0), ...roofArc(0.03).reverse()];
+  const roofBand = [...roofArc(0), ...roofArc(-0.03).reverse()]; // outer surface at the measured roof height
   b.add('paint_black', extrudeSection(roofBand, z(cf - 0.05), z(v('cabRoofRearD'))));
-  b.add('cab_inside', extrudeSection(roofArc(-0.005).concat(roofArc(-0.02).reverse()), z(cf), z(v('cabRoofRearD') - 0.02)));
+  b.add('cab_inside', extrudeSection(roofArc(-0.035, cw - 0.05).concat(roofArc(-0.05, cw - 0.05).reverse()), z(cf), z(v('cabRoofRearD') - 0.06)));
   const win: [number, number][] = [[z(v('cabWindowFrontD')), v('cabWindowBottomH')], [z(v('cabWindowRearD')), v('cabWindowBottomH')], [z(v('cabWindowRearD')), v('cabWindowTopH')], [z(v('cabWindowFrontD')), v('cabWindowTopH')]];
   const side: [number, number][] = [[z(cf), v('cabSideBottomH')], [z(cf), eave], [z(v('cabOpeningFrontD')), eave], [z(v('cabOpeningFrontD')), v('cabSideBottomH')]];
   for (const s of [1, -1]) {
@@ -185,9 +189,11 @@ export function buildEngine(mats: Mats): THREE.Group {
     b.add('glass', extrudeSide(win, s * (cw - 0.01), s * (cw - 0.015)));
     // steps below the doorway, hangers and handrails
     const d0 = 11.85, d1 = 12.2;
-    for (const h of [v('cabStepLowerH'), v('cabStepUpperH')]) b.add('steel', boxMinMax(s * (cw - 0.3), h - 0.03, z(d0), s * (cw - 0.02), h, z(d1)));
-    b.add('paint_black', boxMinMax(s * (cw - 0.04), v('cabStepLowerH') - 0.05, z(d0), s * (cw - 0.02), v('footplateH'), z(d0 + 0.03)));
-    b.add('paint_black', boxMinMax(s * (cw - 0.04), v('cabStepLowerH') - 0.05, z(d1 - 0.03), s * (cw - 0.02), v('footplateH'), z(d1)));
+    // treads stand out below the doorway (outer edge 1.41 m from centre, clear of a 1.4475 m platform edge)
+    const so = cw + 0.1, si = cw - 0.25;
+    for (const h of [v('cabStepLowerH'), v('cabStepUpperH')]) b.add('steel', boxMinMax(s * si, h - 0.03, z(d0), s * so, h, z(d1)));
+    b.add('paint_black', boxMinMax(s * (so - 0.02), v('cabStepLowerH') - 0.05, z(d0), s * so, v('cabStepUpperH'), z(d0 + 0.03)));
+    b.add('paint_black', boxMinMax(s * (so - 0.02), v('cabStepLowerH') - 0.05, z(d1 - 0.03), s * so, v('cabStepUpperH'), z(d1)));
     b.add('steel', cylBetween(new THREE.Vector3(s * (cw + 0.04), 1.75, z(v('cabOpeningFrontD') + 0.03)), new THREE.Vector3(s * (cw + 0.04), 3.15, z(v('cabOpeningFrontD') + 0.03)), 0.016, 8));
   }
   b.add('cab_inside', boxMinMax(-cw + 0.03, v('footplateH') - 0.04, z(cf), cw - 0.03, v('footplateH'), z(v('engineRearD'))));

@@ -1,5 +1,6 @@
 // window.GX: hooks for the headless verification harness and for debugging by hand.
 // Deterministic use: load with ?fixed=1, then GX.setWheelAngle / GX.step / GX.view / GX.capture.
+import * as THREE from 'three';
 import type { App } from '../app.ts';
 import { B5 } from '../specs/black5.ts';
 import { weakSpecs } from '../specs/spec.ts';
@@ -10,6 +11,7 @@ export function installGX(app: App) {
   const GX = {
     get ready() { return app.ready; },
     app,
+    THREE,
     view: (name: string) => { app.setView(name); app.frame(); return name; },
     step: (n = 1) => { app.step(n); app.frame(); return app.simTime; },
     setWheelAngle: (deg: number) => { app.setWheelAngle((deg * Math.PI) / 180); app.frame(); },
@@ -49,8 +51,10 @@ export function installGX(app: App) {
     /** Human-scale checks for a 1.70 m person against the blockout (numbers, not pictures). */
     humanScale: () => {
       const roofUnder = B5.cabRoofH.v - 0.06, floor = B5.footplateH.v;
-      const rises = [B5.cabStepLowerH.v - SITE.platformHeight.v, B5.cabStepUpperH.v - B5.cabStepLowerH.v, floor - B5.cabStepUpperH.v];
-      const fromBallast = [B5.cabStepLowerH.v - 0, B5.cabStepUpperH.v - B5.cabStepLowerH.v, floor - B5.cabStepUpperH.v];
+      // climbing sequence from a surface: every step tread above it, then the footplate
+      const seq = (from: number) => { const lv = [B5.cabStepLowerH.v, B5.cabStepUpperH.v, floor].filter((h) => h > from + 0.01); return lv.map((h, i) => h - (i ? lv[i - 1] : from)); };
+      const rises = seq(SITE.platformHeight.v);
+      const fromBallast = seq(0);
       const doorway = B5.cabRoofRearD.v - B5.cabOpeningFrontD.v;
       return {
         avatar: AVATAR,
@@ -58,7 +62,7 @@ export function installGX(app: App) {
         cabDoorwayLength_m: +doorway.toFixed(3), doorwayOK: doorway >= 0.55,
         stepRisesFromPlatform_m: rises.map((r) => +r.toFixed(3)),
         stepRisesFromRailLevel_m: fromBallast.map((r) => +r.toFixed(3)),
-        stepsOK: rises.every((r) => r <= AVATAR.stepMax),
+        stepsOK: rises.every((r) => r <= AVATAR.stepMax + 1e-6),
         platformHeight_m: SITE.platformHeight.v, footplate_m: floor,
       };
     },

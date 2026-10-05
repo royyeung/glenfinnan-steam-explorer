@@ -4,6 +4,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+/** Level-of-detail factor for parametric generation: 1 = full, 0.5 = medium, 0.25 = far. */
+export let DETAIL = 1;
+export function setDetail(d: number) { DETAIL = d; }
+const segs = (n: number) => Math.max(6, Math.round(n * DETAIL));
+
 const norm = (g: THREE.BufferGeometry): THREE.BufferGeometry => {
   const n = g.index ? g.toNonIndexed() : g;
   if (!n.getAttribute('normal')) n.computeVertexNormals();
@@ -24,7 +29,7 @@ export function boxMinMax(x0: number, y0: number, z0: number, x1: number, y1: nu
 
 /** Cylinder along X (an axle or a wheel), centred at (x, y, z). */
 export function cylX(r: number, length: number, x: number, y: number, z: number, seg = 24) {
-  const g = new THREE.CylinderGeometry(r, r, length, seg);
+  const g = new THREE.CylinderGeometry(r, r, length, segs(seg));
   g.rotateZ(Math.PI / 2);
   g.translate(x, y, z);
   return norm(g);
@@ -33,7 +38,7 @@ export function cylX(r: number, length: number, x: number, y: number, z: number,
 /** Cylinder along Z (smokebox, buffers, cylinders), from z0 to z1. */
 export function cylZ(r0: number, r1: number, z0: number, z1: number, x: number, y: number, seg = 32, open = false) {
   const [rLow, rHigh] = z0 < z1 ? [r0, r1] : [r1, r0];
-  const g = new THREE.CylinderGeometry(rHigh, rLow, Math.abs(z1 - z0), seg, 1, open);
+  const g = new THREE.CylinderGeometry(rHigh, rLow, Math.abs(z1 - z0), segs(seg), 1, open);
   g.rotateX(Math.PI / 2); // +Y becomes +Z: radiusTop sits at the higher z
   g.translate(x, y, (z0 + z1) / 2);
   return norm(g);
@@ -42,7 +47,7 @@ export function cylZ(r0: number, r1: number, z0: number, z1: number, x: number, 
 /** Cylinder between two points (any direction). */
 export function cylBetween(a: THREE.Vector3, b: THREE.Vector3, r: number, seg = 16) {
   const dir = new THREE.Vector3().subVectors(b, a), l = dir.length();
-  const g = new THREE.CylinderGeometry(r, r, l, seg);
+  const g = new THREE.CylinderGeometry(r, r, l, segs(seg));
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize()));
   g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
   return norm(g);
@@ -50,7 +55,7 @@ export function cylBetween(a: THREE.Vector3, b: THREE.Vector3, r: number, seg = 
 
 /** Vertical solid of revolution (chimney, dome) from a profile [radius, height] list. */
 export function latheY(profile: [number, number][], x: number, y: number, z: number, seg = 32) {
-  const g = new THREE.LatheGeometry(profile.map(([r, h]) => new THREE.Vector2(r, h)), seg);
+  const g = new THREE.LatheGeometry(profile.map(([r, h]) => new THREE.Vector2(r, h)), segs(seg));
   g.translate(x, y, z);
   return norm(g);
 }
@@ -62,7 +67,7 @@ export function latheY(profile: [number, number][], x: number, y: number, z: num
 export function extrudeSide(points: [number, number][], x0: number, x1: number, holes: [number, number][][] = [], curveSegments = 12) {
   const shape = new THREE.Shape(points.map(([z, y]) => new THREE.Vector2(z, y)));
   for (const h of holes) shape.holes.push(new THREE.Path(h.map(([z, y]) => new THREE.Vector2(z, y))));
-  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.abs(x1 - x0), bevelEnabled: false, curveSegments });
+  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.abs(x1 - x0), bevelEnabled: false, curveSegments: segs(curveSegments) });
   // shape x -> engine z, shape y -> y, extrude (+z) -> engine -x
   g.rotateY(-Math.PI / 2);
   g.translate(Math.max(x0, x1), 0, 0);
@@ -73,13 +78,14 @@ export function extrudeSide(points: [number, number][], x0: number, x1: number, 
 export function extrudeSection(points: [number, number][], z0: number, z1: number, holes: [number, number][][] = [], curveSegments = 12) {
   const shape = new THREE.Shape(points.map(([x, y]) => new THREE.Vector2(x, y)));
   for (const h of holes) shape.holes.push(new THREE.Path(h.map(([x, y]) => new THREE.Vector2(x, y))));
-  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.abs(z1 - z0), bevelEnabled: false, curveSegments });
+  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.abs(z1 - z0), bevelEnabled: false, curveSegments: segs(curveSegments) });
   g.translate(0, 0, Math.min(z0, z1));
   return norm(g);
 }
 
 /** Lofted tube along Z through rings (z, centre y, radius); open ends. Used for the taper boiler. */
-export function loftZ(rings: { z: number; y: number; r: number }[], x = 0, seg = 40) {
+export function loftZ(rings: { z: number; y: number; r: number }[], x = 0, segIn = 40) {
+  const seg = segs(segIn);
   const pos: number[] = [], uv: number[] = [];
   const ring = (i: number, k: number) => {
     const a = (k / seg) * Math.PI * 2, R = rings[i];

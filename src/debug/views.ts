@@ -17,7 +17,7 @@ export const VIEWS: Record<string, View> = {
   'left-elev': { kind: 'ortho', dir: 'left', centre: [0, 2.0, mid], pxPerM: 80 },
   'right-elev': { kind: 'ortho', dir: 'right', centre: [0, 2.0, mid], pxPerM: 80 },
   'front-end': { kind: 'ortho', dir: 'front', centre: [0, 2.0, 0], pxPerM: 160 },
-  'plan': { kind: 'ortho', dir: 'top', centre: [0, 0, mid], pxPerM: 60 },
+  'plan': { kind: 'ortho', dir: 'top', centre: [0, 0, mid], pxPerM: 60 }, // 1320 x 300 px = 22 m x 5 m
   'front-34-l': { kind: 'persp', pos: [10.5, 2.4, 15.5], target: [0, 1.9, 0.5], fov: 45 },
   'rear-34-r': { kind: 'persp', pos: [-9.5, 3.4, -26], target: [0, 1.9, -9], fov: 45 },
   'motion-l': { kind: 'persp', pos: [5.2, 1.25, 1.2], target: [0.9, 0.95, 0.6], fov: 50 },

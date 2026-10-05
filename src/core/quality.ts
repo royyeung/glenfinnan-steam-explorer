@@ -6,9 +6,8 @@ export type Tier = 'high' | 'medium' | 'low';
 export interface TierSpec {
   name: Tier;
   dprCap: number;
-  cascades: number;
   shadowSize: number;
-  shadowFar: number;
+  shadowExtent: number; // half-size of the shadowed square around the focus (m)
   msaa: number;
   ao: boolean;
   bloom: boolean;
@@ -20,9 +19,9 @@ export interface TierSpec {
 }
 
 export const TIERS: Record<Tier, TierSpec> = {
-  high: { name: 'high', dprCap: 2, cascades: 3, shadowSize: 2048, shadowFar: 320, msaa: 4, ao: true, bloom: true, smaa: false, post: true, anisotropy: 16, hrtf: true, envSize: 256 },
-  medium: { name: 'medium', dprCap: 1.5, cascades: 2, shadowSize: 2048, shadowFar: 200, msaa: 0, ao: false, bloom: true, smaa: true, post: true, anisotropy: 8, hrtf: true, envSize: 128 },
-  low: { name: 'low', dprCap: 1, cascades: 1, shadowSize: 1024, shadowFar: 110, msaa: 0, ao: false, bloom: false, smaa: false, post: false, anisotropy: 4, hrtf: false, envSize: 64 },
+  high: { name: 'high', dprCap: 2, shadowSize: 4096, shadowExtent: 45, msaa: 4, ao: true, bloom: true, smaa: false, post: true, anisotropy: 16, hrtf: true, envSize: 256 },
+  medium: { name: 'medium', dprCap: 1.5, shadowSize: 2048, shadowExtent: 40, msaa: 0, ao: false, bloom: true, smaa: true, post: true, anisotropy: 8, hrtf: true, envSize: 128 },
+  low: { name: 'low', dprCap: 1, shadowSize: 1024, shadowExtent: 30, msaa: 0, ao: false, bloom: false, smaa: false, post: false, anisotropy: 4, hrtf: false, envSize: 64 },
 };
 
 export interface GpuInfo { renderer: string; vendor: string; mobile: boolean; software: boolean }

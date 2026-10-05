@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { B5 } from '../specs/black5.ts';
 import { spec } from '../specs/spec.ts';
+import { antiTile } from '../render/antiTile.ts';
 
 export const SITE = {
   railHeight: spec(0.159, 'standard-practice', 'medium', 'BS113A flat-bottom rail, 158.75 mm'),
@@ -13,20 +14,6 @@ export const SITE = {
 };
 
 export interface PbrSet { color: THREE.Texture; normal: THREE.Texture; rough: THREE.Texture }
-
-/** Two-scale texture sampling to hide tiling: blends the map with a rotated, scaled copy. */
-function antiTile(mat: THREE.MeshStandardMaterial, macroScale: number) {
-  mat.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
-      #ifdef USE_MAP
-        vec2 uvB = mat2(0.809, -0.588, 0.588, 0.809) * vMapUv * ${macroScale.toFixed(3)} + vec2(0.37, 0.61);
-        vec4 tA = texture2D(map, vMapUv), tB = texture2D(map, uvB);
-        float k = smoothstep(0.35, 0.65, texture2D(map, vMapUv * 0.031).g * 1.6 - 0.3);
-        diffuseColor *= mix(tA, tB, k);
-      #endif`);
-  };
-  mat.customProgramCacheKey = () => `antitile${macroScale}`;
-}
 
 function pbr(name: string, set: PbrSet, repeat: number, tint: number, macro: number) {
   for (const t of [set.color, set.normal, set.rough]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat, repeat); }
@@ -44,8 +31,8 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
   // ground: 3 km square, texture repeats every 4 m, two-scale blend hides the repeat
   const groundGeo = new THREE.PlaneGeometry(3000, 3000, 1, 1).rotateX(-Math.PI / 2).translate(0, gy, 0);
   const uvs = groundGeo.getAttribute('uv') as THREE.BufferAttribute;
-  for (let i = 0; i < uvs.count; i++) uvs.setXY(i, uvs.getX(i) * 750, uvs.getY(i) * 750);
-  const ground = new THREE.Mesh(groundGeo, pbr('ground', tex.ground, 1, 0xd8dccf, 0.173));
+  for (let i = 0; i < uvs.count; i++) uvs.setXY(i, uvs.getX(i) * 500, uvs.getY(i) * 500); // one tile = 6 m
+  const ground = new THREE.Mesh(groundGeo, pbr('ground', tex.ground, 1, 0xd8dccf, 0.22));
   ground.name = 'ground'; ground.receiveShadow = true; g.add(ground); colliders.push(ground);
 
   // ballast bed (trapezoid section along Z), UVs in metres / 1.2
@@ -56,12 +43,12 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
     generateSideWallUV: (_g, v, a, b, c, d) => [a, b, c, d].map((i) => new THREE.Vector2((v[i * 3] + v[i * 3 + 1]) / 1.2, v[i * 3 + 2] / 1.2)),
   } });
   bed.translate(0, 0, z0);
-  const ballast = new THREE.Mesh(bed, pbr('ballast', tex.ballast, 1, 0xb5aea4, 0.211));
+  const ballast = new THREE.Mesh(bed, pbr('ballast', tex.ballast, 1, 0xb5aea4, 0.12));
   ballast.name = 'ballast'; ballast.receiveShadow = true; g.add(ballast); colliders.push(ballast);
 
   // sleepers (instanced), concrete-coloured blockout
   const n = Math.floor(len / SITE.sleeperSpacing.v);
-  const sleepers = new THREE.InstancedMesh(new THREE.BoxGeometry(2.5, 0.2, 0.26), new THREE.MeshStandardMaterial({ name: 'sleeper', color: 0x8d8a84, roughness: 0.9 }), n);
+  const sleepers = new THREE.InstancedMesh(new THREE.BoxGeometry(2.5, 0.2, 0.26), new THREE.MeshStandardMaterial({ name: 'sleeper', color: 0x5f5c57, roughness: 0.92 }), n);
   const m4 = new THREE.Matrix4();
   for (let i = 0; i < n; i++) sleepers.setMatrixAt(i, m4.makeTranslation(0, -rh - 0.1 - 0.012, z0 + 0.3 + i * SITE.sleeperSpacing.v));
   sleepers.name = 'sleepers'; sleepers.receiveShadow = true; sleepers.castShadow = true; g.add(sleepers);
@@ -79,7 +66,7 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
 
   // platform on the right (-X) side: edge 730 mm from the running edge, top 915 mm above rail
   const pEdge = -(half + SITE.platformOffset.v), pTop = SITE.platformHeight.v, pz0 = -26, pz1 = 8;
-  const plat = new THREE.Mesh(new THREE.BoxGeometry(4, pTop - gy, pz1 - pz0), new THREE.MeshStandardMaterial({ name: 'platform', color: 0x8c8780, roughness: 0.85 }));
+  const plat = new THREE.Mesh(new THREE.BoxGeometry(4, pTop - gy, pz1 - pz0), new THREE.MeshStandardMaterial({ name: 'platform', color: 0x6a6660, roughness: 0.9 }));
   plat.position.set(pEdge - 2, (pTop + gy) / 2, (pz0 + pz1) / 2); plat.name = 'platform'; plat.castShadow = plat.receiveShadow = true;
   g.add(plat); colliders.push(plat);
   const coping = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.02, pz1 - pz0), new THREE.MeshStandardMaterial({ name: 'platform_edge', color: 0xd8c24a, roughness: 0.7 }));

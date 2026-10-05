@@ -1,8 +1,12 @@
-// Sky (Preetham model with procedural clouds), sun light with cascaded shadows, image-based
-// ambient light regenerated from the same sky, and exponential haze tinted by sun height.
+// Sky (Preetham model with procedural clouds), the sun with a camera-following shadow map,
+// image-based ambient light regenerated from the same sky, and exponential haze tinted by sun height.
+//
+// Note: three's CSM addon (cascaded shadows) was tried first. In r186 it replaces a core lighting
+// shader chunk with an outdated copy that removes environment reflections from metals (verified
+// with test spheres, 2026-10-05). Until that is fixed upstream or replaced (Phase 5 needs long-range
+// shadows), a single texel-snapped shadow map follows the camera's focus.
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { CSM } from 'three/addons/csm/CSM.js';
 import { GLENFINNAN, solarPosition, sunDirection, ukLocalToUTC } from './solar.ts';
 import type { TierSpec } from '../core/quality.ts';
 
@@ -22,9 +26,11 @@ export interface AtmosphereParams {
 
 export const DEFAULT_ATMOSPHERE: AtmosphereParams = {
   date: { y: 2026, m: 8, d: 24 }, hour: 11.25,
-  turbidity: 6, rayleigh: 1.6, mie: 0.006, mieG: 0.8,
+  turbidity: 5, rayleigh: 1.6, mie: 0.004, mieG: 0.76,
   cloudCoverage: 0.45, cloudDensity: 0.55, haze: 0.0011,
-  sunIntensity: 3.2, envIntensity: 1.0,
+  // Units: the Preetham sky radiance sets the scale. Sun irradiance ~2.6x the sky's (hazy Highland
+  // day); env at 1.0 keeps reflected sky equal to the visible sky; exposure brings it to display range.
+  sunIntensity: 20, envIntensity: 1.0,
 };
 
 export class Atmosphere {
@@ -32,13 +38,16 @@ export class Atmosphere {
   readonly params: AtmosphereParams = structuredClone(DEFAULT_ATMOSPHERE);
   readonly sunDir = new THREE.Vector3(0, 1, 0);
   sun = { elevation: 0, azimuth: 0 };
-  csm!: CSM;
+  readonly light = new THREE.DirectionalLight(0xffffff, 1);
+  private focus = new THREE.Vector3();
+  private extent = 40;
   private envScene = new THREE.Scene();
   private envSky = new Sky();
+  // the Preetham sky is black below the horizon; a lit ground disc gives reflections and ambient light from below
+  private envGround = new THREE.Mesh(new THREE.CircleGeometry(8000, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x404030, fog: false }));
   private pmrem: THREE.PMREMGenerator;
   private envRT: THREE.WebGLRenderTarget | null = null;
   private envDirty = true;
-  private materials = new Set<THREE.Material>();
   private scene: THREE.Scene;
 
   constructor(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, tier: TierSpec) {
@@ -48,36 +57,36 @@ export class Atmosphere {
     scene.add(this.sky);
     this.envSky.scale.setScalar(9000);
     this.envScene.add(this.envSky);
+    this.envGround.position.y = -1.5;
+    this.envScene.add(this.envGround);
     this.pmrem = new THREE.PMREMGenerator(renderer);
     scene.fog = new THREE.FogExp2(0xb8c4cc, this.params.haze);
-    this.makeCSM(camera, tier);
+    const l = this.light, sh = l.shadow;
+    l.castShadow = true; l.name = 'sun';
+    sh.mapSize.set(tier.shadowSize, tier.shadowSize);
+    this.extent = tier.shadowExtent;
+    Object.assign(sh.camera, { left: -this.extent, right: this.extent, top: this.extent, bottom: -this.extent, near: 1, far: 600 });
+    sh.camera.updateProjectionMatrix();
+    sh.bias = -0.0004; sh.normalBias = 0.025; sh.radius = 2;
+    scene.add(l, l.target);
+    void camera;
     this.update(0);
   }
 
-  makeCSM(camera: THREE.Camera, tier: TierSpec) {
-    if (this.csm) { this.csm.remove(); this.csm.dispose(); }
-    this.csm = new CSM({
-      camera: camera as THREE.PerspectiveCamera, parent: this.scene, cascades: tier.cascades, maxFar: tier.shadowFar,
-      mode: 'practical', shadowMapSize: tier.shadowSize, shadowBias: -0.0002, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: this.params.sunIntensity, lightMargin: 60,
-    });
-    for (const l of this.csm.lights) { l.shadow.normalBias = 0.03; l.shadow.radius = 2; }
-    for (const m of this.materials) this.csm.setupMaterial(m);
-  }
+  /** The shadow map is centred here (orbit target or the walker). */
+  setFocus(p: THREE.Vector3) { this.focus.copy(p); }
 
-  /** Every lit material in the scene must be registered so it receives cascaded shadows. */
-  register(root: THREE.Object3D) {
-    root.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      if (!mesh.isMesh) return;
-      for (const m of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
-        if (this.materials.has(m) || !(m as THREE.MeshStandardMaterial).isMeshStandardMaterial) continue;
-        this.materials.add(m); this.csm.setupMaterial(m);
-      }
-    });
+  private placeLight() {
+    // keep the shadow frustum on whole texels in light space so edges do not shimmer as the focus moves
+    const texel = (2 * this.extent) / this.light.shadow.mapSize.x;
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), this.sunDir);
+    const local = this.focus.clone().applyQuaternion(q.clone().invert());
+    local.x = Math.round(local.x / texel) * texel; local.y = Math.round(local.y / texel) * texel;
+    const snapped = local.applyQuaternion(q);
+    this.light.target.position.copy(snapped);
+    this.light.position.copy(snapped).addScaledVector(this.sunDir, 300);
+    this.light.target.updateMatrixWorld();
   }
-
-  setCamera(camera: THREE.Camera) { this.csm.camera = camera as THREE.PerspectiveCamera; this.csm.updateFrustums(); }
 
   /** Recompute sun, sky, fog colour and light. Call after changing params. */
   apply() {
@@ -96,11 +105,13 @@ export class Atmosphere {
     const el = Math.max(sp.elevation, -2);
     const f = THREE.MathUtils.smoothstep(el, -1, 12);
     const warm = 1 - THREE.MathUtils.smoothstep(el, 2, 25);
-    this.csm.lightDirection.copy(this.sunDir).negate();
-    for (const l of this.csm.lights) {
-      l.intensity = p.sunIntensity * f * (1 - 0.55 * p.cloudCoverage * p.cloudDensity);
-      l.color.setRGB(1, 0.94 - 0.2 * warm, 0.86 - 0.38 * warm);
-    }
+    this.light.intensity = p.sunIntensity * f * (1 - 0.55 * p.cloudCoverage * p.cloudDensity);
+    this.light.color.setRGB(1, 0.94 - 0.2 * warm, 0.86 - 0.38 * warm);
+    // ground bounce: albedo ~0.15 lit by sun and sky (same relative units as the lights)
+    // (in env-scene units: the PMREM result is later scaled by envIntensity, the sky averages ~1.5 there)
+    const sunE = p.sunIntensity * Math.max(0, Math.sin((el * Math.PI) / 180)) * f;
+    const gl = Math.min(3, ((0.15 / Math.PI) * (sunE + p.envIntensity * Math.PI * 1.5)) / Math.max(0.02, p.envIntensity));
+    (this.envGround.material as THREE.MeshBasicMaterial).color.setRGB(gl * 0.92, gl, gl * 0.78);
     const fog = this.scene.fog as THREE.FogExp2;
     fog.density = p.haze;
     fog.color.setRGB(0.70 + 0.14 * warm, 0.76 - 0.06 * warm, 0.82 - 0.22 * warm).multiplyScalar(0.25 + 0.75 * f);
@@ -118,7 +129,7 @@ export class Atmosphere {
       this.scene.environment = rt.texture;
       this.scene.environmentIntensity = this.params.envIntensity;
     }
-    this.csm.update();
+    this.placeLight();
   }
 
   invalidate() { this.envDirty = true; }

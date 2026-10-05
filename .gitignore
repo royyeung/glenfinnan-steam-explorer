@@ -15,3 +15,8 @@ build/
 # generated
 /public/basis/
 /shots/**/tmp/
+
+# harness output: PNG originals stay local; composites containing reference photos are never committed
+shots/**/*.png
+shots/**/compare_*.jpg
+shots/**/overlay_*.jpg

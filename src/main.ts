@@ -31,7 +31,8 @@ function begin(withSound: boolean) {
 }
 
 function loop() {
-  app.frame();
+  // deterministic/harness mode renders only when GX asks (software rendering is slow)
+  if (!params.fixed) app.frame();
   if (params.perf && app.ready) perfOverlay();
   requestAnimationFrame(loop);
 }

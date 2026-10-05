@@ -1,0 +1,10 @@
+{
+ "steps": 720,
+ "maxRodLengthDeviation_m": 1.3322676295501878e-15,
+ "maxConnectionGap_m": 1.967320211922957e-15,
+ "worst": "cn_R@295°",
+ "rightMinusLeftPhaseDeg": -90,
+ "rightLeads": true,
+ "pass": true,
+ "errors": []
+}

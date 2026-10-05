@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 0 complete (plan and research). Your answers were folded in on 2026-10-05 (REFERENCE §11). **Awaiting "approved, continue to Phase 1".** Nothing beyond Phase 0 has been built.
+**Status:** Phase 1 (foundations) complete on 2026-10-05, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 2".**
 
 ---
 
@@ -21,18 +21,18 @@ Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the pr
 | Repo | `royyeung/glenfinnan-steam-explorer`, **private** (please create it empty, no README; I'll push over SSH) |
 | Clone | `/srv/projects/glenfinnan-steam-explorer` |
 | Type | **Static**: Vite build output rsynced to `/srv/www/glenfinnan/`. No container: there is no server-side code. |
-| Search engines | `<meta name="robots" content="noindex, nofollow">` plus an `X-Robots-Tag` header from Caddy |
+| Search engines and bots | **Blocked on the whole domain** (your request, 2026-10-05). Every response from `royyeung.dev` carries `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate`; `/robots.txt` disallows everything; known crawlers (Google, Bing, Baidu, Yandex, Sogou, Bytespider…), AI scrapers, SEO tools, archivers, link-preview fetchers, scripting clients, headless browsers and requests with no User-Agent get **403** on every path. Real browsers are unaffected. Bots that disguise themselves as a normal browser can only be stopped by a password, which is not enabled. The page also has a `noindex` meta tag. |
 | Basic auth | **Not used** (decided 2026-10-05): noindex only. It can be added later in the Caddyfile alone, with the hash kept out of the repo. |
 | Private inputs | `reference/` (your photos and `captions.md`) and `data/` (raw terrain downloads) are git-ignored and never deployed |
 
-Planned Caddy block, inside `royyeung.dev { }` before the catch-all:
+Caddy block (live since 2026-10-05), inside `royyeung.dev { }` before the catch-all. The `(no_bots)` snippet defines `@bots`/`@noua` and the `X-Robots-Tag` header for the whole site:
 
 ```
 # Glenfinnan steam explorer (private, unofficial)
 redir /glenfinnan /glenfinnan/ 308
 handle_path /glenfinnan/* {
-	header X-Robots-Tag "noindex, nofollow, noarchive"
-	# basic_auth { <user> <bcrypt hash> }   # not used for now (Q9); add later if wanted
+	respond @bots "Forbidden" 403
+	respond @noua "Forbidden" 403
 	root * /srv/www/glenfinnan
 	file_server
 }
@@ -40,7 +40,7 @@ handle_path /glenfinnan/* {
 
 The server's Caddy (v2.11.4) already maps `.glb`, `.ktx2`, `.wasm` and `.webmanifest` to the right MIME types (checked 2026-10-04). Responses are compressed with `encode zstd gzip`.
 
-**Deploy:** build in a throwaway `node:22-alpine` container, then `rsync -a --delete dist/ /srv/www/glenfinnan/`. Validate and reload Caddy. Then `curl -sI` must show 200 for `/glenfinnan/`, 308 for `/glenfinnan`, and the `X-Robots-Tag` header.
+**Deploy:** `tools/npm.sh run build`, then `rsync -a --delete dist/ /srv/www/glenfinnan/`. Verification uses a normal browser User-Agent (curl's own is refused): 200 for `/glenfinnan/`, 308 for `/glenfinnan`, the `X-Robots-Tag` header, and 403 for a crawler User-Agent.
 
 ## 2. Rights and taste
 
@@ -64,7 +64,7 @@ The server's Caddy (v2.11.4) already maps `.glb`, `.ktx2`, `.wasm` and `.webmani
 | Unit tests | `vitest` (kinematics, specs, solar position) | 5.0.3 |
 | Asset processing | `@gltf-transform/cli` + `meshoptimizer`; KTX-Software `toktx` in a pinned Docker image | 4.5.1 / 1.3.0 |
 | Terrain processing | GDAL in a pinned `ghcr.io/osgeo/gdal` image | pin at Phase 5 |
-| Screenshots | Playwright in the official `mcr.microsoft.com/playwright` image | 1.63.0 |
+| Screenshots | Playwright in the official `mcr.microsoft.com/playwright` image (reusing the server's existing v1.49.1 image, Chromium 131) | 1.49.1 |
 | Images | Python 3.12 slim + Pillow/numpy (contact sheets, overlays, diffs) | |
 
 All tools run in throwaway containers. Nothing is installed on the host.
@@ -161,7 +161,7 @@ Each assembly module is a pure function `(specs, quality) → THREE.Group`, with
   - Physically based materials (`MeshStandardMaterial` / `MeshPhysicalMaterial`), with physical light units.
   - The sun is computed from date, time and location (NOAA/SPA algorithm, unit-tested).
   - The sky is analytic (atmospheric scattering) with a CC0 HDRI cloud layer option. A PMREM environment is regenerated when time of day changes.
-- **Shadows:** cascaded shadow maps (soft, PCF), plus contact shadows/AO under bogies and in the cab.
+- **Shadows:** one sun shadow map centred on what you are looking at (4096 px on High, 2048 Medium, 1024 Low; ±45/40/30 m), snapped to whole texels so edges don't shimmer, PCF-filtered; plus AO (GTAO) on High. *Changed in Phase 1:* three's cascaded-shadow addon (CSM) breaks reflections on metal in r186: it swaps in an outdated lighting shader, as shown by test spheres. Long-range landscape shadows (Phase 5) will need a fixed CSM or a custom cascade.
 - **Post:**
   - Tone mapping is AgX or Neutral; I'll compare both against reference photos in Phase 1.
   - Subtle bloom (firebox, lamps, sun glints).
@@ -172,6 +172,24 @@ Each assembly module is a pure function `(specs, quality) → THREE.Group`, with
   - Cab: firebox glow as an animated emissive plus a point light.
   - Coaches: interior lights with real luminous values.
   - Daylight through the windows uses the same sun and sky.
+
+## 6a. Sound (whole project, every mode)
+
+Sound is part of every phase, not an add-on (your request, 2026-10-05).
+
+- **Engine:** Web Audio. Master bus with a safety limiter, mute and volume, and unlock on the first tap or click. Spatial sources (HRTF on High and Medium) follow the moving vehicles; the listener follows the active camera.
+- **Sources:** procedural synthesis first. CC0 recordings only where synthesis can't convince, each listed in CREDITS.md. No film music anywhere.
+- **Checks every phase:** an AnalyserNode harness measures RMS and peak dBFS at fixed positions. It verifies no clipping (peak < −1 dBFS), sound present (RMS > −60 dBFS), and silence when muted.
+
+| Phase | Sounds added |
+|---|---|
+| 1 | Highland ambience (wind with gusts, a burn, small birds). Engine standing in steam: blower roar at the chimney, safety valves feathering, air-pump double beats, low firebox roar heard on the footplate. |
+| 2 | Exterior detail: cylinder drain cocks, injector "singing", drips and hiss, coupling clanks, motion clatter when turning |
+| 3 | Footplate: firehole doors, shovel on the shovelling plate, coal, regulator and reverser clicks, gauge-glass cocks, blower valve, whistle valve; cab acoustics |
+| 4 | Coach interior: door slams and locks, footsteps on floor and vestibules, seat creaks, muffled exterior, interior rumble |
+| 5 | Viaduct and landscape: wind on the viaduct, River Finnan, loch shore, wildlife by time of day, echo off the piers |
+| 6 | Running: exhaust beats locked to wheel rotation (4 per revolution), whistle, wheel and rail joints, flange squeal on the 241 m curve, Doppler, cab and coach mixes |
+| 7 | Final mix, loudness balance, captions for sounds (accessibility) |
 
 ## 7. Quality tiers and performance budget
 
@@ -185,7 +203,7 @@ The tier is chosen automatically from the GPU, screen and device memory, and can
 | Visible triangles | ≤ 3.0 M | ≤ 1.2 M | ≤ 0.4 M |
 | Draw calls | ≤ 600 | ≤ 300 | ≤ 150 |
 | GPU texture memory | ≤ 768 MB | ≤ 384 MB | ≤ 160 MB |
-| Shadows | 3 cascades × 2048, soft | 2 × 2048 | 1 × 1024 + blob/contact |
+| Shadows | 1 × 4096 around the focus (±45 m) + GTAO | 1 × 2048 (±40 m) | 1 × 1024 (±30 m) |
 | Post | MSAA4, GTAO, bloom, haze | SMAA, bloom, haze | Haze only |
 | Download to first view | ≤ 60 MB | ≤ 35 MB | ≤ 20 MB |
 | Total download (all modes) | ≤ 250 MB | ≤ 150 MB | ≤ 90 MB |
@@ -241,7 +259,7 @@ Every phase ends the same way:
 ### Phase 1: Foundations
 
 - **Project:** Vite + TS + three r186.1 pinned. Docker scripts for dev, build, test, shoot and deploy. First deploy to `/glenfinnan/` with noindex.
-- **Rendering:** renderer, sun and sky with correct solar position, PBR test materials, tone mapping comparison, CSM shadows, bloom, haze.
+- **Rendering:** renderer, sun and sky with correct solar position, PBR test materials, tone mapping comparison, sun shadows, bloom, haze.
 - **Controls:** orbit, first-person walk (capsule, steps, collision), touch controls.
 - **Shell:** loading screen with progress and the unofficial note; quality tiers with auto-detect.
 - **Harness:** all of §8 working on simple scenes; debug hooks; tuning panel with JSON export.
@@ -254,6 +272,27 @@ Every phase ends the same way:
 - the avatar test runs;
 - the perf report is produced for all tiers at both viewports;
 - the live URL returns 200 with `X-Robots-Tag`.
+
+**Result (2026-10-05).** Details are in `shots/p1/NOTES.md`.
+
+- [x] **Silhouette vs S33 (right side):**
+  - buffer face 1.2 cm (one pixel), chimney +0.1 cm, dome 0, cab roof +0.2 cm;
+  - wheel centres line up visually within about ±3–5 cm;
+  - the tender coal heap and water filler exceed the measuring windows, explained in NOTES.
+  - **Caveat:** most values come from that same photo. The independent checks are published height (0.15 %), the 8 ft coupled spacing (0.4 %) and the estimated axles landing on the photo's wheels.
+- [x] **Kinematics:** 720 steps per revolution. Rod length drift 1.3e-15 m; worst scene-node gap 2.0e-15 m; sides at 90°.
+- [x] **Avatar:**
+  - headroom 2.05 m; doorway 0.89 m;
+  - platform → step → footplate climbable (0.235 / 0.45 m rises); the scripted walk ends on the footplate;
+  - lineside boarding is impossible, as in reality.
+- [x] **Perf report:** 3 tiers × 2 viewports. Software rendering only, so relative; real numbers need `?perf=1` on your devices.
+- [x] **Live:** 200 + `X-Robots-Tag`, 308, 403 for bots.
+- [x] **Sound:** ambience plus an engine standing in steam. Peaks −16 to −25 dBFS, mute silent.
+- [x] **Unit tests:** 15/15.
+- **Changed from plan:**
+  - single camera-following sun shadow instead of CSM (CSM breaks metal reflections in r186);
+  - Playwright 1.49.1 image reused;
+  - LODs generated parametrically (11.5k / 6.2k / 3.2k triangles) instead of mesh-simplified.
 
 ### Phase 2: Locomotive exterior
 
@@ -347,4 +386,5 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 ## 12. Change log
 
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
+- 2026-10-05: Phase 1 built, verified and deployed (see Phase 1 Result). Domain-wide bot blocking added to Caddy. Sound plan added (§6a).
 - 2026-10-05: Your answers applied: repo live; folders inside the project; terrain = OS Terrain 50 + shaped near-field; first coach = standard-class TSO; no basic auth; test devices = Galaxy S26 Ultra + Windows 11 laptop (Chrome). Reference photos collected from Wikimedia Commons; REFERENCE §2/§6/§9 updated from dated 2025 photos.

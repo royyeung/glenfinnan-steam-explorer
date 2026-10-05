@@ -61,7 +61,7 @@ export class App {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, preserveDrawingBuffer: params.shot !== null });
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, preserveDrawingBuffer: params.shot !== null || params.fixed });
     const det = detectTier(this.renderer);
     this.gpu = det.gpu;
     const forced = params.q ?? (localStorage.getItem('gse.quality') as Tier | 'auto' | null);
@@ -71,7 +71,7 @@ export class App {
     const r = this.renderer;
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.AgXToneMapping;
-    r.toneMappingExposure = 1.0;
+    r.toneMappingExposure = 0.3;
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFShadowMap;
     r.info.autoReset = false;
@@ -126,7 +126,6 @@ export class App {
     this.tender.position.set(0, 0, -(TENDER_ORIGIN_D - ENGINE_ORIGIN_D));
     this.scene.add(this.engine, this.tender);
     for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
-    this.atmosphere.register(this.scene);
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);
@@ -184,7 +183,6 @@ export class App {
   setCamera(cam: THREE.Camera) {
     this.camera = cam;
     this.post.setCamera(cam);
-    this.atmosphere.setCamera(cam === this.ortho ? this.persp : cam);
   }
 
   setMode(m: Mode) {
@@ -204,6 +202,11 @@ export class App {
     if (!v) throw new Error(`unknown view ${name}`);
     this.orthoView = null;
     this.site.group.visible = v.kind !== 'ortho';
+    // elevations are measured views: always full detail (LOD switching would use the 120 m camera distance)
+    for (const lod of [this.engine, this.tender]) {
+      lod.autoUpdate = v.kind !== 'ortho';
+      if (v.kind === 'ortho') lod.levels.forEach((l, i) => { l.object.visible = i === 0; });
+    }
     if (v.kind === 'persp') {
       this.setMode('orbit'); this.setCamera(this.persp);
       this.persp.fov = v.fov; this.persp.updateProjectionMatrix();
@@ -217,7 +220,7 @@ export class App {
       const [cx, cy, cz] = v.centre, D = 120;
       const pos: Record<string, [number, number, number]> = { left: [cx + D, cy, cz], right: [cx - D, cy, cz], front: [cx, cy, cz + D], top: [cx, cy + D, cz] };
       this.ortho.position.set(...pos[v.dir]);
-      this.ortho.up.set(0, v.dir === 'top' ? 0 : 1, v.dir === 'top' ? -1 : 0);
+      this.ortho.up.set(v.dir === 'top' ? 1 : 0, v.dir === 'top' ? 0 : 1, 0); // plan: engine left side at the top, front to the right
       this.ortho.lookAt(cx, cy, cz);
       this.ortho.near = 1; this.ortho.far = 400;
       this.updateOrtho();
@@ -259,6 +262,7 @@ export class App {
     }
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) this.orbit.update();
+    this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     this.atmosphere.update(this.simTime);
     this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera);
     const t0 = performance.now();
