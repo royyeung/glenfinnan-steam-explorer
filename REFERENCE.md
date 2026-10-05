@@ -1,6 +1,6 @@
 # REFERENCE: verified specifications
 
-Research snapshot **2026-10-04**. Every number below has a source and a confidence level. Anything not found is marked **UNVERIFIED** and is not to be modelled as fact. It becomes a named, flagged parameter (see PLAN §4.2) until a drawing, a photo measurement or your answer replaces it.
+Research snapshot **2026-10-04**, updated **2026-10-05** with your decisions (§11) and photo evidence from 2025 (S33–S41). Every number below has a source and a confidence level. Anything not found is marked **UNVERIFIED** and is not to be modelled as fact. It becomes a named, flagged parameter (see PLAN §4.2) until a drawing, a photo measurement or your answer replaces it.
 
 ## 0. How to read this
 
@@ -53,6 +53,17 @@ Research snapshot **2026-10-04**. Every number below has a source and a confiden
 | S30 | docbrown.info, *45407* page (updated May 2026; photos 2012–13), https://docbrown.info/docspics/ArchiveSteam/loco45407.htm |
 | S31 | Wikipedia, *LMS Stanier Class 5 4-6-0 5212*, https://en.wikipedia.org/wiki/LMS_Stanier_Class_5_4-6-0_5212 |
 | S32 | Wayfaring Kiwi, Jacobite travel guide (travel blog), https://www.wayfaringkiwi.com/harry-potter-train-in-scotland/ (cited for facts only) |
+| S33 | Photo: 45407 on the Jacobite, Glenfinnan, **22 Oct 2025**, Eric Kilby, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:The_Jacobite_Express_(55068802046).jpg |
+| S34 | Photo: 45407 on the viaduct with maroon coaches, **22 Oct 2025**, Eric Kilby, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Glenfinnan_Viaduct_-_Jacobite_Express.jpg |
+| S35 | Photos: 45407 at Tain, **30 Apr 2025**, Dave Thompson, CC BY-SA 2.0. Geograph 8035578, 8039158 and 8039169 (Commons copies listed in `docs/reference-sources.md`). |
+| S36 | Photo: the Jacobite tender-first near the Caledonian Canal, **7 Sep 2025**, David Martin, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:The_Jacobite_Steam_Train_about_to_cross_the_Caledonian_Canal_-_geograph.org.uk_-_8149185.jpg |
+| S37 | Photo: 44871 on the viaduct with maroon coaches, **8 Aug 2025**, S. Perquin, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Jacobite_Steam_Train_passing_Glenfinnan_Viaduct_(2025)_(2).jpg |
+| S38 | Photo: 45407 "with top feed near dome", 30 Sep 2016, Hugh Llewelyn, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:LMS_Stanier_Class_%225MT%22_4-6-0_No.45407_-_29995070996.jpg |
+| S39 | Photo: WCR maroon Mk2 TSO 5249, 23 May 2017, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Taunton_-_WCR_Mk2_TSO_5249.JPG |
+| S40 | Photo: interior of WCR maroon Mk2 TSO M5125, 14 Apr 2012, Hugh Llewelyn, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:BR_Mk.II_TSO_No.M5125_(7169852174).jpg |
+| S41 | Photo: backhead of a Black Five (**not** 45407; loco unidentified), 11 Feb 2011, Tony Hisgett, CC BY 2.0, https://commons.wikimedia.org/wiki/File:Black_5_Cab_(5441663973).jpg |
+
+The 35 reference images downloaded so far are listed with author and licence in `docs/reference-sources.md`. The image files themselves are in the git-ignored `reference/web/`.
 
 **Not yet consulted** (authoritative, offline; see Q10):
 
@@ -119,13 +130,14 @@ Research snapshot **2026-10-04**. Every number below has a source and a confiden
 | Tender | Stanier 4,000-gallon type, **with a new, larger tank: 4,710 gal (21.41 m³), 9 tons coal** | S2 | High (owner) |
 | | Riveted / welded / part-welded tank, and the new tank's shape | none | **UNVERIFIED**: photos L06, L07, L16 |
 | Livery (current) | BR lined black | S1, S28, S30 | High |
-| Tender emblem | **Conflicting.** S1 (Wikipedia) and S28 (Hornby, 2026 "as preserved") say **early emblem**. S30 says **late crest**, but its photos are from 2012–13. Probably early emblem since some years ago. | S1, S28, S30 | Low; needs dated photo L16 |
-| Smokebox | Black smokebox-door numberplate | S28 | Medium |
-| Shed plate | 26D (Bury) | S28 | Medium |
-| Nameplates | "The Lancashire Fusilier", fitted | S28 | Medium. Position, crest artwork and colours unverified: photo L14. |
-| Boiler on 45407 today | Domed with top feed? | none | **UNVERIFIED**: photo L08 |
-| Lamps | Oil-style lamp irons; possibly a modern high-intensity headlamp | S27 | Low; needs photo L17/L21 |
-| Headboard | Whether a Jacobite headboard is carried in 2026 | none | **UNVERIFIED**: photo L21 / Q5 |
+| Tender emblem | **Resolved: BR early emblem** (lion over a wheel, with a "BRITISH RAILWAYS" bar), seen on the tender in the 22 Oct 2025 Jacobite photo. Agrees with S1 and S28; S30's "late crest" dates from 2012–13. | S33 | **High** |
+| Smokebox numberplate | **Blue background with white numerals** "45407" in Apr 2025 and Oct 2025 (S28's "black plate" must be another period) | S34, S35 | High (2025) |
+| Shed plate | Small blue plate below the door handle in 2025 (code not legible) | S34, S35 | Medium. S28 says 26D (Bury); unverified for 2025. |
+| Nameplates | "The Lancashire Fusilier", a curved plate with the regimental crest above it, on the boiler side above the running plate, roughly over the middle coupled wheel | S33, S35 | High (position); crest artwork to be simplified |
+| Boiler on 45407 today | Domed boiler with top feed: "top feed near dome" | S38 (2016); dome visible in S33 (2025) | Medium |
+| Lamps | Lamp irons, plus modern lamp units at both ends of the front buffer beam (lit white when running) | S34, S35 | Medium |
+| Headboard | **"THE JACOBITE": blue with white lettering, arched top**, mounted at the top of the smokebox door | S34 (45407, Oct 2025) | High (2025) |
+| | When running tender-first, it is carried on the tender back | S36 (Sep 2025) | Medium |
 | Earlier identities | Furness Railway red (early preservation) | S29 | Medium |
 | | Ran as 45157 "The Glasgow Highlander" in 2018 | S27 | Medium |
 | | 44871 carried 45407's nameplates in 2010 | S2 | High |
@@ -168,6 +180,7 @@ Their exact count and positions are **UNVERIFIED**.
 
 | Item | Value | Confidence |
 |---|---|---|
+| Backhead as seen on a Black Five (not 45407) | Vacuum gauge at top left; two water-gauge glasses; a long regulator handle hanging from the top centre; steam manifold with handwheels across the top; two small gauges at top right; firehole below; cab interior painted cream | S41 (2011, unidentified loco) | Medium for the class layout; 45407's own gauges and modern kit still need C01–C12 |
 | Injector types (live steam / exhaust steam) and sides | **UNVERIFIED** | Needs photos |
 | Regulator form (LMS-style horizontal swinging handle?) | S27 render suggests a long lever from the top centre | Low |
 | Reverser form (screw reverser with handle?) | S27 shows a handle on a column, driver's side | Low |
@@ -213,7 +226,11 @@ The cutaway's info panel will say which dimensions are estimated.
 | Mk2 subtype and livery used in 2026 | Opening windows suggest pressure-ventilated Mk2 / 2A / 2B / 2C. WCR's register shows many **maroon** Mk2 TSOs (e.g. 5171, 5200, 5216, 5222, 5229, 5236–5249, 5278, 5419, 5453–5491, 5569, 5592) and a separate blue/grey air-con Mk2 set. | S10, S11 | **UNVERIFIED** which vehicles; maroon is likely but not confirmed (Q4) |
 | WCR maroon Mk2 FOs (3313–3431) | These numbers are Mk2F FOs (3276–3439 range): air-conditioned with sealed windows | S10, S13 | Medium. So first class in 2026 may be Mk2F or Mk1: **UNVERIFIED** |
 | Support coach | Main-line steam usually runs with a support coach behind the tender (S27 depicts a Mk2A BFK). Whether one runs on the Jacobite in 2026 is unknown. | S27 | Low |
-| Formation (number and order of coaches) | **UNVERIFIED** | none | Q4 |
+| Formation (number and order of coaches) | **UNVERIFIED** for 2026 | none | Q4 |
+| What 2025 photos show | 22 Oct 2025 (45407) and 8 Aug 2025 (44871) on the viaduct: **maroon BR Mk1 coaches** (sliding window ventilators, roof vents) in West Coast lettering, the first coach marked "C1". The Oct 2025 photo also seems to show a diesel at the rear. | S34, S37 | High (Mk1 in 2025); Low (diesel) |
+| WCR maroon pressure-ventilated Mk2 TSO (the probable 2026 type) | **Exterior** (5249, 2017): BR maroon with gold/black lining at waist and cantrail, "West Coast" lettering; hinged doors at the coach ends only; large windows with small top-opening vents; black roof with a row of pressure-ventilation domes; B4 bogies. | S39 | Medium (as a type) |
+| | **Interior** (M5125, 2012): 2+2 seats with high vinyl-backed headrests and blue checked fabric; small tables; luggage racks with lights; curved ceiling | S40 | Medium (may have been refurbished since 2012) |
+| Modelling decision (2026-10-05) | **Maroon WCR pressure-ventilated Mk2 TSO** as the first enterable coach, matching S7's 2026 description. Flagged until a 2026 photo of the actual set is found. | S7, S39, S40 | Medium–Low |
 
 ### 6.2 BR Mark 2: general
 
@@ -326,7 +343,7 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 | | Morning departure 10:15 from Fort William | S8 | Low (year unknown) |
 | Speed crossing the viaduct | **UNVERIFIED.** Travel guides say the train slows and pauses on the viaduct on the outbound morning trip (S32); one guide says the crossing takes "almost 2 minutes", about 11 km/h average | S32 | Low |
 | Line speed limit | **UNVERIFIED** | none | Q13 |
-| Locomotive orientation each way (chimney-first to Mallaig?) | **UNVERIFIED** | none | Photos / Q8 |
+| Locomotive orientation | Every viaduct photo found shows the loco **chimney-first** (2021, Aug 2025, Oct 2025). A Sep 2025 photo near Banavie shows it **tender-first** with the headboard on the tender back. So it runs chimney-first one way and tender-first the other, probably chimney-first to Mallaig. | S33, S34, S36, S37 | Medium |
 | Best side for the viaduct view | Travel guides recommend the left side going to Mallaig | S32 | Low |
 
 ## 10. Licences for assets
@@ -339,34 +356,48 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 
 ---
 
-## 11. Open questions for you
+## 11. Decisions and remaining questions
 
-1. **Repo and path.** OK to create a **private** GitHub repo `royyeung/glenfinnan-steam-explorer`, served at `royyeung.dev/glenfinnan/`?
-2. **/data and /reference.** Neither exists on the server. I propose `/srv/projects/glenfinnan-steam-explorer/reference/` and `.../data/`, both git-ignored and never deployed. Or do you want literal root folders `/reference` and `/data`?
-3. **Terrain.** Glenfinnan has no published LiDAR yet (§8.1). Options:
-   - **(a)** Build Phase 5 on OS Terrain 50 (OGL) plus hand-shaped near-field terrain, flagged, and swap in LiDAR when it is released. *(recommended)*
-   - **(b)** Also allow Copernicus GLO-30 (30 m; different licence).
-   - **(c)** Do you already have LiDAR tiles for this area?
-4. **Coaches.** 2026 runs Mk2s, so your choice matches.
-   - Please confirm the livery (maroon?) and the formation: how many coaches, and which types (TSO / FO / BSO / support BFK / buffet).
-   - Which coach should be enterable first (I suggest a TSO)?
-   - If you would rather have the classic maroon Mk1s, say so now. It changes Phase 4 a lot.
-5. **Target date of 45407.** "As running on the Jacobite, summer 2026"? That needs:
-   - the tender emblem settled (early emblem vs late crest);
-   - whether a headboard was carried;
-   - the lamp code.
-6. **Weathering.** Ex-works clean, or typical working condition mid-season? *(I recommend working condition: clean paint, sooty smokebox, grimy wheels and motion.)*
-7. **Default scene.** Time of day, date and weather (for example the morning train crossing about 11:00 BST in August, bright overcast). Time-of-day will be adjustable anyway.
-8. **Direction.** Does the loco run chimney-first to Mallaig and tender-first back? Unverified; photos would settle it.
-9. **Privacy.** Basic auth from the first deploy (Phase 1), or only noindex for now? Which username? (I'll give you a one-line command to set the password hash yourself, so it never passes through me or the repo.)
-10. **Drawings.** Can you get a Black Five general-arrangement drawing (RCTS volumes, Rowledge & Reed, or an NRM drawing) and a Mk2 diagram? Without them, many dimensions in §1–§6 will be **photo-measured** (scaled from the 6 ft drivers), with about ±2–5 cm error at best.
-11. **Test devices.** Which phone and which desktop/laptop GPU should the performance budget target? The server has no GPU, so headless frame times are only relative.
-12. **Boarding.** Mk2 doors are designed for platforms. Should boarding happen at a modelled Glenfinnan station platform (adds scope to Phase 4/5), or from the lineside via the coach's own step (if it has one; unverified)?
-13. **Viaduct speed.** Default to a slow photo-stop crossing (about 10–15 km/h, with an optional pause) with a speed slider?
-14. **Sounds.** Procedural plus CC0 only (Freesound CC0, Poly Haven has no audio). Is that OK? Any private recordings of 45407 for comparison only?
-15. **Units in info mode.** Metric with imperial in brackets? English only?
+### Decided (2026-10-05)
 
-## 12. Reference photos to collect
+| # | Question | Decision |
+|---|---|---|
+| Q1 | Repo and path | `royyeung/glenfinnan-steam-explorer` (private), served at `royyeung.dev/glenfinnan/` |
+| Q2 | Private folders | Inside the project: `reference/` and `data/`, both git-ignored and never deployed |
+| Q3 | Terrain | OS Terrain 50 (OGL) plus hand-shaped near-field terrain, flagged in the app. Swap in Scottish LiDAR once Glenfinnan is published. |
+| Q4 | First enterable coach | A standard-class TSO. Livery maroon (WCR), type pressure-ventilated Mk2 (§6.1). Flagged until a 2026 photo confirms. |
+| Q5 | Snapshot | **45407 as running on the Jacobite, 2025–26 season**: BR lined black, early emblem, blue numberplate, blue "THE JACOBITE" headboard (§2). You were not sure, so I decided from dated photos. |
+| Q6 | Weathering (default) | Working condition: clean paint, sooty smokebox and chimney, grimy wheels and motion |
+| Q8 | Direction | Chimney-first across the viaduct (§9) |
+| Q9 | Basic auth | **Not used.** noindex only, as you didn't see a need. It can be added later in about a minute, with no rebuild. |
+| Q10 | Drawings | You don't need to supply any. I collect openly licensed photos myself (35 so far, `docs/reference-sources.md`) and measure from them, flagged as `photo:` with error estimates. If a general-arrangement drawing turns up (e.g. the RCTS books), it replaces those numbers. |
+| Q11 | Test devices | **Samsung Galaxy S26 Ultra (Chrome)** and a **Windows 11 14-inch laptop (Chrome)**. Each one's GPU will be read by the `?perf=1` overlay in Phase 1. |
+
+### Defaults I'll use unless you say otherwise
+
+| # | Question | Default |
+|---|---|---|
+| Q7 | Default scene | Late-August late morning, bright overcast. Time of day is adjustable. |
+| Q12 | Boarding | At a modelled **Glenfinnan station platform**, where the Jacobite really stops (Mk2 doors are built for platforms). Platform edge at true height; station buildings simple at first, refined in Phase 5. |
+| Q13 | Viaduct speed | Slow photo crossing of about 15 km/h, with an optional pause and a speed slider |
+| Q14 | Sounds | Procedural plus CC0 only |
+| Q15 | Units | Metric with imperial in brackets; English |
+
+### Still open (none block Phase 1)
+
+- **The 2026 coach set:** exact vehicles, number of coaches and order. If you see or ride the train, a side photo showing coach numbers settles it.
+- **45407 cab interior:** no public photo of *this* loco's footplate yet. The class-level photo S41 will be used, with modern equipment from S27 flagged.
+
+## 12. Reference photos
+
+**Status 2026-10-05:** I have collected 35 openly licensed web photos myself (list in `docs/reference-sources.md`, files in `reference/web/`).
+
+- **Covered:** L02, L03, L05, L06 (tender-first), L08, L21, a Black Five backhead (class-level C01), and the 44871 footplate.
+- **Covered:** Mk2 TSO exterior (T01) and interior (T07/T09); classic viaduct views (V01).
+- **Still missing:** true broadside elevations of 45407 from both sides (L01/L02 at long lens), close motion shots (L09/L10), 45407's own cab (C01–C13) and any drawings (D01–D06).
+
+The list below is the full wish-list. Anything you come across helps, but nothing is required from you.
+
 
 Put them in `reference/` with `reference/captions.md`, in the format of `docs/captions-template.md`.
 

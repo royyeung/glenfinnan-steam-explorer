@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 0 complete (plan and research), **awaiting review**. Nothing beyond Phase 0 has been built.
+**Status:** Phase 0 complete (plan and research). Your answers were folded in on 2026-10-05 (REFERENCE §11). **Awaiting "approved, continue to Phase 1".** Nothing beyond Phase 0 has been built.
 
 ---
 
@@ -22,7 +22,7 @@ Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the pr
 | Clone | `/srv/projects/glenfinnan-steam-explorer` |
 | Type | **Static**: Vite build output rsynced to `/srv/www/glenfinnan/`. No container: there is no server-side code. |
 | Search engines | `<meta name="robots" content="noindex, nofollow">` plus an `X-Robots-Tag` header from Caddy |
-| Basic auth | Optional (Q9). The hash lives only in the server Caddyfile, never in the repo. |
+| Basic auth | **Not used** (decided 2026-10-05): noindex only. It can be added later in the Caddyfile alone, with the hash kept out of the repo. |
 | Private inputs | `reference/` (your photos and `captions.md`) and `data/` (raw terrain downloads) are git-ignored and never deployed |
 
 Planned Caddy block, inside `royyeung.dev { }` before the catch-all:
@@ -32,7 +32,7 @@ Planned Caddy block, inside `royyeung.dev { }` before the catch-all:
 redir /glenfinnan /glenfinnan/ 308
 handle_path /glenfinnan/* {
 	header X-Robots-Tag "noindex, nofollow, noarchive"
-	# basic_auth { <user> <bcrypt hash from `caddy hash-password`> }   # optional, Q9
+	# basic_auth { <user> <bcrypt hash> }   # not used for now (Q9); add later if wanted
 	root * /srv/www/glenfinnan
 	file_server
 }
@@ -179,7 +179,7 @@ The tier is chosen automatically from the GPU, screen and device memory, and can
 
 | Budget (per frame, worst view) | High | Medium | Low (phones) |
 |---|---|---|---|
-| Target device (Q11) | Discrete GPU / Apple M-series, 1440p | Laptop iGPU, 1080p | Mid-range 2022+ phone |
+| Target device (Q11) | Discrete GPU / Apple M-series, 1440p | **Your Windows 11 14" laptop, Chrome** (GPU read by `?perf=1`) | **Your Galaxy S26 Ultra, Chrome** as the phone reference. It is a flagship, so auto-tier may pick Medium; Low stays the safety net for older phones. |
 | Frame time | ≤ 16.7 ms | ≤ 16.7 ms (floor 33 ms) | ≤ 33 ms |
 | Render resolution | DPR ≤ 2, scale 1.0 | DPR ≤ 1.5 | DPR ≤ 1, dynamic 0.7–1.0 |
 | Visible triangles | ≤ 3.0 M | ≤ 1.2 M | ≤ 0.4 M |
@@ -234,16 +234,18 @@ Every phase ends the same way:
 - [x] REFERENCE.md: specs with sources and confidence, open questions, reference photo list
 - [x] LiDAR coverage checked against the portal (finding: none at Glenfinnan yet; evidence in `docs/research/`)
 - [x] Captions template for your photos (`docs/captions-template.md`)
-- [ ] GitHub repo created by you and the first push (waiting on Q1)
+- [x] GitHub repo created by you; pushed (`main`)
+- [x] Your answers recorded (REFERENCE §11); defaults stated for the rest
+- [x] 35 openly licensed reference photos collected (`docs/reference-sources.md`, fetch tools in `tools/refs/`). Two findings: tender emblem settled (early emblem, Oct 2025 photo); 2025 headboard and numberplate are blue.
 
 ### Phase 1: Foundations
 
-- **Project:** Vite + TS + three r186.1 pinned. Docker scripts for dev, build, test, shoot and deploy. First deploy to `/glenfinnan/` with noindex, plus basic auth if chosen.
+- **Project:** Vite + TS + three r186.1 pinned. Docker scripts for dev, build, test, shoot and deploy. First deploy to `/glenfinnan/` with noindex.
 - **Rendering:** renderer, sun and sky with correct solar position, PBR test materials, tone mapping comparison, CSM shadows, bloom, haze.
 - **Controls:** orbit, first-person walk (capsule, steps, collision), touch controls.
 - **Shell:** loading screen with progress and the unofficial note; quality tiers with auto-detect.
 - **Harness:** all of §8 working on simple scenes; debug hooks; tuning panel with JSON export.
-- **Blockout:** proportion-accurate loco and tender built from `specs/`, using verified and photo-measured values (needs L01, L02, L13, L16 or D01). Wheels at the correct spacing and diameters. Simple placeholder rods driven by the real solver.
+- **Blockout:** proportion-accurate loco and tender built from `specs/`, using verified and photo-measured values (sources: the near-broadside Oct 2025 and York 2023 photos, L13/L16-type views, and D01 if one turns up). Wheels at the correct spacing and diameters. Simple placeholder rods driven by the real solver.
 
 **Accept when:**
 
@@ -340,8 +342,9 @@ Every phase ends the same way:
 
 ## 11. Open questions
 
-See REFERENCE.md §11. The ones that block Phase 1 are **Q1** (repo), **Q2** (folders), **Q9** (basic auth) and **Q10** (drawings, or confirmation that photo measurement is acceptable).
+Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still open, but not blocking: the exact 2026 coach set, and photos of 45407's own cab.
 
 ## 12. Change log
 
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
+- 2026-10-05: Your answers applied: repo live; folders inside the project; terrain = OS Terrain 50 + shaped near-field; first coach = standard-class TSO; no basic auth; test devices = Galaxy S26 Ultra + Windows 11 laptop (Chrome). Reference photos collected from Wikimedia Commons; REFERENCE §2/§6/§9 updated from dated 2025 photos.
