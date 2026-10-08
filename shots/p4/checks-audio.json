@@ -1,0 +1,44 @@
+{
+ "state": "running",
+ "levels": [
+  {
+   "view": "site-wide",
+   "rmsDb": -34.5,
+   "peakDb": -23.1
+  },
+  {
+   "view": "front-34-l",
+   "rmsDb": -30.6,
+   "peakDb": -19.2
+  },
+  {
+   "view": "cab-inside",
+   "rmsDb": -28.4,
+   "peakDb": -18.1
+  },
+  {
+   "view": "human-scale",
+   "rmsDb": -30.8,
+   "peakDb": -19.5
+  },
+  {
+   "view": "backhead",
+   "rmsDb": -26.2,
+   "peakDb": -15.1,
+   "note": "blower full, injector on"
+  },
+  {
+   "view": "backhead",
+   "rmsDb": -25.7,
+   "peakDb": -15.1,
+   "note": "whistle"
+  }
+ ],
+ "muted": {
+  "view": "front-34-l",
+  "rmsDb": null,
+  "peakDb": null
+ },
+ "pass": true,
+ "errors": []
+}

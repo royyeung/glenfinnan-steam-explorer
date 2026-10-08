@@ -28,7 +28,7 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     lining_red: m('lining_red', 0xa3241a, 0.45, 0.0),  // BR red lining
     rubber: m('rubber', 0x1a1a1a, 0.9, 0.0),
     glass: m('glass', 0x9fb4c0, 0.05, 0.0, { transparent: true, opacity: 0.25 }),
-    coach_maroon: m('coach_maroon', 0x5a1414, 0.38, 0.0),  // BR maroon (WCR)
+    coach_maroon: m('coach_maroon', 0x7a1a1d, 0.36, 0.0),  // BR maroon (WCR), matched to S39
     roof_black: m('roof_black', 0x1c1c1c, 0.75, 0.0),
     lining_gold: m('lining_gold', 0xd6b04a, 0.45, 0.0),
     underframe: m('underframe', 0x161616, 0.7, 0.0),

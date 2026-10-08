@@ -128,13 +128,20 @@ export class Batch {
     this.parts.set(mat, list);
   }
   build(prefix: string, materials: Record<string, THREE.Material>): THREE.Mesh[] {
+    // group by the material actually used (keys may be remapped to one material, e.g. far LODs)
+    const byMat = new Map<THREE.Material, { name: string; list: THREE.BufferGeometry[] }>();
+    for (const [key, list] of this.parts) {
+      const mat = materials[key];
+      const e = byMat.get(mat) ?? { name: mat?.name || key, list: [] };
+      e.list.push(...list); byMat.set(mat, e);
+    }
     const out: THREE.Mesh[] = [];
-    for (const [mat, list] of this.parts) {
+    for (const [mat, { name, list }] of byMat) {
       const merged = mergeGeometries(list, false);
-      if (!merged) throw new Error(`merge failed for ${prefix}/${mat}`);
+      if (!merged) throw new Error(`merge failed for ${prefix}/${name}`);
       merged.computeBoundingBox(); merged.computeBoundingSphere();
-      const m = new THREE.Mesh(merged, materials[mat]);
-      m.name = `${prefix}_${mat}`;
+      const m = new THREE.Mesh(merged, mat);
+      m.name = `${prefix}_${name}`;
       m.castShadow = true; m.receiveShadow = true;
       out.push(m);
     }

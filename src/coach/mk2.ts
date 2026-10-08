@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { MK2 } from '../specs/mk2.ts';
 import { Batch, DETAIL, boxMinMax, cylBetween, cylX, cylZ, extrudeSection, extrudeSide, latheY, roundBox, roundedRect } from '../loco/geom.ts';
-import { arc, wheel } from '../loco/parts/wheels.ts';
+import { arc } from '../loco/parts/wheels.ts';
 import type { MatKey } from '../loco/materials.ts';
 
 const v = (k: keyof typeof MK2) => MK2[k].v;
@@ -41,8 +41,20 @@ function bodySection(): [number, number][] {
   return [[-w + 0.06, bot], [w - 0.06, bot], [w, bot + 0.6], [w, cant - 0.1], ...roofArc(0, w - 0.04).reverse(), [-w, cant - 0.1], [-w, bot + 0.6]];
 }
 
-export function buildCoach(mats: Mats): THREE.Group {
-  const detail = DETAIL;
+/** Far levels of detail use few materials (each material is a draw call per coach). */
+function lodMats(mats: Mats, detail: number): Mats {
+  if (detail >= 1) return mats;
+  const far = detail < 0.4;
+  const map: Partial<Record<MatKey, MatKey>> = {
+    steel: 'underframe', rubber: 'underframe', spring_red: 'underframe', axle_yellow: 'underframe', wheel: 'underframe',
+    frosted: 'glass', cdl_light: 'coach_maroon', wood_panel: 'coach_maroon',
+    ...(far ? { lining_gold: 'coach_maroon', decal_coachnum: 'coach_maroon', decal_westcoast: 'coach_maroon', glass: 'underframe' } as const : {}),
+  };
+  return new Proxy(mats, { get: (t, k: string) => t[(map[k as MatKey] ?? k) as MatKey] }) as Mats;
+}
+
+export function buildCoach(matsIn: Mats): THREE.Group {
+  const detail = DETAIL, mats = lodMats(matsIn, detail);
   const C = new THREE.Group(); C.name = 'coach';
   const b = new Batch(), lay = mk2Layout(), { L, z, halfW: w } = lay;
   const bot = v('bodyBottomH'), cant = v('cantrailH'), floor = v('floorH');
@@ -129,31 +141,36 @@ export function buildCoach(mats: Mats): THREE.Group {
     }
     b.add('underframe', boxMinMax(-0.6, r + 0.25, zc - 0.3, 0.6, bot - 0.18, zc + 0.3));                          // centre pivot
   }
-  for (const m of b.build('coach_static', mats)) C.add(m);
-
-  // wheelsets
+  // wheelsets: separate nodes on the close-up model (they turn in Phase 6); merged into the body far away
+  const near = detail >= 1;
   [bc + wb, bc - wb, -bc + wb, -bc - wb].forEach((za, i) => {
-    const wbat = new Batch();
-    for (const s of [1, -1] as const) { wheel(wbat, { r, spokes: 0, crank: null, outward: s, x: s * 0.7175 }); wbat.add('wheel', cylX(r - 0.06, 0.04, s * 0.7175, 0, 0, 24)); } // disc wheels
-    wbat.add('steel', cylX(0.07, 1.6, 0, 0, 0, 12));
+    const wbat = near ? new Batch() : b, oy = near ? 0 : r, oz = near ? 0 : za;
+    for (const s of [1, -1] as const) { wbat.add('wheel', cylX(r, 0.14, s * 0.7175, oy, oz, 28), cylX(r + 0.03, 0.025, s * 0.66, oy, oz, 28)); } // disc wheels with flanges
+    wbat.add('wheel', cylX(0.07, 1.6, 0, oy, oz, 12));
+    if (!near) return;
     const g = new THREE.Group(); g.name = `cws_${i}`;
     for (const m of wbat.build(g.name, mats)) g.add(m);
     g.position.set(0, r, za); C.add(g);
   });
 
-  // doors (hinged slam doors with drop-light windows)
+  // doors (hinged slam doors with drop-light windows): swinging nodes close up, fixed and closed far away
   for (const [k, a] of Object.entries(lay.doors)) for (const [S, s] of [['L', 1], ['R', -1]] as const) {
-    const db = new Batch(), h0 = bot + 0.04, h1 = dTop - 0.01;
-    const drop = roundedRect(-dw + 0.12, 2.2, -0.12, 2.86, 0.05);
-    db.add('coach_maroon', extrudeSide([[-dw + 0.005, h0], [-0.005, h0], [-0.005, h1], [-dw + 0.005, h1]], 0.0, -s * 0.035, [drop]));
-    db.add('glass', extrudeSide(drop, -s * 0.012, -s * 0.016));
-    db.add('steel', boxMinMax(Math.min(0, s * 0.04), 1.95, -dw + 0.05, Math.max(0, s * 0.04), 2.0, -dw + 0.15)); // handle
-    for (const y of [v('waistH') - 0.018, v('waistH') + 0.018]) db.add('lining_gold', boxMinMax(0, y - 0.006, -dw + 0.005, s * 0.003, y + 0.006, -0.005));
-    const g = new THREE.Group(); g.name = `coach_door_${k}_${S}`;
-    for (const m of db.build(g.name, mats)) g.add(m);
-    g.position.set(s * w, 0, z(a - dw / 2)); // hinge on the A-side edge
-    C.add(g);
+    const db = near ? new Batch() : b, h0 = bot + 0.04, h1 = dTop - 0.01;
+    const ox = near ? 0 : s * w, oz = near ? 0 : z(a - dw / 2);
+    const drop = roundedRect(-dw + 0.12 + oz, 2.2, -0.12 + oz, 2.86, 0.05);
+    db.add('coach_maroon', extrudeSide([[-dw + 0.005 + oz, h0], [-0.005 + oz, h0], [-0.005 + oz, h1], [-dw + 0.005 + oz, h1]], ox, ox - s * 0.035, [drop]));
+    db.add('glass', extrudeSide(drop, ox - s * 0.012, ox - s * 0.016));
+    if (near) {
+      db.add('lining_gold', boxMinMax(Math.min(0, s * 0.04), 1.95, -dw + 0.05, Math.max(0, s * 0.04), 2.0, -dw + 0.15)); // handle (brass)
+      for (const y of [v('waistH') - 0.018, v('waistH') + 0.018]) db.add('lining_gold', boxMinMax(0, y - 0.006, -dw + 0.005, s * 0.003, y + 0.006, -0.005));
+      const g = new THREE.Group(); g.name = `coach_door_${k}_${S}`;
+      for (const m of db.build(g.name, mats)) g.add(m);
+      g.position.set(s * w, 0, z(a - dw / 2)); // hinge on the A-side edge
+      C.add(g);
+    }
   }
+  for (const m of b.build('coach_static', mats)) C.add(m);
+
   // gangway end doors (closed); the app shows them only at the ends of the train
   for (const [e, zz, dir] of [['A', z(0), 1], ['B', z(L), -1]] as const) {
     const gb = new Batch();
@@ -193,7 +210,12 @@ function buildInterior(mats: Mats): THREE.Group {
     b.add('wood_panel', extrudeSide([[z(L) + 0.04, floor], [z(0) - 0.04, floor], [z(0) - 0.04, cant], [z(L) + 0.04, cant]], s * (w + 0.02), s * w, [...winHoles, ...doorHoles]));
     // heater grille and window sill
     for (const [a0, a1] of [[lay.sal1, lay.vestC], [lay.sal2, lay.vestB]]) b.add('steel', boxMinMax(s * (w - 0.08), floor + 0.05, z(a1) + 0.05, s * w, floor + 0.25, z(a0) - 0.05)); // saloons only
-    for (const a of lay.bays) b.add('table_top', boxMinMax(s * (w - 0.1), wBot - 0.03, z(a + v('windowWidth') / 2), s * w, wBot, z(a - v('windowWidth') / 2)));
+    for (const a of lay.bays) {
+      b.add('table_top', boxMinMax(s * (w - 0.1), wBot - 0.03, z(a + v('windowWidth') / 2), s * w, wBot, z(a - v('windowWidth') / 2)));
+      const z0 = z(a + v('windowWidth') / 2), z1 = z(a - v('windowWidth') / 2);
+      b.add('steel', extrudeSide(roundedRect(z0 - 0.03, wBot - 0.03, z1 + 0.03, wTop + 0.03, 0.1), s * (w - 0.002), s * (w - 0.02), [roundedRect(z0, wBot, z1, wTop, 0.08)])); // aluminium frames
+      b.add('steel', boxMinMax(s * (w - 0.02), wTop - v('ventDepth') - 0.015, z1, s * w, wTop - v('ventDepth') + 0.015, z0));
+    }
   }
 
   // seats and tables: each bay = two facing double seats each side of the aisle with a table between
@@ -206,6 +228,7 @@ function buildInterior(mats: Mats): THREE.Group {
     b.add('decal_seatfabric', roundBox(x0 + 0.02, floor + 0.44, x1 - 0.02, floor + 0.98, bz0, bz1, 0.04));          // back
     b.add('seat_vinyl', roundBox(x0, floor + 0.95, x1, floor + 1.22, bz0 - 0.02, bz1 + 0.02, 0.07));                  // headrest roll
     for (const xa of [x0, x1]) b.add('seat_vinyl', roundBox(xa - 0.03, floor + 0.42, xa + 0.03, floor + 0.62, zc - 0.22, zc + 0.18, 0.02)); // armrests
+    for (const xa of [x0 - 0.012, x1 + 0.012]) b.add('ceiling', roundBox(xa - 0.012, floor + 0.36, xa + 0.012, floor + 1.18, bz0 - 0.03, bz1 + 0.04, 0.01)); // pale plastic seat shells (S40)
     b.add('steel', boxMinMax(x0 + 0.05, floor, zc - 0.2, x1 - 0.05, floor + 0.12, zc + 0.15));                         // frame
   };
   for (const a of lay.bays) {

@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-08T15:16:01.189Z",
+ "generated": "2026-10-08T16:32:38.047Z",
  "files": {
   "engine_lod0.glb": {
    "bytes": 529640,
@@ -32,19 +32,19 @@
    "hash": "49b2c7bc884f"
   },
   "coach_lod0.glb": {
-   "bytes": 525384,
-   "tris": 50424,
-   "hash": "47826a975464"
+   "bytes": 573128,
+   "tris": 56088,
+   "hash": "ef6024f51a50"
   },
   "coach_lod1.glb": {
-   "bytes": 205372,
-   "tris": 22814,
-   "hash": "d8a4dcaaef22"
+   "bytes": 175940,
+   "tris": 21774,
+   "hash": "e747b126bd66"
   },
   "coach_lod2.glb": {
-   "bytes": 130500,
-   "tris": 11363,
-   "hash": "7ebb36fc17db"
+   "bytes": 105532,
+   "tris": 11204,
+   "hash": "b3f7d5260874"
   },
   "../textures/ballast_color.ktx2": {
    "bytes": 190229,

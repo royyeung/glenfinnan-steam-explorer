@@ -168,10 +168,12 @@ export class App {
         tick(file, manifest.files[file].bytes);
         root = g.scene.children[0] ?? g.scene;
       }
-      root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = !/^coach_int/.test(o.name); o.receiveShadow = true; } });
+      // only the close-up coach casts sun shadows (not at all on Low); interiors never do
+      root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = l === 0 && this.tierName !== 'low' && !/^coach_int/.test(o.name); o.receiveShadow = true; } });
       coachLevels.push(root);
     }
-    this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, [0, 30, 110]);
+    // Low tier: coaches drop to the simplest model sooner (phones have the tightest draw-call budget)
+    this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110]);
     this.scene.add(this.train.group);
     this.train.onDoor = (pos, opening) => this.sounds.door(pos, opening);
     for (const c of this.train.coaches) {

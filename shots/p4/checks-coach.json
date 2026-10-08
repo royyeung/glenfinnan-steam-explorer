@@ -1,0 +1,37 @@
+{
+ "doorOpen": 1.6,
+ "boarded": {
+  "x": -0.06,
+  "y": 1.269,
+  "z": -23.85,
+  "onGround": true
+ },
+ "aisle": {
+  "x": -0.06,
+  "y": 1.269,
+  "z": -34.35,
+  "onGround": true
+ },
+ "nextCoach": {
+  "x": -0.06,
+  "y": 1.269,
+  "z": -39.95,
+  "onGround": true
+ },
+ "inCoach2": true,
+ "backOut": {
+  "x": -3.5,
+  "y": 0.915,
+  "z": -23.85,
+  "onGround": true
+ },
+ "coachDims": {
+  "doorClear_m": 1.9100000000000001,
+  "doorWidth_m": 0.62,
+  "aisle_m": 0.68,
+  "platformToFloor_m": 0.355,
+  "headroomAisle_m": 2.46
+ },
+ "pass": true,
+ "errors": []
+}
