@@ -195,10 +195,10 @@ export class Soundscape {
       this.clank(pos, 2.2);
     } else {
       const n = ctx.createBufferSource(); n.buffer = this.stepNoise ??= noiseBuffer(ctx, 'white', 1, 71);
-      const e = ctx.createGain(); e.gain.setValueAtTime(0, t + 0.3); e.gain.linearRampToValueAtTime(0.5, t + 0.305); e.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      const e = ctx.createGain(); e.gain.setValueAtTime(0, t + 0.3); e.gain.linearRampToValueAtTime(0.22, t + 0.305); e.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
       n.connect(filt(ctx, 'lowpass', 500)).connect(e).connect(src.gain); n.start(t + 0.3, 0, 0.4);
       const o = ctx.createOscillator(), oe = ctx.createGain(); o.frequency.setValueAtTime(110, t + 0.3); o.frequency.exponentialRampToValueAtTime(55, t + 0.5);
-      oe.gain.setValueAtTime(0, t + 0.3); oe.gain.linearRampToValueAtTime(0.35, t + 0.305); oe.gain.exponentialRampToValueAtTime(0.001, t + 0.55); o.connect(oe).connect(src.gain); o.start(t + 0.3); o.stop(t + 0.6);
+      oe.gain.setValueAtTime(0, t + 0.3); oe.gain.linearRampToValueAtTime(0.16, t + 0.305); oe.gain.exponentialRampToValueAtTime(0.001, t + 0.55); o.connect(oe).connect(src.gain); o.start(t + 0.3); o.stop(t + 0.6);
     }
     window.setTimeout(() => src.gain.disconnect(), 1500);
   }

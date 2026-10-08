@@ -3,35 +3,41 @@
  "levels": [
   {
    "view": "site-wide",
-   "rmsDb": -34.5,
-   "peakDb": -23.1
+   "rmsDb": -35.4,
+   "peakDb": -24
   },
   {
    "view": "front-34-l",
-   "rmsDb": -30.6,
-   "peakDb": -19.2
+   "rmsDb": -33.9,
+   "peakDb": -21.9
   },
   {
    "view": "cab-inside",
-   "rmsDb": -28.4,
-   "peakDb": -18.1
+   "rmsDb": -30.8,
+   "peakDb": -19.4
   },
   {
    "view": "human-scale",
-   "rmsDb": -30.8,
-   "peakDb": -19.5
+   "rmsDb": -32.4,
+   "peakDb": -20.9
   },
   {
    "view": "backhead",
-   "rmsDb": -26.2,
-   "peakDb": -15.1,
+   "rmsDb": -26.3,
+   "peakDb": -16.1,
    "note": "blower full, injector on"
   },
   {
    "view": "backhead",
-   "rmsDb": -25.7,
-   "peakDb": -15.1,
+   "rmsDb": -25.5,
+   "peakDb": -14.7,
    "note": "whistle"
+  },
+  {
+   "view": "coach-door",
+   "rmsDb": -29.8,
+   "peakDb": -16.4,
+   "note": "door opening with beeps, footsteps, slam"
   }
  ],
  "muted": {

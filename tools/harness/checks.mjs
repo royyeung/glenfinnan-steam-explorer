@@ -48,8 +48,7 @@ if (which === 'audio' || which === 'all') {
   await page.evaluate(() => GX.unlockAudio());
   await page.waitForTimeout(2500);
   const sample = async (view) => {
-    await page.evaluate((v) => GX.view(v), view);
-    await page.waitForTimeout(900);
+    if (view) { await page.evaluate((v) => GX.view(v), view); await page.waitForTimeout(900); }
     let rms = -Infinity, peak = -Infinity, sum = 0, n = 0;
     for (let i = 0; i < 16; i++) { const l = await page.evaluate(() => GX.audio()); if (l && isFinite(l.rms)) { sum += 10 ** (l.rms / 10); n++; peak = Math.max(peak, l.peak); } await page.waitForTimeout(150); }
     rms = n ? 10 * Math.log10(sum / n) : -Infinity;
@@ -63,6 +62,14 @@ if (which === 'audio' || which === 'all') {
   await page.evaluate(() => { GX.app.footplate.held = 'whistle'; GX.control('whistle', 1); });
   a.levels.push({ ...(await sample('backhead')), note: 'whistle' });
   await page.evaluate(() => { GX.app.footplate.held = null; GX.control('blower', 0.25); GX.control('injL', 0); });
+  // coach: on the platform at door C while it opens (CDL beeps), footsteps platform -> carpet, then the slam
+  await page.evaluate(() => {
+    GX.teleport(-2.3, 0.915, -23.85, -Math.PI / 2);
+    const s = GX.app.sounds, feet = () => GX.app.walker.feet.clone(), door = feet().setX(-1.4).setY(2.0);
+    s.door(door, true);
+    let k = 0; const t = setInterval(() => { s.footstep(k < 4 ? 'platform' : 'carpet', feet()); if (++k === 7) s.door(door, false); if (k > 9) clearInterval(t); }, 260);
+  });
+  a.levels.push({ ...(await sample(null)), view: 'coach-door', note: 'door opening with beeps, footsteps, slam' });
   await page.evaluate(() => GX.app.audio.setMuted(true)); await page.waitForTimeout(600);
   a.muted = await sample('front-34-l');
   a.pass = a.state === 'running' && a.levels.every((l) => l.peakDb < -1 && l.rmsDb > -60 && l.rmsDb < -10) && (a.muted.rmsDb < -80 || !isFinite(a.muted.rmsDb));

@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 3 (cab interior) complete on 2026-10-08, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 4".**
+**Status:** Phase 4 (carriages) complete on 2026-10-08, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 5".**
 
 ---
 
@@ -358,6 +358,17 @@ Every phase ends the same way:
 - the interior compares side by side with T07–T11;
 - budgets are met with the full rake.
 
+**Result (2026-10-08).** Details in `shots/p4/NOTES.md`.
+
+- [x] **Exterior:** WCR maroon Mk2 (original) TSO built to S39. B4 bogies, gangways, buckeyes, buffers, hinged doors with CDL lights, windows with opening vents, pressure-ventilation domes. Subtype is the probable 2026 type, not confirmed by a 2026 photo (REFERENCE §6).
+- [x] **Interior:** seats, tables, luggage racks, lights, vestibules, toilet doors, partitions, heaters.
+- [x] **Boarding** from the platform; doors open as you approach; walk through the gangway into the next coach and back out.
+- [x] **LOD and interior streaming:** three levels per coach; interior drawn only when close.
+- [x] **Overlays and side by side:** compared with S39 (exterior) and S40 (interior). There is no drawing for an overlay. Differences are listed in NOTES.
+- [x] **Avatar fits** doorways (1.91 m clear), aisle (0.68 m) and headroom (2.46 m).
+- [x] **Budgets met with the full rake of six coaches**, every tier.
+- [x] **Sound:** footsteps by surface, coach doors (beeps, slam); audio check passes.
+
 ### Phase 5: Environment
 
 - **Viaduct:** 21 arches, 50 ft spans, 241 m curve and thicker centre piers, from REFERENCE §7 and photos.
@@ -406,6 +417,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 ## 12. Change log
 
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
+- 2026-10-08: Phase 4 built and verified (Mk2 TSO coaches, six-coach rake, boarding and walking through the train, door and footstep sounds). Model and texture URLs content-hashed; touch fix for the cab controls.
 - 2026-10-08: Phase 3 built and verified (cab interior, 23 working controls, footplate model, cab sounds). Your photo U01 added (front windows, left-side pipes).
 - 2026-10-05: Phase 2 built and verified (engine and tender exterior, full valve gear, livery, weathering, info mode, motion sounds).
 - 2026-10-05: Phase 1 built, verified and deployed (see Phase 1 Result). Domain-wide bot blocking added to Caddy. Sound plan added (§6a).
