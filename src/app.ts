@@ -13,7 +13,7 @@ import { buildSite } from './world/site.ts';
 import { buildEngine, buildTender } from './loco/engine.ts';
 import { blockoutMaterials } from './loco/materials.ts';
 import { LocoRig } from './loco/rig.ts';
-import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine } from './specs/black5.ts';
+import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine, zTender } from './specs/black5.ts';
 import { Walker } from './controls/walk.ts';
 import { WalkInputs } from './controls/input.ts';
 import { AudioEngine } from './audio/engine.ts';
@@ -22,6 +22,9 @@ import { VIEWS } from './debug/views.ts';
 import { paintDecals } from './render/decals.ts';
 import { Weathering } from './render/weathering.ts';
 import { HotspotLayer } from './ui/hotspots.ts';
+import { Footplate } from './sim/footplate.ts';
+import { CabRig } from './loco/cabRig.ts';
+import { CabUI } from './ui/cabUI.ts';
 
 const BASE = import.meta.env.BASE_URL;
 export type Mode = 'orbit' | 'walk' | 'free';
@@ -50,6 +53,9 @@ export class App {
   weathering = new Weathering();
   hotspots!: HotspotLayer;
   cutoff = 0.65;
+  footplate = new Footplate();
+  cabRig!: CabRig;
+  cabUI!: CabUI;
   private soundPointsCache: LocoSoundPoints | null = null;
   engine = new THREE.LOD();
   tender = new THREE.LOD();
@@ -136,9 +142,20 @@ export class App {
     // livery decals, lit lamps and procedural weathering
     paintDecals(this.engine, this.tier.anisotropy); paintDecals(this.tender, this.tier.anisotropy);
     this.engine.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'lamp_lens') m.emissiveIntensity = 2.5; });
+    // the cab shell (slightly larger than the walls so their inner faces are inside); open at the back
+    Weathering.occlusion.set('engine', { min: new THREE.Vector3(-1.36, 1.55, zEngine(12.64)), max: new THREE.Vector3(1.36, 3.78, zEngine(10.0)), f: 0.22, rampZ: 0.9 });
+    Weathering.occlusion.set('tender', { min: new THREE.Vector3(-1.3, 1.55, zTender(12.85)), max: new THREE.Vector3(1.3, 2.95, zTender(12.3)), f: 0.5, rampZ: 0.15 });
     for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, false);
     for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, true);
     this.hotspots = new HotspotLayer(this.engine, this.tender);
+    // cab: simulation-driven controls, gauges, fire glow and lamps
+    this.cabRig = new CabRig(this.engine.levels[0].object, this.tender.levels[0].object);
+    for (const l of [this.cabRig.fireLight, this.cabRig.cabLamp]) { l.position.z = zEngine(l.userData.d); this.engine.add(l); }
+    this.cabUI = new CabUI(this.canvas, [this.engine.levels[0].object, this.tender.levels[0].object], this.footplate);
+    this.cabUI.onChange = (id, val) => {
+      if (id === 'reverser') this.setCutoff(val, false);
+      if (id === 'fireDoors' || id === 'coalDoors' || id === 'cabLight' || id === 'drainCocks') this.sounds.clank(this.engine.localToWorld(new THREE.Vector3(0, 2.2, zEngine(10.5))), id === 'fireDoors' ? 0.8 : 1.2);
+    };
     // Low tier: small moving parts do not cast shadows (saves ~40 shadow-pass draw calls on phones)
     if (this.tierName === 'low') for (const lod of [this.engine, this.tender]) lod.traverse((o) => { if ((o as THREE.Mesh).isMesh && /^(rod_|vg_|xh_|pr_|cab_gate)/.test(o.name)) o.castShadow = false; });
 
@@ -146,6 +163,8 @@ export class App {
     this.scene.updateMatrixWorld(true);
     this.walker.setColliders([...this.site.colliders, this.engine.levels[0].object, this.tender.levels[0].object]);
     this.inputs = new WalkInputs(this.canvas, this.walker.input);
+    this.inputs.clickTaken = () => !!this.cabUI?.wantsClick;
+    this.inputs.lookSuspended = () => !!this.cabUI?.dragging && !!this.cabUI.selected;
 
     // controls
     this.orbit = new OrbitControls(this.persp, this.canvas);
@@ -260,7 +279,7 @@ export class App {
     for (const l of this.engine.levels) for (const [n, s] of [['cab_gate_L', 1], ['cab_gate_R', -1]] as const) { const g = l.object.getObjectByName(n); if (g) g.rotation.y = s * a; }
   }
 
-  setCutoff(c: number) { this.cutoff = c; for (const r of this.rigs) r.setCutoff(c); }
+  setCutoff(c: number, fromApp = true) { this.cutoff = c; if (fromApp) this.footplate.set('reverser', c); for (const r of this.rigs) r.setCutoff(c); }
 
   /** Advance the simulation by n fixed steps (used directly in deterministic mode). */
   step(n = 1) {
@@ -268,9 +287,11 @@ export class App {
     for (let i = 0; i < n; i++) {
       this.simTime += h;
       if (this.mode === 'walk') { this.inputs.update(); this.walker.step(h); }
-      const omega = this.motionOn ? this.motionSpeed / (B5.driverDia.v / 2) : 0;
-      if (this.motionOn) this.setWheelAngle(this.theta + omega * h);
-      if (this.audio.running) this.sounds.motion(this.theta, omega, this.soundPointsCache ??= this.soundPoints());
+      this.footplate.step(h);
+      const fpOmega = this.footplate.wheelOmega;
+      const omega = this.motionOn ? this.motionSpeed / (B5.driverDia.v / 2) : fpOmega;
+      if (omega !== 0) this.setWheelAngle(this.theta + omega * h);
+      if (this.audio.running) this.sounds.motion(this.theta, omega, this.soundPointsCache ??= this.soundPoints(), this.motionOn ? undefined : { steam: this.footplate.steamUse, cocks: this.footplate.c.drainCocks });
     }
   }
 
@@ -295,6 +316,13 @@ export class App {
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) this.orbit.update();
     this.updateGates(params.fixed ? 1 : dt);
+    this.cabRig?.apply(this.footplate, this.simTime);
+    // aim with the crosshair when the mouse is captured; otherwise point with the cursor or finger
+    if (this.cabUI) this.cabUI.update(this.camera, this.mode === 'walk' && document.pointerLockElement === this.canvas);
+    if (this.audio.running) {
+      const c = this.footplate.c, inj = (c.injL > 0.3 && c.waterL > 0.5 ? 1 : 0) + (c.injR > 0.3 && c.waterR > 0.5 ? 1 : 0);
+      this.sounds.footplate({ blower: c.blower, safety: this.footplate.safetyLift, ejector: Math.min(1, c.ejectorLarge + 0.3 * c.ejectorSmall), whistle: c.whistle, injectors: inj }, this.soundPointsCache ??= this.soundPoints());
+    }
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     this.atmosphere.update(this.simTime);
     this.weathering.update();

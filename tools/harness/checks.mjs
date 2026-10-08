@@ -57,6 +57,12 @@ if (which === 'audio' || which === 'all') {
   };
   const a = { state: (await page.evaluate(() => GX.audio()))?.state, levels: [] };
   for (const v of ['site-wide', 'front-34-l', 'cab-inside', 'human-scale']) a.levels.push(await sample(v));
+  // footplate: blower up, injector on, then the whistle held
+  await page.evaluate(() => { GX.control('blower', 1); GX.control('injL', 1); });
+  a.levels.push({ ...(await sample('backhead')), note: 'blower full, injector on' });
+  await page.evaluate(() => { GX.app.footplate.held = 'whistle'; GX.control('whistle', 1); });
+  a.levels.push({ ...(await sample('backhead')), note: 'whistle' });
+  await page.evaluate(() => { GX.app.footplate.held = null; GX.control('blower', 0.25); GX.control('injL', 0); });
   await page.evaluate(() => GX.app.audio.setMuted(true)); await page.waitForTimeout(600);
   a.muted = await sample('front-34-l');
   a.pass = a.state === 'running' && a.levels.every((l) => l.peakDb < -1 && l.rmsDb > -60 && l.rmsDb < -10) && (a.muted.rmsDb < -80 || !isFinite(a.muted.rmsDb));
@@ -86,6 +92,39 @@ if (which === 'perf' || which === 'all') {
     }
   }
   save('perf', perf);
+}
+
+
+// ---- Phase 3: cab controls exercised one by one, and the footplate responding
+if (which === 'cab' || which === 'all') {
+  const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=low`, { w: 1280, h: 720 });
+  const r = await page.evaluate(async () => {
+    const out = { controls: {}, sim: {} };
+    const ids = (window.__ctl ? Object.keys(GX.footplate().controls) : []);
+    for (const id of ids) {
+      const k = window.__ctl(id), before = GX.controlPose(id);
+      GX.control(id, k.min); const atMin = GX.controlPose(id);
+      GX.control(id, k.max); const atMax = GX.controlPose(id);
+      const moved = atMin && atMax ? Math.max(...atMin.map((v, i) => Math.abs(v - atMax[i]))) : 0;
+      out.controls[id] = { node: !!before, moved: +moved.toFixed(3), ok: !!before && moved > 0.01 };
+      GX.control(id, k.init);
+    }
+    // scenarios (simulated seconds via fixed steps)
+    const run = (s) => GX.step(Math.round(s * 120));
+    GX.control('brake', 1); run(4); out.sim.brakeApplied = GX.footplate().vacTrain;
+    GX.control('brake', 0); GX.control('ejectorLarge', 1); run(8); out.sim.brakeReleased = GX.footplate().vacTrain; GX.control('ejectorLarge', 0);
+    const p0 = GX.footplate().pressure; GX.control('injL', 1); GX.control('waterL', 1); const w0 = GX.footplate().water; run(20);
+    out.sim.injector = { waterBefore: w0, waterAfter: GX.footplate().water, pressureBefore: p0, pressureAfter: GX.footplate().pressure }; GX.control('injL', 0);
+    GX.control('blower', 1); GX.control('damperF', 1); run(60); out.sim.blowerPressure = GX.footplate().pressure; out.sim.safetyLift = GX.footplate().safetyLift; GX.control('blower', 0.25);
+    GX.control('reverser', 0.75); GX.control('regulator', 0.5); run(6); out.sim.driving = { omega: GX.footplate().wheelOmega, cutoff: GX.app.rigs[0].cutoff };
+    GX.control('regulator', 0); GX.control('brake', 1); run(8); out.sim.stopped = GX.footplate().wheelOmega; GX.control('brake', 0);
+    GX.control('reverser', -0.75); out.sim.reverserLinked = GX.app.rigs[0].cutoff;
+    return out;
+  });
+  const ctl = Object.values(r.controls);
+  r.pass = ctl.length >= 20 && ctl.every((c) => c.ok) && r.sim.brakeApplied < 3 && r.sim.brakeReleased > 18 && r.sim.injector.waterAfter > r.sim.injector.waterBefore
+    && r.sim.driving.omega > 0.5 && Math.abs(r.sim.stopped) < 0.05 && Math.abs(r.sim.reverserLinked + 0.75) < 1e-6;
+  r.errors = errors; save('cab', r); await ctx.close();
 }
 
 await b.close(); server.close();

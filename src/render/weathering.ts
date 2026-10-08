@@ -7,7 +7,7 @@ import * as THREE from 'three';
 type Kind = 'paint' | 'smokebox' | 'wheel' | 'steel' | 'red' | 'tender' | 'brass';
 
 const KIND_BY_NAME: Record<string, Kind> = {
-  paint_black: 'paint', smokebox: 'smokebox', wheel: 'wheel', steel: 'steel', paint_red: 'red', brass: 'brass',
+  paint_black: 'paint', smokebox: 'smokebox', wheel: 'wheel', steel: 'steel', paint_red: 'red', brass: 'brass', copper: 'brass', backhead: 'smokebox', chequer: 'steel',
   lining: 'paint', lining_red: 'paint', blue_plate: 'paint', decal_cabnum: 'paint', decal_emblem: 'paint', decal_emblem_l: 'paint',
 };
 const KIND_ID: Record<Kind, number> = { paint: 0, smokebox: 1, wheel: 2, steel: 3, red: 4, tender: 5, brass: 6 };
@@ -25,31 +25,51 @@ const NOISE = /* glsl */ `
 export class Weathering {
   readonly amount = { value: 1.0 };
   private entries: { mat: THREE.Material; vehicle: THREE.Object3D; inv: { value: THREE.Matrix4 } }[] = [];
+  /** Sheltered region per vehicle (local box) where sky light is reduced: the cab under its roof. */
+  static occlusion = new Map<string, { min: THREE.Vector3; max: THREE.Vector3; f: number; rampZ: number }>();
 
   /** Patch every recognised material under `root`; `vehicle` is the frame noise is evaluated in. */
   apply(root: THREE.Object3D, vehicle: THREE.Object3D, isTender: boolean) {
+    const occ = Weathering.occlusion.get(isTender ? 'tender' : 'engine') ?? { min: new THREE.Vector3(1, 1, 1), max: new THREE.Vector3(0, 0, 0), f: 1, rampZ: 0.1 };
     const seen = new Set<THREE.Material>();
     root.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;
       const m = mesh.material as THREE.MeshStandardMaterial;
       if (seen.has(m) || !m.isMeshStandardMaterial) return;
-      let kind = KIND_BY_NAME[m.name];
-      if (!kind) return;
+      let kind: Kind | undefined = KIND_BY_NAME[m.name];
       if (isTender && kind === 'paint') kind = 'tender';
+      if (m.name === 'glass' || m.name === 'water' || m.name.startsWith('decal_fire')) return;
       seen.add(m);
       const inv = { value: new THREE.Matrix4() };
       this.entries.push({ mat: m, vehicle, inv });
-      const kid = KIND_ID[kind], amount = this.amount;
+      const kid = kind ? KIND_ID[kind] : -1, amount = this.amount;
       m.onBeforeCompile = (shader) => {
         shader.uniforms.uVehInv = inv; shader.uniforms.uWeather = amount;
+        shader.uniforms.uOccMin = { value: occ.min }; shader.uniforms.uOccMax = { value: occ.max }; shader.uniforms.uOccF = { value: occ.f }; shader.uniforms.uOccRamp = { value: occ.rampZ };
         shader.vertexShader = shader.vertexShader
           .replace('#include <common>', '#include <common>\nuniform mat4 uVehInv;\nvarying vec3 vVehPos;\nvarying vec3 vVehN;')
           .replace('#include <project_vertex>', `#include <project_vertex>
             { vec4 wpW = modelMatrix * vec4(transformed, 1.0); vVehPos = (uVehInv * wpW).xyz;
               vVehN = normalize(mat3(uVehInv) * (mat3(modelMatrix) * objectNormal)); }`);
         shader.fragmentShader = shader.fragmentShader
-          .replace('#include <common>', `#include <common>\nuniform float uWeather;\nvarying vec3 vVehPos;\nvarying vec3 vVehN;\n${NOISE}`)
+          .replace('#include <common>', `#include <common>\nuniform float uWeather;\nuniform vec3 uOccMin;\nuniform vec3 uOccMax;\nuniform float uOccF;\nuniform float uOccRamp;\nvarying vec3 vVehPos;\nvarying vec3 vVehN;\n${NOISE}`)
+          .replace('#include <lights_fragment_end>', `{
+              vec3 q = vVehPos;
+              float ins = smoothstep(uOccMin.x, uOccMin.x + 0.04, q.x) * smoothstep(uOccMax.x, uOccMax.x - 0.04, q.x)
+                        * smoothstep(uOccMin.y, uOccMin.y + 0.04, q.y) * smoothstep(uOccMax.y, uOccMax.y - 0.04, q.y)
+                        * smoothstep(uOccMin.z, uOccMin.z + uOccRamp, q.z) * smoothstep(uOccMax.z, uOccMax.z - 0.04, q.z);
+              // outer faces of the shell (walls, roof, front plate) face the sky: not sheltered
+              vec3 ctr = 0.5 * (uOccMin + uOccMax), hw = 0.5 * (uOccMax - uOccMin);
+              vec3 rel = (q - ctr) / max(hw, vec3(1e-3));
+              float outward = max(max(step(0.88, abs(rel.x)) * step(0.5, vVehN.x * sign(rel.x)),
+                                      step(0.88, rel.y) * step(0.5, vVehN.y)),
+                                  step(0.9, rel.z) * step(0.5, vVehN.z));
+              ins *= 1.0 - outward;
+              float occ = mix(1.0, uOccF, ins);
+              irradiance *= occ; iblIrradiance *= occ; radiance *= occ;
+            }
+            #include <lights_fragment_end>`)
           .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
             float wBump = 0.0;
             {
@@ -109,7 +129,7 @@ export class Weathering {
               normal = normalize(abs(det) * normal - grad);
             }`);
       };
-      m.customProgramCacheKey = () => `weather-${kid}`;
+      m.customProgramCacheKey = () => `weather-${kid}-occ`;
       m.needsUpdate = true;
     });
   }

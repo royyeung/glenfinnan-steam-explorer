@@ -2,10 +2,11 @@
 // names the rig expects; static parts are merged per material.
 import * as THREE from 'three';
 import { B5, zTender } from '../specs/black5.ts';
-import { Batch } from './geom.ts';
+import { Batch, DETAIL } from './geom.ts';
 import { engineLayout, motionGeometry, valveGearGeometry } from './layout.ts';
 import { boiler } from './parts/boiler.ts';
 import { cab, cabGates } from './parts/cab.ts';
+import { cabInterior, controlNodes, instrumentNodes, tenderFront } from './parts/cabInterior.ts';
 import { engineLivery, tenderLivery } from './parts/livery.ts';
 import { PLANES, buildMotionParts, motionStatic } from './parts/motion.ts';
 import { running } from './parts/running.ts';
@@ -24,7 +25,7 @@ function group(name: string, b: Batch, mats: Mats) {
 export function buildEngine(mats: Mats): THREE.Group {
   const E = new THREE.Group(); E.name = 'engine';
   const b = new Batch();
-  running(b); boiler(b); cab(b); motionStatic(b); engineLivery(b);
+  running(b); boiler(b); cab(b); cabInterior(b); motionStatic(b); engineLivery(b);
   for (const m of b.build('engine_static', mats)) E.add(m);
 
   const lay = engineLayout(), geo = motionGeometry(), vg = valveGearGeometry();
@@ -40,15 +41,17 @@ export function buildEngine(mats: Mats): THREE.Group {
   for (const [name, a, wb] of sets) { const g = group(name, wb, mats); g.position.set(0, a.y, a.z); E.add(g); }
   for (const g of buildMotionParts(mats)) E.add(g);
   for (const g of cabGates(mats)) E.add(g);
+  if (DETAIL >= 1) for (const g of [...controlNodes(mats, 'engine'), ...instrumentNodes(mats)]) E.add(g);
   return E;
 }
 
 export function buildTender(mats: Mats): THREE.Group {
   const T = new THREE.Group(); T.name = 'tender';
   const b = new Batch();
-  tenderBody(b); tenderLivery(b);
+  tenderBody(b); tenderLivery(b); tenderFront(b);
   for (const m of b.build('tender_static', mats)) T.add(m);
   tenderWheelsets(T, mats);
+  if (DETAIL >= 1) for (const g of controlNodes(mats, 'tender')) T.add(g);
   void zTender;
   return T;
 }

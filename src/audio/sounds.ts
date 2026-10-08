@@ -101,6 +101,7 @@ export class Soundscape {
     sv.gain.gain.value = 0.0;
     loop(ctx, white).connect(filt(ctx, 'highpass', 2500)).connect(filt(ctx, 'peaking', 5200, 1)).connect(sv.gain);
     const feather = () => {
+      if (this.driven) return; // the footplate simulation controls the safety valves
       const t = ctx.currentTime, on = this.rand() < 0.45;
       sv.gain.gain.setTargetAtTime(on ? 0.05 + 0.1 * this.rand() : 0.012, t, on ? 0.6 : 1.2);
     };
@@ -132,13 +133,61 @@ export class Soundscape {
   }
 
   private motionSrc: Record<string, SpatialSource> = {};
+  private driven = false;
+  private injGain: GainNode | null = null;
+  private whistleGain: GainNode | null = null;
+  private ejectorGain: GainNode | null = null;
+  private exhaust: SpatialSource | null = null;
+
+  /**
+   * Phase 3: footplate-driven sounds, called every frame. blower 0..1, safety 0..1 (valves lifting),
+   * ejector 0..1, whistle 0..1, injectors 0..2 (number running). Whistle: a deep Stanier-type
+   * "hooter" approximation (tone unverified against a recording of 45407).
+   */
+  footplate(s: { blower: number; safety: number; ejector: number; whistle: number; injectors: number }, p: LocoSoundPoints) {
+    const ctx = this.a.ctx;
+    if (!ctx || !this.loco.blower) return;
+    this.driven = true;
+    const t = ctx.currentTime;
+    if (!this.whistleGain) {
+      const src = this.a.spatial('whistle', new THREE.Vector3(p.safetyValves.x, p.safetyValves.y + 0.3, p.safetyValves.z + 0.75), 6, 1);
+      const g = ctx.createGain(); g.gain.value = 0; g.connect(src.gain);
+      const bp = filt(ctx, 'bandpass', 520, 0.9);
+      for (const [f, a] of [[196, 0.5], [247, 0.32], [294, 0.22]] as const) { // a soft chord gives the hooter its hollow tone
+        const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const og = ctx.createGain(); og.gain.value = a * 0.25; o.connect(og).connect(bp); o.start();
+      }
+      const breath = ctx.createGain(); breath.gain.value = 0.12;
+      loop(ctx, noiseBuffer(ctx, 'pink', 3, 61)).connect(filt(ctx, 'bandpass', 900, 0.7)).connect(breath).connect(g);
+      bp.connect(g);
+      this.whistleGain = g;
+      const ej = this.a.spatial('ejector', new THREE.Vector3(p.chimney.x, p.chimney.y, p.chimney.z), 4, 1);
+      const eg = ctx.createGain(); eg.gain.value = 0; eg.connect(ej.gain);
+      loop(ctx, noiseBuffer(ctx, 'white', 3, 67)).connect(filt(ctx, 'bandpass', 3000, 0.8)).connect(eg);
+      this.ejectorGain = eg;
+    }
+    this.loco.blower.gain.gain.setTargetAtTime(0.08 + 0.45 * s.blower, t, 0.25);
+    this.loco.safety.gain.gain.setTargetAtTime(0.008 + 0.22 * s.safety, t, s.safety > 0 ? 0.15 : 0.6);
+    this.whistleGain.gain.setTargetAtTime(0.32 * s.whistle, t, s.whistle > 0 ? 0.04 : 0.08);
+    this.ejectorGain!.gain.setTargetAtTime(0.06 * s.ejector, t, 0.3);
+    if (this.injGain) this.injGain.gain.setTargetAtTime(0.14 * Math.min(1, s.injectors), t, 0.4);
+  }
+
+  /** One-shot clank (firehole doors, gates, levers) at a position. */
+  clank(pos: THREE.Vector3, pitch = 1) {
+    const ctx = this.a.ctx; if (!ctx) return;
+    const src = this.a.spatial('clank', pos, 2, 1.5), t = ctx.currentTime + 0.01;
+    const o = ctx.createOscillator(), e = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(180 * pitch, t); o.frequency.exponentialRampToValueAtTime(90 * pitch, t + 0.12);
+    e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(0.08, t + 0.004); e.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(filt(ctx, 'lowpass', 1400)).connect(e).connect(src.gain); o.start(t); o.stop(t + 0.22);
+    window.setTimeout(() => src.gain.disconnect(), 600);
+  }
   private white: AudioBuffer | null = null;
   private lastQuarter = 0;
   private cocksUntil = 0;
   private wasMoving = false;
 
   /** Phase 2: sounds of the motion. Call every simulation step with the driving-wheel angle (rad) and rate (rad/s). */
-  motion(theta: number, omega: number, p: LocoSoundPoints) {
+  motion(theta: number, omega: number, p: LocoSoundPoints, sim?: { steam: number; cocks: number }) {
     const ctx = this.a.ctx;
     if (!ctx) return;
     if (!this.white) {
@@ -146,14 +195,16 @@ export class Soundscape {
       for (const k of ['cylL', 'cylR', 'motionL', 'motionR', 'injector'] as const) this.motionSrc[k] = this.a.spatial(k, p[k], 3, 1.2);
       // leaks: a faint constant hiss near the cylinders; injector sings now and then
       for (const k of ['cylL', 'cylR'] as const) { const g = ctx.createGain(); g.gain.value = 0.025; loop(ctx, this.white).connect(filt(ctx, 'highpass', 3500)).connect(g).connect(this.motionSrc[k].gain); }
-      const inj = this.motionSrc.injector, ig = ctx.createGain(); ig.gain.value = 0; ig.connect(inj.gain);
+      const inj = this.motionSrc.injector, ig = ctx.createGain(); ig.gain.value = 0; ig.connect(inj.gain); this.injGain = ig;
+      this.exhaust = this.a.spatial('exhaust', p.chimney, 6, 1);
       loop(ctx, this.white).connect(filt(ctx, 'bandpass', 2300, 3)).connect(ig);
       const o = ctx.createOscillator(); o.frequency.value = 1870; const og = ctx.createGain(); og.gain.value = 0.04; o.connect(og).connect(ig); o.start();
-      const sing = () => { const t = ctx.currentTime; ig.gain.setTargetAtTime(0.25, t, 0.4); ig.gain.setTargetAtTime(0, t + 7, 0.6); };
+      const sing = () => { if (this.driven) return; const t = ctx.currentTime; ig.gain.setTargetAtTime(0.25, t, 0.4); ig.gain.setTargetAtTime(0, t + 7, 0.6); };
       this.timers.push(window.setInterval(sing, 47000)); window.setTimeout(sing, 9000);
     }
     const moving = Math.abs(omega) > 0.05;
-    if (moving && !this.wasMoving) this.cocksUntil = ctx.currentTime + 15; // driver opens the cylinder cocks to clear water
+    if (moving && !this.wasMoving && !sim) this.cocksUntil = ctx.currentTime + 15; // demo: cocks open for 15 s after starting
+    if (sim) this.cocksUntil = sim.cocks > 0.5 ? ctx.currentTime + 1 : 0;
     this.wasMoving = moving;
     const quarter = Math.floor(theta / (Math.PI / 2));
     if (moving && quarter !== this.lastQuarter) {
@@ -163,6 +214,16 @@ export class Soundscape {
       o.type = 'triangle'; o.frequency.setValueAtTime(240 + 40 * this.rand(), t);
       e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(0.12, t + 0.004); e.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
       o.connect(e).connect(src.gain); o.start(t); o.stop(t + 0.14);
+      // exhaust beat ("chuff") when working under steam: one per quarter turn (two per cylinder per revolution)
+      if (sim && sim.steam > 0.02 && this.exhaust) {
+        const n = ctx.createBufferSource(); n.buffer = this.white; const ne = ctx.createGain(), dur = Math.min(0.35, 0.6 / Math.max(0.6, Math.abs(omega)));
+        const level = Math.min(0.9, 0.25 + 1.2 * sim.steam);
+        ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(level, t + 0.015); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);
+        n.connect(filt(ctx, 'lowpass', 700)).connect(ne).connect(this.exhaust.gain); n.start(t, this.rand() * 2, dur + 0.05);
+        const o2 = ctx.createOscillator(), e2 = ctx.createGain(); o2.frequency.setValueAtTime(70, t); o2.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+        e2.gain.setValueAtTime(0, t); e2.gain.linearRampToValueAtTime(level * 0.6, t + 0.01); e2.gain.exponentialRampToValueAtTime(0.002, t + 0.16);
+        o2.connect(e2).connect(this.exhaust.gain); o2.start(t); o2.stop(t + 0.18);
+      }
       if (ctx.currentTime < this.cocksUntil) {
         const n = ctx.createBufferSource(); n.buffer = this.white; const ne = ctx.createGain(), dur = Math.min(0.5, 0.9 / Math.max(0.5, Math.abs(omega)));
         ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(0.5, t + 0.02); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);

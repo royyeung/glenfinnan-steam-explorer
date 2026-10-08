@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import { B5, zEngine } from '../../specs/black5.ts';
 import { Batch, DETAIL, bandZ, boxMinMax, cylBetween, cylZ, extrudeSection, latheY, loftZ, pipe, rivets } from '../geom.ts';
+
+const V = (x: number, y: number, zz: number) => new THREE.Vector3(x, y, zz);
 import { arc } from './wheels.ts';
 
 const v = (k: keyof typeof B5) => B5[k].v;
@@ -100,6 +102,18 @@ export function boiler(b: Batch) {
   b.add('steel', boxMinMax(-0.13, fT - 0.02, z(v('safetyValveD') + 0.24), 0.13, fT + 0.025, z(v('safetyValveD') - 0.24))); // valve seating
   const wd = v('cabFrontD') - 0.3;
   b.add('brass', latheY([[0, 0], [0.035, 0], [0.035, 0.12], [0.05, 0.14], [0.05, 0.32], [0.04, 0.34], [0, 0.35]], 0.18, fT - 0.02, z(wd), 16));
+
+  // --- left (driver's) side: vacuum ejector exhaust pipe from the cab along the boiler into the
+  //     smokebox, and the vacuum train pipe down to the running plate and forward (photo U01)
+  {
+    const sR = v('smokeboxRearD'), bR = v('barrelRearD');
+    const pts = [V(0.84, 3.22, z(v('cabFrontD') + 0.02)), V(0.88, 3.05, z(bR + 0.6))];
+    for (const d of [bR, 6.2, 4.6, sR + 0.3]) pts.push(V(B.radiusAt(d) * 0.78 + 0.07, B.centreAt(d) + B.radiusAt(d) * 0.5, z(d)));
+    pts.push(V(sbR * 0.72 + 0.05, sbY + sbR * 0.62, z(sR - 0.25)), V(sbR * 0.55, sbY + sbR * 0.78, z(sR - 0.45)));
+    b.add('paint_black', pipe(pts, 0.042, 10, 0.3));
+    const rp = v('runningPlateH'), x = v('runningPlateWidth') / 2 - 0.12;
+    b.add('paint_black', pipe([V(0.8, 2.45, z(v('cabFrontD') + 0.02)), V(0.95, 2.1, z(v('cabFrontD') - 0.2)), V(x, rp + 0.05, z(9.4)), V(x, rp + 0.05, z(2.0)), V(x, rp + 0.03, z(1.6)), V(0.7, v('beamTopH') - 0.1, z(v('bufferProjection') + 0.15))], 0.03, 8, 0.2));
+  }
 
   // --- handrails on stanchions along both sides of the boiler
   if (DETAIL >= 0.5) for (const s of [1, -1]) {

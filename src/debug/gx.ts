@@ -18,6 +18,11 @@ export function installGX(app: App) {
     setHour: (h: number) => { app.atmosphere.params.hour = h; app.atmosphere.invalidate(); app.frame(); return app.atmosphere.sun; },
     setMotion: (on: boolean) => app.setMotion(on),
     setCutoff: (c: number) => { app.setCutoff(c); app.frame(); return c; },
+    control: (id: string, v: number) => { app.footplate.set(id, v); if (id === 'reverser') app.setCutoff(v, false); app.frame(); return app.footplate.c[id]; },
+    selectControl: (id: string) => { const k = (app.cabUI as unknown as { select: (k: unknown) => void }); k.select((window as unknown as { __ctl: (i: string) => unknown }).__ctl?.(id) ?? null); app.frame(); },
+    footplate: () => { const f = app.footplate; return { pressure: +f.pressure.toFixed(1), water: +f.water.toFixed(3), fire: +f.fire.toFixed(3), vacTrain: +f.vacTrain.toFixed(2), vacRes: +f.vacRes.toFixed(2), mainRes: +f.mainRes.toFixed(1), brakePipe: +f.brakePipe.toFixed(1), wheelOmega: +f.wheelOmega.toFixed(3), safetyLift: +f.safetyLift.toFixed(2), braking: +f.braking.toFixed(2), controls: { ...f.c } }; },
+    /** Node transform of a cab control (for automated "does it move" checks). */
+    controlPose: (id: string) => { let r = null as null | number[]; app.scene.traverse((o) => { if (o.name === `ctl_${id}`) { const q = o.rotation; r = [q.x, q.y, q.z, o.position.x, o.position.y, o.position.z]; const ch = o.children.find((c) => c.name === 'door_L'); if (ch) r.push(ch.position.x, ch.rotation.y); } }); return r; },
     info: (on: boolean) => { app.hotspots.setVisible(on); app.frame(); },
     weather: (a: number) => { app.weathering.setAmount(a); app.frame(); },
     silhouette: (on: boolean) => { app.setSilhouette(on); app.frame(); },

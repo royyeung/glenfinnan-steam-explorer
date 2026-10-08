@@ -4,6 +4,8 @@ import { installGX } from './debug/gx.ts';
 import { installTuning } from './debug/tune.ts';
 import { B5 } from './specs/black5.ts';
 import { weakSpecs } from './specs/spec.ts';
+import { CONTROLS } from './loco/cabControls.ts';
+(window as unknown as { __ctl: (i: string) => unknown }).__ctl = (i: string) => CONTROLS.find((k) => k.id === i);
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const app = new App($('view'));
@@ -73,6 +75,7 @@ function wireUI() {
   motion.onclick = () => { app.setMotion(!app.motionOn); motion.setAttribute('aria-pressed', String(app.motionOn)); };
   const cut = $<HTMLInputElement>('cutoff');
   cut.oninput = () => app.setCutoff(Number(cut.value) / 100);
+  setInterval(() => { if (document.activeElement !== cut) cut.value = String(Math.round(app.footplate.c.reverser * 100)); }, 300);
   const info = $('infoBtn');
   info.onclick = () => { app.hotspots.setVisible(!app.hotspots.visible); info.setAttribute('aria-pressed', String(app.hotspots.visible)); };
   const hour = $<HTMLInputElement>('hour');

@@ -5,6 +5,8 @@ import * as THREE from 'three';
 export type MatKey =
   | 'paint_black' | 'smokebox' | 'paint_red' | 'steel' | 'wheel' | 'brass'
   | 'cab_inside' | 'coal' | 'blue_plate' | 'lining' | 'lining_red' | 'rubber' | 'glass' | 'lamp_lens'
+  | 'copper' | 'wood' | 'chequer' | 'water' | 'backhead'
+  | 'decal_gauge_pressure' | 'decal_gauge_vacuum' | 'decal_gauge_air' | 'decal_gauge_heat' | 'decal_waterplate' | 'decal_fire' | 'decal_cutoff'
   | 'decal_cabnum' | 'decal_emblem' | 'decal_emblem_l' | 'decal_numberplate' | 'decal_shedplate' | 'decal_headboard' | 'decal_nameplate' | 'decal_crest';
 
 export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> {
@@ -24,6 +26,18 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     lining_red: m('lining_red', 0xa3241a, 0.45, 0.0),  // BR red lining
     rubber: m('rubber', 0x1a1a1a, 0.9, 0.0),
     glass: m('glass', 0x9fb4c0, 0.05, 0.0, { transparent: true, opacity: 0.25 }),
+    copper: m('copper', 0xc07a52, 0.38, 1.0),            // copper pipework (grimy)
+    wood: m('wood', 0x6b4a30, 0.75, 0.0),                // floorboards, seats, window frames
+    chequer: m('chequer', 0x3a3b3c, 0.55, 0.8),          // chequer-plate floor
+    water: m('water', 0x9fb7c4, 0.05, 0.0, { transparent: true, opacity: 0.55 }),
+    backhead: m('backhead', 0x1d1d1e, 0.5, 0.0),         // black backhead (hot, oily)
+    decal_gauge_pressure: m('decal_gauge_pressure', 0xffffff, 0.3, 0.0),
+    decal_gauge_vacuum: m('decal_gauge_vacuum', 0xffffff, 0.3, 0.0),
+    decal_gauge_air: m('decal_gauge_air', 0xffffff, 0.3, 0.0),
+    decal_gauge_heat: m('decal_gauge_heat', 0xffffff, 0.3, 0.0),
+    decal_waterplate: m('decal_waterplate', 0xffffff, 0.5, 0.3),
+    decal_fire: m('decal_fire', 0x000000, 0.9, 0.0, { emissive: 0xffffff, emissiveIntensity: 1 }),
+    decal_cutoff: m('decal_cutoff', 0xffffff, 0.45, 0.4),
     lamp_lens: m('lamp_lens', 0xfff4dc, 0.1, 0.0, { emissive: 0xfff1d0, emissiveIntensity: 0 }),
     // decals: plain placeholders here; the app paints canvas textures onto them by material name
     decal_cabnum: m('decal_cabnum', 0xffffff, 0.5, 0.0, { transparent: true }),

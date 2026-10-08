@@ -10,6 +10,10 @@ export class WalkInputs {
   private drag = { on: false, x: 0, y: 0 };
   private target: WalkInput;
   readonly touch = matchMedia('(pointer: coarse)').matches;
+  /** Return true to keep a click for the cab controls instead of capturing the mouse. */
+  clickTaken: () => boolean = () => false;
+  /** True while a cab control is being dragged: mouse movement then works the control, not the view. */
+  lookSuspended: () => boolean = () => false;
 
   constructor(canvas: HTMLCanvasElement, target: WalkInput) {
     this.target = target;
@@ -17,10 +21,11 @@ export class WalkInputs {
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
     canvas.addEventListener('click', () => {
-      if (this.enabled && !this.touch && document.pointerLockElement !== canvas) canvas.requestPointerLock?.()?.catch?.(() => {});
+      if (this.enabled && !this.touch && document.pointerLockElement !== canvas && !this.clickTaken()) canvas.requestPointerLock?.()?.catch?.(() => {});
     });
     addEventListener('mousemove', (e) => {
       if (!this.enabled || this.touch) return;
+      if (this.lookSuspended()) return;
       if (document.pointerLockElement === canvas) { this.target.lookX += e.movementX * 0.0022; this.target.lookY += e.movementY * 0.0022; }
       else if (this.drag.on) { this.target.lookX += (e.clientX - this.drag.x) * 0.004; this.target.lookY += (e.clientY - this.drag.y) * 0.004; this.drag.x = e.clientX; this.drag.y = e.clientY; }
     });
@@ -44,6 +49,7 @@ export class WalkInputs {
     const r = joyEl.getBoundingClientRect();
     for (const t of Array.from(e.changedTouches)) {
       if (phase === 'start') {
+        if (this.clickTaken()) continue;
         if (t.clientX < innerWidth * 0.45 && this.joy.id < 0) this.joy = { id: t.identifier, x: 0, y: 0, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
         else if (this.look.id < 0) this.look = { id: t.identifier, x: t.clientX, y: t.clientY };
       } else if (phase === 'move') {

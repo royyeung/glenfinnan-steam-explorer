@@ -121,6 +121,7 @@ export function loftZ(rings: { z: number; y: number; r: number }[], x = 0, segIn
 /** Collects geometries per material key and merges them into one mesh per material. */
 export class Batch {
   private parts = new Map<string, THREE.BufferGeometry[]>();
+  get empty() { return this.parts.size === 0; }
   add(mat: string, ...gs: THREE.BufferGeometry[]) {
     const list = this.parts.get(mat) ?? [];
     list.push(...gs.map(norm));

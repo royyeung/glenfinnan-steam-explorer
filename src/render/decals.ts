@@ -109,7 +109,61 @@ function shedplate() {
   return c;
 }
 
+/** Gauge dial: 270° sweep from bottom-left (0) clockwise to bottom-right (max). */
+function dial(title: string, max: number, major: number, minor: number, unit: string, redFrom?: number) {
+  const { c, g } = canvas(512, 512), cx = 256, cy = 256, R = 236;
+  g.fillStyle = '#f3ecd9'; g.beginPath(); g.arc(cx, cy, R + 14, 0, Math.PI * 2); g.fill();
+  const ang = (v: number) => ((-135 + 270 * (v / max)) * Math.PI) / 180 - Math.PI / 2;
+  if (redFrom !== undefined) { g.strokeStyle = '#b3261e'; g.lineWidth = 18; g.beginPath(); g.arc(cx, cy, R - 26, ang(redFrom), ang(max)); g.stroke(); }
+  g.strokeStyle = '#141414'; g.fillStyle = '#141414'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let v = 0; v <= max + 1e-6; v += minor) {
+    const a = ang(v), big = Math.abs(v / major - Math.round(v / major)) < 1e-6, r0 = big ? R - 46 : R - 30;
+    g.lineWidth = big ? 6 : 3; g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); g.lineTo(cx + Math.cos(a) * (R - 8), cy + Math.sin(a) * (R - 8)); g.stroke();
+    if (big) { g.font = `600 40px ${FONT}`; g.fillText(String(Math.round(v)), cx + Math.cos(a) * (R - 82), cy + Math.sin(a) * (R - 82)); }
+  }
+  g.font = `600 34px ${FONT}`; g.fillText(title, cx, cy + 92);
+  g.font = `500 26px ${FONT}`; g.fillText(unit, cx, cy + 132);
+  g.beginPath(); g.arc(cx, cy, 16, 0, Math.PI * 2); g.fill();
+  return c;
+}
+
+function waterPlate() {
+  const { c, g } = canvas(160, 280);
+  g.fillStyle = '#1c1c1c'; g.fillRect(0, 0, 160, 280); g.strokeStyle = '#cfc8b4'; g.lineWidth = 6; g.strokeRect(6, 6, 148, 268);
+  g.fillStyle = '#e8e2cf'; g.textAlign = 'center'; g.font = `700 34px ${FONT}`;
+  g.fillText('OPEN', 80, 60); g.fillText('WATER', 80, 145); g.fillText('SHUT', 80, 230);
+  g.beginPath(); g.moveTo(80, 82); g.lineTo(70, 100); g.lineTo(90, 100); g.fill();
+  g.beginPath(); g.moveTo(80, 198); g.lineTo(70, 180); g.lineTo(90, 180); g.fill();
+  return c;
+}
+
+function fireBed() {
+  const { c, g } = canvas(256, 256);
+  const gr = g.createRadialGradient(128, 140, 10, 128, 128, 128); gr.addColorStop(0, '#fff2b0'); gr.addColorStop(0.35, '#ffb03a'); gr.addColorStop(0.75, '#d2481a'); gr.addColorStop(1, '#5a1404');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  for (let i = 0; i < 160; i++) { // dark coal lumps over the glow
+    const x = rnd() * 256, y = 90 + rnd() * 166, r = 6 + rnd() * 16;
+    g.fillStyle = `rgba(${40 + rnd() * 50},${10 + rnd() * 15},0,${0.55 + rnd() * 0.4})`;
+    g.beginPath(); g.ellipse(x, y, r, r * 0.7, rnd() * 3, 0, Math.PI * 2); g.fill();
+  }
+  return c;
+}
+
+function cutoffScale() {
+  const { c, g } = canvas(96, 416);
+  g.fillStyle = '#c9a85a'; g.fillRect(0, 0, 96, 416); g.fillStyle = '#1a1a1a'; g.textAlign = 'center'; g.font = `700 24px ${FONT}`;
+  g.fillText('FORE', 48, 26); g.fillText('MID', 48, 212); g.fillText('BACK', 48, 400);
+  for (let i = 0; i <= 14; i++) { const y = 48 + i * 23; g.fillRect(i % 7 === 0 ? 14 : 30, y, i % 7 === 0 ? 68 : 36, 3); }
+  return c;
+}
+
 const PAINTERS: Record<string, () => HTMLCanvasElement> = {
+  decal_gauge_pressure: () => dial('BOILER', 300, 50, 10, 'LBS PER SQ IN', 225),
+  decal_gauge_vacuum: () => dial('VACUUM', 30, 5, 1, 'INS. OF MERCURY'),
+  decal_gauge_air: () => dial('AIR', 150, 25, 5, 'LBS PER SQ IN'),
+  decal_gauge_heat: () => dial('CARRIAGE WARMING', 100, 20, 5, 'LBS PER SQ IN'),
+  decal_waterplate: waterPlate, decal_fire: fireBed, decal_cutoff: cutoffScale,
   decal_cabnum: cabNumber, decal_emblem: () => emblem(false), decal_emblem_l: () => emblem(true),
   decal_nameplate: nameplate, decal_crest: crest, decal_headboard: headboard,
   decal_numberplate: numberplate, decal_shedplate: shedplate,
@@ -126,8 +180,9 @@ export function paintDecals(root: THREE.Object3D, anisotropy: number) {
     if (!paint) return;
     let t = cache.get(m.name);
     if (!t) { t = new THREE.CanvasTexture(paint()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy; cache.set(m.name, t); }
+    if (m.name === 'decal_fire') { m.emissiveMap = t; m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
     m.map = t; m.color.set(0xffffff);
-    m.transparent = m.name !== 'decal_numberplate' && m.name !== 'decal_nameplate';
+    m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff'].includes(m.name) && !m.name.startsWith('decal_gauge');
     m.alphaTest = m.transparent ? 0.02 : 0;
     m.depthWrite = !m.transparent;
     m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2;

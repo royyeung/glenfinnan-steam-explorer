@@ -22,7 +22,8 @@ export function cab(b: Batch) {
 
   // spectacle plate with two round-cornered front windows each side of the firebox
   const front: [number, number][] = [[-cw, rpH], [cw, rpH], ...roofArc(0).reverse()];
-  const spect = (s: number) => roundedRect(s > 0 ? 0.42 : -0.86, 2.95, s > 0 ? 0.86 : -0.42, 3.32, 0.08).map(([x, y]) => [x, y] as [number, number]).reverse();
+  // front windows: tall, outboard of the firebox (U01 photo)
+  const spect = (s: number) => roundedRect(s > 0 ? 0.86 : -1.2, 2.72, s > 0 ? 1.2 : -0.86, 3.3, 0.07).map(([x, y]) => [x, y] as [number, number]).reverse();
   b.add('paint_black', extrudeSection(front, z(cf), z(cf + 0.025), [spect(1), spect(-1)]));
   for (const s of [1, -1]) {
     b.add('glass', extrudeSection(spect(s).slice().reverse(), z(cf + 0.01), z(cf + 0.015)));

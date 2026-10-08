@@ -46,6 +46,10 @@
     .hs:focus-visible { outline: 3px solid #fff; }
     #infoPanel { position: fixed; right: 12px; top: calc(60px + env(safe-area-inset-top)); width: min(340px, calc(100vw - 24px)); background: var(--panel); border-radius: 12px; padding: 12px 14px; z-index: 6; }
     #infoPanel h3 { margin: 0 0 6px; } #infoPanel p { margin: 0 0 8px; font-size: 14px; } #infoPanel .what { color: var(--dim); }
+    #ctlTip { position: fixed; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 13px; z-index: 5; pointer-events: none; white-space: nowrap; }
+    #ctlPanel { position: fixed; left: 12px; top: calc(60px + env(safe-area-inset-top)); width: min(340px, calc(100vw - 24px)); background: var(--panel); border-radius: 12px; padding: 12px 14px; z-index: 6; }
+    #ctlPanel h3 { margin: 0 0 6px; } #ctlPanel p { margin: 0 0 8px; font-size: 14px; } #ctlPanel .what { color: var(--dim); }
+    #ctlPanel input[type=range] { width: 100%; accent-color: var(--accent); margin-bottom: 8px; }
     [hidden] { display: none !important; }
     @media (max-width: 640px) { #help { display: none; } #hud input[type=range] { width: 80px; } }
     @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
@@ -96,6 +100,10 @@
   </div>
 
   <div id="hotspots" hidden></div>
+  <div id="ctlTip" hidden></div>
+  <div id="ctlPanel" hidden role="dialog" aria-live="polite"><h3></h3><p class="what"></p><p class="does"></p>
+    <p><b id="ctlValue"></b></p><input type="range" id="ctlSlider" aria-label="Control setting" /><button class="btn" id="ctlHold">Hold to sound</button>
+    <button class="btn" id="ctlClose">Close</button></div>
   <div id="infoPanel" hidden role="dialog" aria-live="polite"><h3></h3><p class="what"></p><p class="does"></p><button class="btn" id="infoClose">Close</button></div>
 
   <div id="about" hidden role="dialog" aria-modal="true" aria-labelledby="atitle">

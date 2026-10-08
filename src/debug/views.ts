@@ -29,6 +29,11 @@ export const VIEWS: Record<string, View> = {
   'smokebox': { kind: 'persp', pos: [2.4, 2.9, 9.6], target: [0, 2.3, 4.7], fov: 40 },
   'cab-side-l': { kind: 'persp', pos: [5.2, 2.6, -4.4], target: [1.2, 2.4, -4.6], fov: 45 },
   'tender-rear': { kind: 'persp', pos: [-4.5, 2.2, -21.5], target: [0, 1.6, -13], fov: 45 },
+  'cab-driver': { kind: 'walk', feet: [0.78, B5.footplateH.v, -5.05], yaw: Math.PI + 0.22, pitch: -0.08 },
+  'cab-fireman': { kind: 'walk', feet: [-0.55, B5.footplateH.v, -4.95], yaw: Math.PI - 0.35, pitch: -0.18 },
+  'backhead': { kind: 'walk', feet: [0.0, B5.footplateH.v, -5.45], yaw: Math.PI, pitch: 0.02 },
+  'firehole': { kind: 'walk', feet: [-0.1, B5.footplateH.v, -5.0], yaw: Math.PI, pitch: -0.45 },
+  'tender-front': { kind: 'walk', feet: [0.0, B5.footplateH.v, -4.75], yaw: 0, pitch: -0.25 },
   'cab-entry': { kind: 'walk', feet: [-2.15, 0.915, -6.0], yaw: -Math.PI / 2, pitch: 0.05 },
   'cab-inside': { kind: 'walk', feet: [0.25, B5.footplateH.v, -5.4], yaw: Math.PI, pitch: -0.12 },
 };

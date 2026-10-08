@@ -3,8 +3,9 @@
 // (+ left / - right). Markers on the far side of the vehicle are hidden.
 import * as THREE from 'three';
 import { B5, zEngine, zTender } from '../specs/black5.ts';
+import { CONTROLS, GAUGES } from '../loco/cabControls.ts';
 
-export interface Hotspot { id: string; name: string; what: string; does: string; d: number; h: number; x: number; on: 'engine' | 'tender' }
+export interface Hotspot { id: string; name: string; what: string; does: string; d: number; h: number; x: number; on: 'engine' | 'tender'; near?: boolean }
 
 const v = (k: keyof typeof B5) => B5[k].v;
 
@@ -49,6 +50,10 @@ export const HOTSPOTS: Hotspot[] = [
   { id: 'emblem', name: 'BR emblem', what: 'The early British Railways "lion and wheel" emblem.', does: 'Marks the livery of the 1950s, which 45407 carries today.', d: 15.66, h: 2.13, x: -1.32, on: 'tender' },
   { id: 'tenderwheels', name: 'Tender wheels and springs', what: 'Three axles with axleboxes and leaf springs on outside frames.', does: 'Carry the heavy tender smoothly; brake blocks act on the wheel treads.', d: 15.7, h: 0.9, x: 1.12, on: 'tender' },
 ];
+
+// cab controls and gauges appear in Info mode only when you are on the footplate
+HOTSPOTS.push(...CONTROLS.map((k) => ({ id: `c_${k.id}`, name: k.name, what: k.what, does: k.does, d: k.d - 0.03, h: k.h, x: k.x, on: k.on, near: true })),
+  ...GAUGES.map((g) => ({ id: `g_${g.id}`, name: g.name, what: g.what, does: '', d: g.d - 0.03, h: g.h, x: g.x, on: 'engine' as const, near: true })));
 
 /** Shown at any distance; the rest appear as you come closer (de-clutters the overview). */
 const MAIN = new Set(['chimney', 'smokebox', 'buffers', 'bogie', 'cylinder', 'drivers', 'link', 'boiler', 'dome', 'firebox', 'cab', 'tender', 'coal', 'nameplate']);
@@ -98,8 +103,8 @@ export class HotspotLayer {
       const dist = p.distanceTo(camPos);
       p.project(camera);
       const sx = ((p.x + 1) / 2) * w, sy = ((1 - p.y) / 2) * h;
-      let show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && dist < 45 && (dist < 14 || MAIN.has(m.h.id));
-      if (show && placed.some(([x, y]) => Math.hypot(x - sx, y - sy) < 30)) show = false; // no overlapping markers
+      let show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && (m.h.near ? dist < 3.2 : dist < 45 && dist > 2.5 && (dist < 14 || MAIN.has(m.h.id)));
+      if (show && placed.some(([x, y]) => Math.hypot(x - sx, y - sy) < 28)) show = false; // no overlapping markers
       m.el.hidden = !show;
       if (show) { placed.push([sx, sy]); m.el.style.transform = `translate(${sx - 13}px, ${sy - 13}px)`; }
     }
