@@ -167,7 +167,35 @@ function cutoffScale() {
   return c;
 }
 
+function seatFabric() {
+  // blue moquette with a turquoise check (S40)
+  const { c, g } = canvas(128, 128);
+  g.fillStyle = '#1d3170'; g.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? 'rgba(70,170,200,0.55)' : 'rgba(40,90,170,0.5)'; g.fillRect(i * 16, 0, 5, 128); g.fillRect(0, i * 16, 128, 5); }
+  return c;
+}
+
+function westCoast() {
+  const { c, g } = canvas(500, 200);
+  g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `600 64px ${FONT}`;
+  g.fillText('WEST', 250, 62); g.fillText('COAST', 250, 140);
+  return c;
+}
+
+function coachNumberCanvas(num: string) {
+  const { c, g } = canvas(620, 200);
+  g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 150px ${FONT}`; g.fillText(num, 310, 104);
+  return c;
+}
+
+/** Each coach carries its own running number (materials are per coach). */
+export function paintCoachNumber(root: THREE.Object3D, num: string, anisotropy: number) {
+  const t = new THREE.CanvasTexture(coachNumberCanvas(num)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy;
+  root.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'decal_coachnum') { m.map = t; m.needsUpdate = true; } });
+}
+
 const PAINTERS: Record<string, () => HTMLCanvasElement> = {
+  decal_seatfabric: seatFabric, decal_westcoast: westCoast, decal_coachnum: () => coachNumberCanvas(''),
   decal_gauge_pressure: () => dial('BOILER', 300, 50, 10, 'LBS PER SQ IN', 225),
   decal_gauge_vacuum: () => dial('VACUUM', 30, 5, 1, 'INS. OF MERCURY'),
   decal_gauge_air: () => dial('AIR', 150, 25, 5, 'LBS PER SQ IN'),
@@ -190,6 +218,7 @@ export function paintDecals(root: THREE.Object3D, anisotropy: number) {
     let t = cache.get(m.name);
     if (!t) { t = new THREE.CanvasTexture(paint()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy; cache.set(m.name, t); }
     // glTF export keeps only base colour/roughness/metalness: restore the emissive part here
+    if (m.name === 'decal_seatfabric') { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 1.5); m.map = t; m.color.set(0xffffff); m.transparent = false; m.needsUpdate = true; return; }
     if (m.name === 'decal_fire') { m.emissiveMap = t; m.emissive.set(0xffffff); m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
     m.map = t; m.color.set(0xffffff);
     m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff'].includes(m.name) && !m.name.startsWith('decal_gauge');

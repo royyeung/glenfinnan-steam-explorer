@@ -34,6 +34,14 @@ export const VIEWS: Record<string, View> = {
   'backhead': { kind: 'walk', feet: [0.0, B5.footplateH.v, -5.45], yaw: Math.PI, pitch: 0.02 },
   'firehole': { kind: 'walk', feet: [-0.05, B5.footplateH.v, -4.75], yaw: Math.PI, pitch: -0.62 }, // crouched-eye view down into the open firehole
   'tender-front': { kind: 'walk', feet: [0.0, B5.footplateH.v, -4.75], yaw: 0, pitch: -0.25 },
+  'train-wide': { kind: 'persp', pos: [-38, 14, -40], target: [0, 1.5, -55], fov: 50 },
+  'coach-ext': { kind: 'persp', pos: [-9.0, 2.0, -18], target: [-1.2, 2.0, -26], fov: 50 },
+  'coach-door': { kind: 'walk', feet: [-2.3, 0.915, -23.85], yaw: -Math.PI / 2, pitch: 0.0 },
+  'coach-aisle': { kind: 'walk', feet: [0.0, 1.27, -16.2], yaw: 0, pitch: -0.05 },
+  'coach-seat': { kind: 'walk', feet: [0.55, 1.27, -19.6], yaw: Math.PI / 2 + 0.35, pitch: -0.2 },
+  'coach-vestibule': { kind: 'walk', feet: [0.3, 1.27, -23.3], yaw: -Math.PI / 2, pitch: 0.0 },
+  'gangway': { kind: 'walk', feet: [0.0, 1.27, -30.5], yaw: 0, pitch: 0.0 },
+  'coach-bogie': { kind: 'persp', pos: [-4.2, 0.9, -13.6], target: [-1.0, 0.6, -16.4], fov: 45 },
   'cab-entry': { kind: 'walk', feet: [-2.15, 0.915, -6.0], yaw: -Math.PI / 2, pitch: 0.05 },
   'cab-inside': { kind: 'walk', feet: [0.25, B5.footplateH.v, -5.4], yaw: Math.PI, pitch: -0.12 },
 };

@@ -11,6 +11,7 @@ import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import { buildEngine, buildTender } from '../../src/loco/engine.ts';
 import { blockoutMaterials } from '../../src/loco/materials.ts';
 import { setDetail } from '../../src/loco/geom.ts';
+import { buildCoach } from '../../src/coach/mk2.ts';
 
 const OUT = 'public/models';
 fs.mkdirSync(OUT, { recursive: true });
@@ -53,7 +54,7 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 const LODS = [{ detail: 1, ratio: 1 }, { detail: 0.5, ratio: 0.8, error: 0.002 }, { detail: 0.25, ratio: 0.6, error: 0.01 }];
 const manifest = { generated: new Date().toISOString(), files: {} };
 
-for (const [name, build] of [['engine', buildEngine], ['tender', buildTender]]) {
+for (const [name, build] of [['engine', buildEngine], ['tender', buildTender], ['coach', buildCoach]]) {
   for (let l = 0; l < LODS.length; l++) {
     setDetail(LODS[l].detail);
     const root = build(blockoutMaterials());

@@ -25,6 +25,10 @@ import { HotspotLayer } from './ui/hotspots.ts';
 import { Footplate } from './sim/footplate.ts';
 import { CabRig } from './loco/cabRig.ts';
 import { CabUI } from './ui/cabUI.ts';
+import { Train } from './coach/train.ts';
+import { buildCoach } from './coach/mk2.ts';
+import { MK2 } from './specs/mk2.ts';
+import { paintCoachNumber } from './render/decals.ts';
 
 const BASE = import.meta.env.BASE_URL;
 export type Mode = 'orbit' | 'walk' | 'free';
@@ -54,6 +58,16 @@ export class App {
   hotspots!: HotspotLayer;
   cutoff = 0.65;
   footplate = new Footplate();
+  private stepDist = 0;
+  /** What the walker is standing on, by height and position (for footstep sounds). */
+  private surface(): 'ground' | 'platform' | 'steel' | 'carpet' {
+    const y = this.walker.groundHeight;
+    if (y > 1.5) return 'steel';
+    if (y > 1.2) return 'carpet';
+    if (y > 0.85) return 'platform';
+    return 'ground';
+  }
+  train!: Train;
   private cabGroups: THREE.Object3D[] = [];
   cabRig!: CabRig;
   cabUI!: CabUI;
@@ -143,6 +157,30 @@ export class App {
     this.engine.position.set(0, 0, 0);
     this.tender.position.set(0, 0, -(TENDER_ORIGIN_D - ENGINE_ORIGIN_D));
     this.scene.add(this.engine, this.tender);
+    // the coaches: three LOD levels loaded once, cloned for each coach of the formation
+    const coachLevels: THREE.Object3D[] = [];
+    for (let l = 0; l < 3; l++) {
+      let root: THREE.Object3D;
+      if (params.live) { root = buildCoach(blockoutMaterials()); }
+      else {
+        const file = `coach_lod${l}.glb`;
+        const g = await gltf.loadAsync(`${BASE}models/${file}${ver(file)}`, (e) => tick(file, e.loaded));
+        tick(file, manifest.files[file].bytes);
+        root = g.scene.children[0] ?? g.scene;
+      }
+      root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = !/^coach_int/.test(o.name); o.receiveShadow = true; } });
+      coachLevels.push(root);
+    }
+    this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, [0, 30, 110]);
+    this.scene.add(this.train.group);
+    this.train.onDoor = (pos, opening) => this.sounds.door(pos, opening);
+    for (const c of this.train.coaches) {
+      paintDecals(c.lod, this.tier.anisotropy);
+      paintCoachNumber(c.lod, c.number, this.tier.anisotropy);
+      c.lod.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (m?.name === 'coach_light') { m.emissive.set(0xfff6e0); m.emissiveIntensity = 6; }
+        if (m?.name === 'cdl_light') { m.emissive.set(0xffa020); m.emissiveIntensity = 8; } });
+    }
     for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
     // livery decals, lit lamps and procedural weathering
     paintDecals(this.engine, this.tier.anisotropy); paintDecals(this.tender, this.tier.anisotropy);
@@ -150,9 +188,12 @@ export class App {
     // the cab shell (slightly larger than the walls so their inner faces are inside); open at the back
     Weathering.occlusion.set('engine', { min: new THREE.Vector3(-1.36, 1.55, zEngine(12.64)), max: new THREE.Vector3(1.36, 3.78, zEngine(10.0)), f: 0.22, rampZ: 0.9 });
     Weathering.occlusion.set('tender', { min: new THREE.Vector3(-1.3, 1.55, zTender(12.85)), max: new THREE.Vector3(1.3, 2.95, zTender(12.3)), f: 0.5, rampZ: 0.15 });
-    for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, false);
-    for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, true);
-    this.hotspots = new HotspotLayer(this.engine, this.tender);
+    for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, 'engine');
+    for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, 'tender');
+    const hw = MK2.bodyWidth.v / 2 - 0.02, hl = MK2.bodyLength.v / 2 - 0.02;
+    Weathering.occlusion.set('coach', { min: new THREE.Vector3(-hw, MK2.floorH.v - 0.05, -hl), max: new THREE.Vector3(hw, MK2.height.v - 0.05, hl), f: 0.45, rampZ: 0.05 });
+    for (const c of this.train.coaches) for (const l of c.lod.levels) this.weathering.apply(l.object, c.lod, 'coach');
+    this.hotspots = new HotspotLayer(this.engine, this.tender, this.train.coaches[0].lod);
     // cab: simulation-driven controls, gauges, fire glow and lamps
     this.cabRig = new CabRig(this.engine.levels[0].object, this.tender.levels[0].object);
     for (const root of [this.engine.levels[0].object, this.tender.levels[0].object]) {
@@ -170,7 +211,7 @@ export class App {
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);
-    this.walker.setColliders([...this.site.colliders, this.engine.levels[0].object, this.tender.levels[0].object]);
+    this.walker.setColliders([...this.site.colliders, this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels]);
     this.inputs = new WalkInputs(this.canvas, this.walker.input);
     this.inputs.clickTaken = () => !!this.cabUI?.wantsClick;
     this.inputs.lookSuspended = () => !!this.cabUI?.dragging && !!this.cabUI.selected;
@@ -295,7 +336,12 @@ export class App {
     const h = 1 / SIM_HZ;
     for (let i = 0; i < n; i++) {
       this.simTime += h;
-      if (this.mode === 'walk') { this.inputs.update(); this.walker.step(h); }
+      if (this.mode === 'walk') {
+        const before = this.walker.feet.clone();
+        this.inputs.update(); this.walker.step(h);
+        this.stepDist += Math.hypot(this.walker.feet.x - before.x, this.walker.feet.z - before.z);
+        if (this.stepDist > 0.72 && this.walker.onGround && this.audio.running) { this.stepDist = 0; this.sounds.footstep(this.surface(), this.walker.feet.clone()); }
+      }
       this.footplate.step(h);
       const fpOmega = this.footplate.wheelOmega;
       const omega = this.motionOn ? this.motionSpeed / (B5.driverDia.v / 2) : fpOmega;
@@ -325,6 +371,7 @@ export class App {
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) this.orbit.update();
     this.updateGates(params.fixed ? 1 : dt);
+    this.train?.update(this.camera, this.mode === 'walk' ? this.walker.feet : null, params.fixed ? 1 : dt);
     // the cab interior is only drawn when the camera is within 9 m of the cab
     if (this.cabGroups.length) {
       const near = this.camera.getWorldPosition(new THREE.Vector3()).distanceTo(this.engine.localToWorld(new THREE.Vector3(0, 2.6, zEngine(11.3)))) < 9;

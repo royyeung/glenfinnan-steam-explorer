@@ -8,7 +8,7 @@ type Kind = 'paint' | 'smokebox' | 'wheel' | 'steel' | 'red' | 'tender' | 'brass
 
 const KIND_BY_NAME: Record<string, Kind> = {
   paint_black: 'paint', smokebox: 'smokebox', wheel: 'wheel', steel: 'steel', paint_red: 'red', brass: 'brass', copper: 'brass', backhead: 'smokebox', chequer: 'steel',
-  lining: 'paint', lining_red: 'paint', blue_plate: 'paint', decal_cabnum: 'paint', decal_emblem: 'paint', decal_emblem_l: 'paint',
+  lining: 'paint', lining_red: 'paint', coach_maroon: 'paint', lining_gold: 'paint', roof_black: 'smokebox', underframe: 'wheel', spring_red: 'red', axle_yellow: 'red', blue_plate: 'paint', decal_cabnum: 'paint', decal_emblem: 'paint', decal_emblem_l: 'paint',
 };
 const KIND_ID: Record<Kind, number> = { paint: 0, smokebox: 1, wheel: 2, steel: 3, red: 4, tender: 5, brass: 6 };
 
@@ -29,8 +29,9 @@ export class Weathering {
   static occlusion = new Map<string, { min: THREE.Vector3; max: THREE.Vector3; f: number; rampZ: number }>();
 
   /** Patch every recognised material under `root`; `vehicle` is the frame noise is evaluated in. */
-  apply(root: THREE.Object3D, vehicle: THREE.Object3D, isTender: boolean) {
-    const occ = Weathering.occlusion.get(isTender ? 'tender' : 'engine') ?? { min: new THREE.Vector3(1, 1, 1), max: new THREE.Vector3(0, 0, 0), f: 1, rampZ: 0.1 };
+  apply(root: THREE.Object3D, vehicle: THREE.Object3D, kindKey: 'engine' | 'tender' | 'coach') {
+    const isTender = kindKey === 'tender';
+    const occ = Weathering.occlusion.get(kindKey) ?? { min: new THREE.Vector3(1, 1, 1), max: new THREE.Vector3(0, 0, 0), f: 1, rampZ: 0.1 };
     const seen = new Set<THREE.Material>();
     root.traverse((o) => {
       const mesh = o as THREE.Mesh;

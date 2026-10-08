@@ -74,7 +74,7 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
   for (const s of [1, -1]) { const b = new THREE.Mesh(bandGeo, bandMat); b.position.x = s * (half + 0.035); g.add(b); }
 
   // platform on the right (-X) side: edge 730 mm from the running edge, top 915 mm above rail
-  const pEdge = -(half + SITE.platformOffset.v), pTop = SITE.platformHeight.v, pz0 = -26, pz1 = 8;
+  const pEdge = -(half + SITE.platformOffset.v), pTop = SITE.platformHeight.v, pz0 = -150, pz1 = 8; // long enough for the six coaches
   const plat = new THREE.Mesh(new THREE.BoxGeometry(4, pTop - gy, pz1 - pz0), new THREE.MeshStandardMaterial({ name: 'platform', color: 0x6a6660, roughness: 0.9 }));
   plat.position.set(pEdge - 2, (pTop + gy) / 2, (pz0 + pz1) / 2); plat.name = 'platform'; plat.castShadow = plat.receiveShadow = true;
   g.add(plat); colliders.push(plat);

@@ -27,7 +27,8 @@ export class Walker {
     const geos: THREE.BufferGeometry[] = [];
     for (const root of meshes) root.traverse((o) => {
       const m = o as THREE.Mesh;
-      if (!m.isMesh || (m as THREE.InstancedMesh).isInstancedMesh || /^cab_gate/.test(m.name)) return; // gates swing; not baked
+      if (!m.isMesh || (m as THREE.InstancedMesh).isInstancedMesh || /^(cab_gate|coach_door)/.test(m.name)) return; // gates and doors swing; not baked
+      for (let p: THREE.Object3D | null = m; p; p = p.parent) if (!p.visible && /^gw_door/.test(p.name)) return; // hidden gangway doors (inside the train)
       m.updateWorldMatrix(true, false);
       // GLB positions may be quantized/interleaved: read through the accessor into plain floats
       const src = m.geometry.getAttribute('position'), arr = new Float32Array(src.count * 3);

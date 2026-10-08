@@ -172,6 +172,37 @@ export class Soundscape {
     if (this.injGain) this.injGain.gain.setTargetAtTime(0.14 * Math.min(1, s.injectors), t, 0.4);
   }
 
+  /** Footstep at the listener: softer and duller on carpet, ringing on steel and boards. */
+  footstep(surface: 'ground' | 'platform' | 'steel' | 'carpet', pos: THREE.Vector3) {
+    const ctx = this.a.ctx; if (!ctx) return;
+    const src = this.a.spatial('step', pos, 1.5, 1), t = ctx.currentTime + 0.005;
+    const n = ctx.createBufferSource(); n.buffer = this.stepNoise ??= noiseBuffer(ctx, 'white', 1, 71);
+    const e = ctx.createGain(), f = { ground: 600, platform: 1400, steel: 2200, carpet: 350 }[surface];
+    const lv = { ground: 0.12, platform: 0.16, steel: 0.2, carpet: 0.07 }[surface] * (0.8 + 0.4 * this.rand());
+    e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(lv, t + 0.006); e.gain.exponentialRampToValueAtTime(0.001, t + (surface === 'steel' ? 0.16 : 0.09));
+    n.connect(filt(ctx, 'bandpass', f, 0.9)).connect(e).connect(src.gain); n.start(t, this.rand() * 0.8, 0.2);
+    if (surface === 'steel') { const o = ctx.createOscillator(), oe = ctx.createGain(); o.frequency.value = 900 + 300 * this.rand(); oe.gain.setValueAtTime(0.02, t); oe.gain.exponentialRampToValueAtTime(0.0005, t + 0.25); o.connect(oe).connect(src.gain); o.start(t); o.stop(t + 0.26); }
+    window.setTimeout(() => src.gain.disconnect(), 800);
+  }
+  private stepNoise: AudioBuffer | null = null;
+
+  /** Slam door: opening = latch click + creak; closing = heavy slam. Central door locking beeps first. */
+  door(pos: THREE.Vector3, opening: boolean) {
+    const ctx = this.a.ctx; if (!ctx) return;
+    const src = this.a.spatial('door', pos, 3, 1.2), t = ctx.currentTime + 0.01;
+    if (opening) {
+      for (const dt of [0, 0.18]) { const o = ctx.createOscillator(), e = ctx.createGain(); o.frequency.value = 2400; e.gain.setValueAtTime(0, t + dt); e.gain.linearRampToValueAtTime(0.06, t + dt + 0.01); e.gain.setValueAtTime(0.06, t + dt + 0.1); e.gain.linearRampToValueAtTime(0, t + dt + 0.12); o.connect(e).connect(src.gain); o.start(t + dt); o.stop(t + dt + 0.13); }
+      this.clank(pos, 2.2);
+    } else {
+      const n = ctx.createBufferSource(); n.buffer = this.stepNoise ??= noiseBuffer(ctx, 'white', 1, 71);
+      const e = ctx.createGain(); e.gain.setValueAtTime(0, t + 0.3); e.gain.linearRampToValueAtTime(0.5, t + 0.305); e.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+      n.connect(filt(ctx, 'lowpass', 500)).connect(e).connect(src.gain); n.start(t + 0.3, 0, 0.4);
+      const o = ctx.createOscillator(), oe = ctx.createGain(); o.frequency.setValueAtTime(110, t + 0.3); o.frequency.exponentialRampToValueAtTime(55, t + 0.5);
+      oe.gain.setValueAtTime(0, t + 0.3); oe.gain.linearRampToValueAtTime(0.35, t + 0.305); oe.gain.exponentialRampToValueAtTime(0.001, t + 0.55); o.connect(oe).connect(src.gain); o.start(t + 0.3); o.stop(t + 0.6);
+    }
+    window.setTimeout(() => src.gain.disconnect(), 1500);
+  }
+
   /** One-shot clank (firehole doors, gates, levers) at a position. */
   clank(pos: THREE.Vector3, pitch = 1) {
     const ctx = this.a.ctx; if (!ctx) return;

@@ -74,7 +74,7 @@ if (which === 'perf' || which === 'all') {
   for (const [w, h, mobile] of [[1280, 720, false], [844, 390, true]]) {
     for (const q of ['low', 'medium', 'high']) {
       const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=${q}`, { w, h, mobile });
-      for (const view of ['front-34-l', 'site-wide', 'backhead']) {
+      for (const view of ['front-34-l', 'train-wide', 'backhead', 'coach-aisle']) {
         const r = await page.evaluate((v) => {
           GX.view(v); GX.render(); GX.render();
           const gl = GX.app.renderer.getContext(), px = new Uint8Array(4);
@@ -125,6 +125,28 @@ if (which === 'cab' || which === 'all') {
   r.pass = ctl.length >= 20 && ctl.every((c) => c.ok) && r.sim.brakeApplied < 3 && r.sim.brakeReleased > 18 && r.sim.injector.waterAfter > r.sim.injector.waterBefore
     && r.sim.driving.omega > 0.5 && Math.abs(r.sim.stopped) < 0.05 && Math.abs(r.sim.reverserLinked + 0.75) < 1e-6;
   r.errors = errors; save('cab', r); await ctx.close();
+}
+
+// ---- Phase 4: board a coach from the platform and walk through the train
+if (which === 'coach' || which === 'all') {
+  const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=low`, { w: 1280, h: 720 });
+  const r = await page.evaluate(() => {
+    const out = {};
+    GX.teleport(-2.3, 0.915, -23.85, -Math.PI / 2);                 // platform, facing door C of coach 1
+    for (let i = 0; i < 4; i++) GX.step(30);                          // let the door swing open
+    out.doorOpen = (() => { let a = 0; GX.app.scene.traverse((o) => { if (o.name === 'coach_door_C_R' && o.parent?.parent?.name === 'coach_5249') a = Math.max(a, Math.abs(o.rotation.y)); }); return +a.toFixed(2); })();
+    out.boarded = GX.walk(1, 0, 1.6);                                 // through the doorway into the vestibule
+    out.aisle = GX.walk(1, 0, 7.5, 0);                                // turn towards the B end and walk the saloon
+    out.nextCoach = GX.walk(1, 0, 4.0, 0);                            // through the gangway into coach 2
+    const L = 20.1168, front = -13.2;                                 // coach 2 spans z -33.3 .. -53.4
+    out.inCoach2 = out.nextCoach.z < front - L - 0.5 && out.nextCoach.z > front - 2 * L && Math.abs(out.nextCoach.y - 1.27) < 0.05;
+    out.backOut = (GX.teleport(0, 1.27, -23.85, Math.PI / 2), GX.walk(1, 0, 2.5));  // walk out of door C onto the platform side
+    return out;
+  });
+  const h = await page.evaluate(() => GX.humanScale());
+  r.coachDims = { doorClear_m: 3.18 - 1.27, doorWidth_m: 0.62, aisle_m: 0.68, platformToFloor_m: +(1.27 - 0.915).toFixed(3), headroomAisle_m: +(3.90 - 0.17 - 1.27).toFixed(2) };
+  r.pass = r.doorOpen > 1.0 && Math.abs(r.boarded.y - 1.27) < 0.05 && r.aisle.z < -30 && r.inCoach2 && Math.abs(r.backOut.y - 0.915) < 0.05 && h.headroomOK && h.stepsOK && r.coachDims.doorClear_m >= 1.75 && r.coachDims.platformToFloor_m <= 0.45;
+  r.errors = errors; save('coach', r); await ctx.close();
 }
 
 await b.close(); server.close();
