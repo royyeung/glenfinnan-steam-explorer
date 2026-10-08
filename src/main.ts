@@ -65,7 +65,8 @@ function wireUI() {
     const touch = app.inputs.touch;
     $('joyL').hidden = !(m === 'walk' && touch); $('lookHint').hidden = !(m === 'walk' && touch); $('cross').hidden = m !== 'walk';
     help.innerHTML = m === 'walk'
-      ? (touch ? 'Left thumb: move · right side: look' : 'Click to look around · WASD / arrows move · Shift runs · Esc frees the mouse')
+      ? (touch ? 'Left thumb: move · right side: look · in the cab, tap a control (wheel, lever, gauge) to work it'
+               : 'Click to look around · WASD / arrows move · Shift runs · Esc frees the mouse · in the cab, aim the dot at a control and click to work it')
       : (touch ? 'Drag to orbit · pinch to zoom' : 'Drag to orbit · right-drag to pan · wheel to zoom · ` opens tuning');
   };
   $('mOrbit').onclick = () => setMode('orbit');

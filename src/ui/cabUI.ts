@@ -48,6 +48,7 @@ export class CabUI {
   get wantsClick() { return !!this.hovered; }
 
   update(camera: THREE.Camera, centre: boolean) {
+    this.lastCamera = camera; this.lastCentre = centre;
     if (!this.meshes.length) return;
     this.ray.setFromCamera(centre ? new THREE.Vector2(0, 0) : this.mouse, camera);
     this.ray.far = 3.2;
@@ -84,7 +85,16 @@ export class CabUI {
 
   close() { this.selected = null; this.panel.hidden = true; this.fp.held = null; }
 
+  private lastCamera: THREE.Camera | null = null;
+  private lastCentre = false;
+
   private down(e: PointerEvent) {
+    // taps have no hover beforehand: aim at the touch point (or the crosshair) right now
+    if (this.lastCamera && !this.lastCentre) {
+      const r = this.canvas.getBoundingClientRect();
+      this.mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      this.update(this.lastCamera, false);
+    }
     if (e.button !== 0 || !this.hovered) return;
     this.select(this.hovered);
     if (this.hovered.momentary) { this.fp.held = this.hovered.id; this.setValue(this.hovered, this.hovered.max); }
