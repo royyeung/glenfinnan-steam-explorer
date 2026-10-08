@@ -184,6 +184,8 @@ Their exact count and positions are **UNVERIFIED**.
 |---|---|---|
 | Backhead as seen on a Black Five (not 45407) | Vacuum gauge at top left; two water-gauge glasses; a long regulator handle hanging from the top centre; steam manifold with handwheels across the top; two small gauges at top right; firehole below; cab interior painted cream | S41 (2011, unidentified loco) | Medium for the class layout; 45407's own gauges and modern kit still need C01–C12 |
 | Injector types (live steam / exhaust steam) and sides | **UNVERIFIED** | Needs photos |
+| Phase 3 cab layout (2026-10-08) | Built from S41 (class backhead), the 44871 footplate photo (firehole doors, tray, chequer and wooden floor), S27's labelled list of 45407/44871/45212 controls, and photo U01 (tall outboard front windows, left-side ejector pipe). Positions are estimates where these disagree or are silent. M8 air valve and AWS: S27 only. | S41, S27, U01 | Low–medium |
+| Numberplate colour | **Conflicting.** Blue with white numerals (Apr 2025, Oct 2025, York 2023) vs black with white numerals (photo U01, date unknown). The model keeps blue. | S34, S35, U01 | Q: date of U01 |
 | Regulator form (LMS-style horizontal swinging handle?) | S27 render suggests a long lever from the top centre | Low |
 | Reverser form (screw reverser with handle?) | S27 shows a handle on a column, driver's side | Low |
 | Firehole doors (sliding pair?) and deflector | S27 lists "Firebox doors" and "Air deflector flap" | Low |

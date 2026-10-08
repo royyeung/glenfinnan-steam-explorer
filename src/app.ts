@@ -98,6 +98,7 @@ export class App {
     const r = this.renderer;
     this.resize();
     this.atmosphere = new Atmosphere(r, this.scene, this.persp, this.tier);
+    this.atmosphere.attachRenderer(r);
     this.post = new Post(r, this.scene, this.persp, this.tier);
     this.resize();
 
@@ -142,7 +143,7 @@ export class App {
     for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
     // livery decals, lit lamps and procedural weathering
     paintDecals(this.engine, this.tier.anisotropy); paintDecals(this.tender, this.tier.anisotropy);
-    this.engine.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'lamp_lens') m.emissiveIntensity = 2.5; });
+    this.engine.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'lamp_lens') { m.emissive.set(0xfff1d0); m.emissiveIntensity = 20; } }); // x10: exposure is 0.3
     // the cab shell (slightly larger than the walls so their inner faces are inside); open at the back
     Weathering.occlusion.set('engine', { min: new THREE.Vector3(-1.36, 1.55, zEngine(12.64)), max: new THREE.Vector3(1.36, 3.78, zEngine(10.0)), f: 0.22, rampZ: 0.9 });
     Weathering.occlusion.set('tender', { min: new THREE.Vector3(-1.3, 1.55, zTender(12.85)), max: new THREE.Vector3(1.3, 2.95, zTender(12.3)), f: 0.5, rampZ: 0.15 });
@@ -334,6 +335,8 @@ export class App {
       this.sounds.footplate({ blower: c.blower, safety: this.footplate.safetyLift, ejector: Math.min(1, c.ejectorLarge + 0.3 * c.ejectorSmall), whistle: c.whistle, injectors: inj }, this.soundPointsCache ??= this.soundPoints());
     }
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
+    // moving rods cast shadows on High/Medium (not on Low): keep shadows live while the wheels turn
+    this.atmosphere.dynamicShadows = this.tierName !== 'low' && (this.motionOn || this.footplate.wheelOmega !== 0);
     this.atmosphere.update(this.simTime);
     this.weathering.update();
     this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera);

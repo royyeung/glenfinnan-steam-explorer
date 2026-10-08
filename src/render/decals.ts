@@ -138,13 +138,22 @@ function waterPlate() {
 }
 
 function fireBed() {
+  // a bright bed of burning coal: yellow-white where hottest (centre-back), orange elsewhere,
+  // individual lumps outlined by darker red seams and a few dull spots at the edges
   const { c, g } = canvas(256, 256);
-  const gr = g.createRadialGradient(128, 140, 10, 128, 128, 128); gr.addColorStop(0, '#fff2b0'); gr.addColorStop(0.35, '#ffb03a'); gr.addColorStop(0.75, '#d2481a'); gr.addColorStop(1, '#5a1404');
+  const gr = g.createRadialGradient(128, 60, 8, 128, 110, 200);
+  gr.addColorStop(0, '#fff4c8'); gr.addColorStop(0.3, '#ffc24a'); gr.addColorStop(0.65, '#ff8a1c'); gr.addColorStop(1, '#c2400c');
   g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
   let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-  for (let i = 0; i < 160; i++) { // dark coal lumps over the glow
-    const x = rnd() * 256, y = 90 + rnd() * 166, r = 6 + rnd() * 16;
-    g.fillStyle = `rgba(${40 + rnd() * 50},${10 + rnd() * 15},0,${0.55 + rnd() * 0.4})`;
+  g.lineWidth = 2.2;
+  for (let i = 0; i < 140; i++) {
+    const x = rnd() * 256, y = rnd() * 256, r = 7 + rnd() * 13;
+    g.strokeStyle = `rgba(${150 + rnd() * 60},${30 + rnd() * 30},0,0.7)`;
+    g.beginPath(); g.ellipse(x, y, r, r * 0.75, rnd() * 3, 0, Math.PI * 2); g.stroke();
+  }
+  for (let i = 0; i < 18; i++) {
+    const x = rnd() * 256, y = 150 + rnd() * 106, r = 5 + rnd() * 9;
+    g.fillStyle = `rgba(${90 + rnd() * 40},${20 + rnd() * 15},0,0.55)`;
     g.beginPath(); g.ellipse(x, y, r, r * 0.7, rnd() * 3, 0, Math.PI * 2); g.fill();
   }
   return c;
@@ -180,7 +189,8 @@ export function paintDecals(root: THREE.Object3D, anisotropy: number) {
     if (!paint) return;
     let t = cache.get(m.name);
     if (!t) { t = new THREE.CanvasTexture(paint()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy; cache.set(m.name, t); }
-    if (m.name === 'decal_fire') { m.emissiveMap = t; m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
+    // glTF export keeps only base colour/roughness/metalness: restore the emissive part here
+    if (m.name === 'decal_fire') { m.emissiveMap = t; m.emissive.set(0xffffff); m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
     m.map = t; m.color.set(0xffffff);
     m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff'].includes(m.name) && !m.name.startsWith('decal_gauge');
     m.alphaTest = m.transparent ? 0.02 : 0;

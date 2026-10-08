@@ -76,6 +76,12 @@ export class Atmosphere {
   /** The shadow map is centred here (orbit target or the walker). */
   setFocus(p: THREE.Vector3) { this.focus.copy(p); }
 
+  /** Set true each frame something that casts shadows moves (e.g. turning wheels on High/Medium). */
+  dynamicShadows = false;
+  private lastTarget = new THREE.Vector3(1e9, 0, 0);
+  private renderer: THREE.WebGLRenderer | null = null;
+  attachRenderer(r: THREE.WebGLRenderer) { this.renderer = r; r.shadowMap.autoUpdate = false; r.shadowMap.needsUpdate = true; }
+
   private placeLight() {
     // keep the shadow frustum on whole texels in light space so edges do not shimmer as the focus moves
     const texel = (2 * this.extent) / this.light.shadow.mapSize.x;
@@ -86,6 +92,9 @@ export class Atmosphere {
     this.light.target.position.copy(snapped);
     this.light.position.copy(snapped).addScaledVector(this.sunDir, 300);
     this.light.target.updateMatrixWorld();
+    // the scene is mostly still: redraw the shadow map only when the light moved or something moves
+    if (this.renderer && (this.dynamicShadows || !this.lastTarget.equals(snapped))) this.renderer.shadowMap.needsUpdate = true;
+    this.lastTarget.copy(snapped);
   }
 
   /** Recompute sun, sky, fog colour and light. Call after changing params. */
@@ -128,6 +137,7 @@ export class Atmosphere {
       this.envRT?.dispose(); this.envRT = rt;
       this.scene.environment = rt.texture;
       this.scene.environmentIntensity = this.params.envIntensity;
+      if (this.renderer) this.renderer.shadowMap.needsUpdate = true;
     }
     this.placeLight();
   }

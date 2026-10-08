@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 2 (locomotive exterior) complete on 2026-10-05, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 3".**
+**Status:** Phase 3 (cab interior) complete on 2026-10-08, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 4".**
 
 ---
 
@@ -334,6 +334,16 @@ Every phase ends the same way:
 - the avatar fits and the head clears the roof;
 - cab views compare side by side with the photos.
 
+**Result (2026-10-08).** Details in `shots/p3/NOTES.md`.
+
+- [x] **Controls:** every control from S27's list is in the cab (23), named, operable and moving through its range. Positions follow the class photo and are marked unconfirmed for 45407 where only S27 lists them.
+- [x] **Gauges:** pressure, vacuum and air needles respond to the footplate model; water-gauge level moves.
+- [x] **Firehole and lighting:** doors open; the fire glows and lights the cab.
+- [x] **Avatar fits:** headroom 2.05 m; the walk ends on the footplate.
+- [x] **Cab views vs photos:** compared side by side with S41. Differences are listed in NOTES.
+- [x] **Sound:** whistle, blower, safety valves, ejector, injectors, exhaust beats, clanks; audio check passes.
+- [x] **Budgets met on every tier**, including the cab view.
+
 ### Phase 4: Carriages
 
 - **Exterior:** Mk2 exterior in the exact subtype(s) and livery confirmed in Q4. B4 bogies, gangways, buckeyes, buffers, doors with CDL lights, opening windows.
@@ -396,6 +406,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 ## 12. Change log
 
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
+- 2026-10-08: Phase 3 built and verified (cab interior, 23 working controls, footplate model, cab sounds). Your photo U01 added (front windows, left-side pipes).
 - 2026-10-05: Phase 2 built and verified (engine and tender exterior, full valve gear, livery, weathering, info mode, motion sounds).
 - 2026-10-05: Phase 1 built, verified and deployed (see Phase 1 Result). Domain-wide bot blocking added to Caddy. Sound plan added (§6a).
 - 2026-10-05: Your answers applied: repo live; folders inside the project; terrain = OS Terrain 50 + shaped near-field; first coach = standard-class TSO; no basic auth; test devices = Galaxy S26 Ultra + Windows 11 laptop (Chrome). Reference photos collected from Wikimedia Commons; REFERENCE §2/§6/§9 updated from dated 2025 photos.

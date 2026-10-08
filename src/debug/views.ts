@@ -32,7 +32,7 @@ export const VIEWS: Record<string, View> = {
   'cab-driver': { kind: 'walk', feet: [0.78, B5.footplateH.v, -5.05], yaw: Math.PI + 0.22, pitch: -0.08 },
   'cab-fireman': { kind: 'walk', feet: [-0.55, B5.footplateH.v, -4.95], yaw: Math.PI - 0.35, pitch: -0.18 },
   'backhead': { kind: 'walk', feet: [0.0, B5.footplateH.v, -5.45], yaw: Math.PI, pitch: 0.02 },
-  'firehole': { kind: 'walk', feet: [-0.1, B5.footplateH.v, -5.0], yaw: Math.PI, pitch: -0.45 },
+  'firehole': { kind: 'walk', feet: [-0.05, B5.footplateH.v, -4.75], yaw: Math.PI, pitch: -0.62 }, // crouched-eye view down into the open firehole
   'tender-front': { kind: 'walk', feet: [0.0, B5.footplateH.v, -4.75], yaw: 0, pitch: -0.25 },
   'cab-entry': { kind: 'walk', feet: [-2.15, 0.915, -6.0], yaw: -Math.PI / 2, pitch: 0.05 },
   'cab-inside': { kind: 'walk', feet: [0.25, B5.footplateH.v, -5.4], yaw: Math.PI, pitch: -0.12 },

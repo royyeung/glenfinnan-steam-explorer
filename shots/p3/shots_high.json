@@ -1,0 +1,213 @@
+{
+ "errorsAtLoad": [],
+ "views": {
+  "backhead": {
+   "view": "backhead",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 270,
+    "triangles": 162390,
+    "textures": 43,
+    "geometries": 118,
+    "textureMB": 25.1,
+    "frameMsCPU": 33.5,
+    "frameMsGPU": -1,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 54385,
+   "errors": []
+  },
+  "cab-driver": {
+   "view": "cab-driver",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 242,
+    "triangles": 159170,
+    "textures": 43,
+    "geometries": 118,
+    "textureMB": 25.1,
+    "frameMsCPU": 6.2,
+    "frameMsGPU": 14929.4,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 47776,
+   "errors": []
+  },
+  "cab-fireman": {
+   "view": "cab-fireman",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 214,
+    "triangles": 154214,
+    "textures": 43,
+    "geometries": 118,
+    "textureMB": 25.1,
+    "frameMsCPU": 6.9,
+    "frameMsGPU": 16144.59,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 49457,
+   "errors": []
+  },
+  "tender-front": {
+   "view": "tender-front",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 138,
+    "triangles": 123618,
+    "textures": 44,
+    "geometries": 129,
+    "textureMB": 25.1,
+    "frameMsCPU": 6,
+    "frameMsGPU": 16544.54,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 36575,
+   "errors": []
+  },
+  "cab-entry": {
+   "view": "cab-entry",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 244,
+    "triangles": 147310,
+    "textures": 45,
+    "geometries": 135,
+    "textureMB": 25.1,
+    "frameMsCPU": 11.9,
+    "frameMsGPU": 11900.28,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 41776,
+   "errors": []
+  },
+  "cab-side-l": {
+   "view": "cab-side-l",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 266,
+    "triangles": 151118,
+    "textures": 45,
+    "geometries": 135,
+    "textureMB": 25.1,
+    "frameMsCPU": 10.2,
+    "frameMsGPU": 13827.81,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 44261,
+   "errors": []
+  },
+  "front-34-l": {
+   "view": "front-34-l",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 214,
+    "triangles": 172978,
+    "textures": 45,
+    "geometries": 135,
+    "textureMB": 25.1,
+    "frameMsCPU": 9.1,
+    "frameMsGPU": 14828.16,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 32285,
+   "errors": []
+  },
+  "smokebox": {
+   "view": "smokebox",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 212,
+    "triangles": 172954,
+    "textures": 45,
+    "geometries": 135,
+    "textureMB": 25.1,
+    "frameMsCPU": 13.8,
+    "frameMsGPU": 10869.55,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 43813,
+   "errors": []
+  }
+ }
+}

@@ -46,7 +46,8 @@ export class CabRig {
     if (this.ind) this.ind.position.y = (this.ind.userData.y0 ??= this.ind.position.y) + fp.c.reverser * 0.11;
     // fire: flicker, brighter with draught; light spills out when the doors are open
     const flick = 0.82 + 0.1 * Math.sin(time * 13.1) + 0.06 * Math.sin(time * 29.7 + 1.3) + 0.04 * Math.sin(time * 51.3);
-    for (const m of this.fireMats) m.emissiveIntensity = (1.2 + 3.5 * fp.fire) * flick;
+    // exposure is 0.3 (sky-calibrated); with a bright fire texture ~4x gives a glowing but saturated bed
+    for (const m of this.fireMats) m.emissiveIntensity = (1.5 + 3.5 * fp.fire) * flick;
     this.fireLight.intensity = (0.6 + 9 * fp.c.fireDoors) * fp.fire * flick;
     this.cabLamp.intensity = fp.c.cabLight > 0.5 ? 1.6 : 0;
   }

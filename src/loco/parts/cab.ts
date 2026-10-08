@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { B5, zEngine } from '../../specs/black5.ts';
 import { Batch, DETAIL, boxMinMax, cylBetween, cylX, extrudeSection, extrudeSide, pipe, roundedRect } from '../geom.ts';
 import { arc } from './wheels.ts';
+import { fireholeOutline } from './cabInterior.ts';
 
 const v = (k: keyof typeof B5) => B5[k].v;
 const z = zEngine;
@@ -24,7 +25,7 @@ export function cab(b: Batch) {
   const front: [number, number][] = [[-cw, rpH], [cw, rpH], ...roofArc(0).reverse()];
   // front windows: tall, outboard of the firebox (U01 photo)
   const spect = (s: number) => roundedRect(s > 0 ? 0.86 : -1.2, 2.72, s > 0 ? 1.2 : -0.86, 3.3, 0.07).map(([x, y]) => [x, y] as [number, number]).reverse();
-  b.add('paint_black', extrudeSection(front, z(cf), z(cf + 0.025), [spect(1), spect(-1)]));
+  b.add('paint_black', extrudeSection(front, z(cf), z(cf + 0.025), [spect(1), spect(-1), fireholeOutline()]));
   for (const s of [1, -1]) {
     b.add('glass', extrudeSection(spect(s).slice().reverse(), z(cf + 0.01), z(cf + 0.015)));
     const rim = rimOf(spect(s), 0.02); b.add('steel', extrudeSection(rim.outer, z(cf - 0.005), z(cf + 0.002), [rim.inner]));

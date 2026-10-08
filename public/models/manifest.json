@@ -1,17 +1,17 @@
 {
- "generated": "2026-10-08T12:06:10.058Z",
+ "generated": "2026-10-08T12:59:34.957Z",
  "files": {
   "engine_lod0.glb": {
-   "bytes": 524408,
-   "tris": 52506
+   "bytes": 529640,
+   "tris": 53074
   },
   "engine_lod1.glb": {
-   "bytes": 253216,
-   "tris": 21302
+   "bytes": 254088,
+   "tris": 21398
   },
   "engine_lod2.glb": {
-   "bytes": 150572,
-   "tris": 9976
+   "bytes": 151120,
+   "tris": 10040
   },
   "tender_lod0.glb": {
    "bytes": 131332,

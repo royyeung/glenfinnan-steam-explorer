@@ -5,6 +5,7 @@ import { Batch, DETAIL, bandZ, boxMinMax, cylBetween, cylZ, extrudeSection, lath
 
 const V = (x: number, y: number, zz: number) => new THREE.Vector3(x, y, zz);
 import { arc } from './wheels.ts';
+import { fireholeOutline } from './cabInterior.ts';
 
 const v = (k: keyof typeof B5) => B5[k].v;
 const z = zEngine;
@@ -79,7 +80,7 @@ export function boiler(b: Batch) {
   const sect: [number, number][] = [[-0.82, rpH], [0.82, rpH], [fw, fT - sh],
     ...arc(sh, 0, Math.PI / 2, 8).map(([c, s2]) => [fw - sh + c, fT - sh + s2] as [number, number]),
     ...arc(sh, Math.PI / 2, Math.PI, 8).map(([c, s2]) => [-fw + sh + c, fT - sh + s2] as [number, number]), [-fw, fT - sh]];
-  b.add('paint_black', extrudeSection(sect, z(v('cabFrontD')), z(v('barrelRearD'))));
+  b.add('paint_black', extrudeSection(sect, z(v('cabFrontD')), z(v('barrelRearD')), [fireholeOutline()])); // open at the firehole: the firebox inside shows through
   if (DETAIL >= 0.5) {
     const plugs: THREE.Vector3[] = [];
     for (const s of [1, -1]) for (let i = 0; i < 4; i++) plugs.push(new THREE.Vector3(s * (fw + 0.004), fT - 0.42, z(v('barrelRearD') + 0.45 + i * 0.6)));

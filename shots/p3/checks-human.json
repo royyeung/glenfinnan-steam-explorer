@@ -1,0 +1,106 @@
+{
+ "avatar": {
+  "height": 1.7,
+  "eye": 1.6,
+  "radius": 0.24,
+  "stepMax": 0.45,
+  "walk": 1.4,
+  "run": 3.2,
+  "gravity": 9.81
+ },
+ "cabHeadroom_m": 2.05,
+ "headroomOK": true,
+ "cabDoorwayLength_m": 0.64,
+ "doorwayOK": true,
+ "stepRisesFromPlatform_m": [
+  0.235,
+  0.45
+ ],
+ "stepRisesFromRailLevel_m": [
+  0.62,
+  0.53,
+  0.45
+ ],
+ "stepsOK": true,
+ "platformHeight_m": 0.915,
+ "footplate_m": 1.6,
+ "walkPlatformToCab": {
+  "start": {
+   "x": -2.15,
+   "y": 0.9150000214576721,
+   "z": -5.9,
+   "onGround": true
+  },
+  "path": [
+   {
+    "x": -1.8,
+    "y": 0.915,
+    "z": -5.9,
+    "onGround": true
+   },
+   {
+    "x": -1.45,
+    "y": 1.15,
+    "z": -5.9,
+    "onGround": true
+   },
+   {
+    "x": -1.1,
+    "y": 1.612,
+    "z": -5.9,
+    "onGround": true
+   },
+   {
+    "x": -0.75,
+    "y": 1.72,
+    "z": -5.9,
+    "onGround": true
+   },
+   {
+    "x": -0.4,
+    "y": 1.612,
+    "z": -5.9,
+    "onGround": true
+   },
+   {
+    "x": -0.05,
+    "y": 1.612,
+    "z": -5.9,
+    "onGround": true
+   }
+  ],
+  "end": {
+   "x": -0.05,
+   "y": 1.612,
+   "z": -5.9,
+   "onGround": true
+  },
+  "pass": true
+ },
+ "walkFromBallast": {
+  "start": {
+   "x": -2.6,
+   "y": -0.4706633544164915,
+   "z": -6,
+   "onGround": true
+  },
+  "end": {
+   "x": -1.687,
+   "y": -0.359,
+   "z": -6,
+   "onGround": true
+  },
+  "climbed": false
+ },
+ "walkAlongPlatform": {
+  "end": {
+   "x": -2.6,
+   "y": 0.915,
+   "z": -8,
+   "onGround": true
+  },
+  "pass": true
+ },
+ "pass": true,
+ "errors": []
+}

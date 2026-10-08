@@ -16,6 +16,12 @@ const c = (k: keyof typeof CAB) => CAB[k].v;
 type Mats = Record<MatKey, THREE.Material>;
 const V = (x: number, y: number, zz: number) => new THREE.Vector3(x, y, zz);
 
+/** The firehole opening (x, y), slightly larger than the ring; cut through every plate in its path. */
+export function fireholeOutline(): [number, number][] {
+  const fh = CAB.fireholeH.v, fr = CAB.fireholeR.v;
+  return arc(fr * 1.1, Math.PI * 2, 0, 28).map(([x, y]) => [x * 1.12, y + fh] as [number, number]);
+}
+
 /** Firebox outer section at the backhead (x, y), from the floor up to the Belpaire top. */
 function backheadSection(floor: number): [number, number][] {
   const fT = v('fireboxTopH') - 0.04, fw = v('fireboxWidthTop') / 2 - 0.03, sh = 0.26, bw = 0.62;
@@ -117,13 +123,26 @@ export function cabInterior(b: Batch) {
   const z = zEngine, { cw, eave, roofArc } = cabShape(), floor = v('footplateH'), cf = v('cabFrontD'), bh = c('backheadD');
 
   // firebox inside the cab and the backhead plate
-  b.add('backhead', extrudeSection(backheadSection(floor), z(cf), z(bh)));
   const fh = c('fireholeH'), fr = c('fireholeR');
+  // the backhead plate with the firehole cut through it
+  b.add('backhead', extrudeSection(backheadSection(floor), z(cf), z(bh), [fireholeOutline()]));
   // firehole: oval opening ring, dark throat, glowing fire bed (decal_fire) behind
   const ring = new THREE.TorusGeometry(fr + 0.03, 0.035, 8, 28); ring.scale(1.12, 1, 1); ring.translate(0, fh, z(bh) - 0.005);
   b.add('steel', ring);
-  b.add('smokebox', cylZ(fr * 1.1, fr * 1.1, z(bh) + 0.0, z(bh) + 0.35, 0, fh, 24, true));
-  const bed = new THREE.CircleGeometry(fr * 1.12, 28); bed.translate(0, fh, z(bh) + 0.3);
+  { const t = cylZ(fr * 1.1, fr * 1.1, z(bh), z(cf) + 0.02, 0, fh, 24, true); t.scale(1.12, 1, 1); b.add('smokebox', t); }
+  // inside the firebox: walls facing inwards (seen through the firehole) and the burning coal on the
+  // grate, sloping down towards the front, as seen when you look in from the footplate
+  const fbx = new THREE.BoxGeometry(1.1, 0.95, 1.9); fbx.scale(-1, 1, 1); fbx.translate(0, fh + 0.05, z(bh) + 0.95 + 0.02);
+  b.add('smokebox', fbx);
+  // fire bed: level with the bottom of the firehole at the back, sloping down towards the front
+  const bed = new THREE.PlaneGeometry(1.0, 1.8, 6, 10); bed.rotateX(-Math.PI / 2);
+  bed.translate(0, 0, z(bh) + 0.95);
+  const bp = bed.getAttribute('position') as THREE.BufferAttribute;
+  for (let i = 0; i < bp.count; i++) {
+    const fwd = bp.getZ(i) - z(bh); // 0 at the backhead, growing towards the front of the firebox
+    bp.setY(i, fh - fr * 0.95 - fwd * 0.17 + 0.04 * Math.sin(bp.getX(i) * 17 + fwd * 11));
+  }
+  bed.computeVertexNormals();
   b.add('decal_fire', bed);
   // firing tray (shelf) above the firehole and the door guides
   b.add('backhead', boxMinMax(-0.42, fh + 0.27, z(bh) - 0.18, 0.42, fh + 0.3, z(bh)));
@@ -201,7 +220,7 @@ export function cabInterior(b: Batch) {
   }
   const specFront: [number, number][] = [[-cw + 0.03, floor], [cw - 0.03, floor], ...roofArc(-0.06, cw - 0.03).reverse()];
   const sp = (s: number) => roundedRect(s > 0 ? 0.86 : -1.2, 2.72, s > 0 ? 1.2 : -0.86, 3.3, 0.07).reverse();
-  b.add('cab_inside', extrudeSection(specFront, z(cf + 0.026), z(cf + 0.03), [sp(1), sp(-1)]));
+  b.add('cab_inside', extrudeSection(specFront, z(cf + 0.026), z(cf + 0.03), [sp(1), sp(-1), fireholeOutline()]));
 }
 
 /** Static tender-front fittings seen from the footplate. */
