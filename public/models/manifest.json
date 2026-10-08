@@ -1,47 +1,59 @@
 {
- "generated": "2026-10-08T12:59:34.957Z",
+ "generated": "2026-10-08T14:32:43.337Z",
  "files": {
   "engine_lod0.glb": {
    "bytes": 529640,
-   "tris": 53074
+   "tris": 53074,
+   "hash": "6d5e22becd06"
   },
   "engine_lod1.glb": {
    "bytes": 254088,
-   "tris": 21398
+   "tris": 21398,
+   "hash": "065a9901b239"
   },
   "engine_lod2.glb": {
    "bytes": 151120,
-   "tris": 10040
+   "tris": 10040,
+   "hash": "52b2f364b6f6"
   },
   "tender_lod0.glb": {
    "bytes": 131332,
-   "tris": 12186
+   "tris": 12186,
+   "hash": "21f1e605dd21"
   },
   "tender_lod1.glb": {
    "bytes": 72936,
-   "tris": 5943
+   "tris": 5943,
+   "hash": "9b067f3320f2"
   },
   "tender_lod2.glb": {
    "bytes": 43316,
-   "tris": 2903
+   "tris": 2903,
+   "hash": "49b2c7bc884f"
   },
   "../textures/ballast_color.ktx2": {
-   "bytes": 190229
+   "bytes": 190229,
+   "hash": "79a63dca5199"
   },
   "../textures/ballast_normal.ktx2": {
-   "bytes": 1304139
+   "bytes": 1304139,
+   "hash": "330430eef4d8"
   },
   "../textures/ballast_rough.ktx2": {
-   "bytes": 169090
+   "bytes": 169090,
+   "hash": "3fd6d5320176"
   },
   "../textures/ground_color.ktx2": {
-   "bytes": 216042
+   "bytes": 216042,
+   "hash": "384d3174c017"
   },
   "../textures/ground_normal.ktx2": {
-   "bytes": 1194425
+   "bytes": 1194425,
+   "hash": "9e7953d124a0"
   },
   "../textures/ground_rough.ktx2": {
-   "bytes": 163496
+   "bytes": 163496,
+   "hash": "ff2aff529404"
   }
  }
 }

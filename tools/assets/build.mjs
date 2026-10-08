@@ -2,6 +2,7 @@
 // Output: public/models/<vehicle>_lod{0,1,2}.glb (Meshopt-compressed) + manifest.json.
 // Run: tools/node.sh tools/assets/build.mjs   (Node 22 runs the .ts sources via type stripping)
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import * as THREE from 'three';
 import { Document, NodeIO, PropertyType } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
@@ -68,10 +69,11 @@ for (const [name, build] of [['engine', buildEngine], ['tender', buildTender]]) 
     let tris = 0;
     for (const mesh of doc.getRoot().listMeshes()) for (const p of mesh.listPrimitives()) tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION').getCount()) / 3;
     const bytes = fs.statSync(file).size;
-    manifest.files[`${name}_lod${l}.glb`] = { bytes, tris: Math.round(tris) };
+    const hash = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 12);
+    manifest.files[`${name}_lod${l}.glb`] = { bytes, tris: Math.round(tris), hash };
     console.log(`${file}: ${(bytes / 1024).toFixed(1)} kB, ${Math.round(tris)} triangles`);
   }
 }
-for (const f of fs.readdirSync('public/textures')) manifest.files[`../textures/${f}`] = { bytes: fs.statSync(`public/textures/${f}`).size };
+for (const f of fs.readdirSync('public/textures')) { const p = `public/textures/${f}`; manifest.files[`../textures/${f}`] = { bytes: fs.statSync(p).size, hash: crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12) }; }
 fs.writeFileSync(`${OUT}/manifest.json`, JSON.stringify(manifest, null, 1));
 void THREE;

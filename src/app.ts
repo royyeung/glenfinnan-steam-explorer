@@ -103,14 +103,17 @@ export class App {
     this.resize();
 
     // asset sizes for an honest byte-based progress bar
-    const manifest = await (await fetch(`${BASE}models/manifest.json`)).json() as { files: Record<string, { bytes: number }> };
+    // the manifest is always re-checked; model and texture URLs carry a content hash, so a browser
+    // can never pair new code with an old cached model
+    const manifest = await (await fetch(`${BASE}models/manifest.json`, { cache: 'no-cache' })).json() as { files: Record<string, { bytes: number; hash?: string }> };
+    const ver = (key: string) => (manifest.files[key]?.hash ? `?v=${manifest.files[key].hash}` : '');
     const total = Object.values(manifest.files).reduce((s, f) => s + f.bytes, 0);
     const loaded = new Map<string, number>();
     const tick = (name: string, bytes: number) => { loaded.set(name, bytes); const sum = [...loaded.values()].reduce((a, b) => a + b, 0); progress(Math.min(1, sum / total), `Loading ${name} (${(sum / 1048576).toFixed(1)} of ${(total / 1048576).toFixed(1)} MB)`); };
 
     const ktx2 = new KTX2Loader().setTranscoderPath(`${BASE}basis/`).detectSupport(r);
     const tex = async (name: string) => {
-      const t = await ktx2.loadAsync(`${BASE}textures/${name}.ktx2`, (e) => tick(`${name}.ktx2`, e.loaded));
+      const t = await ktx2.loadAsync(`${BASE}textures/${name}.ktx2${ver(`../textures/${name}.ktx2`)}`, (e) => tick(`${name}.ktx2`, e.loaded));
       t.anisotropy = Math.min(this.tier.anisotropy, r.capabilities.getMaxAnisotropy());
       tick(`${name}.ktx2`, manifest.files[`../textures/${name}.ktx2`]?.bytes ?? 0);
       return t;
@@ -128,7 +131,7 @@ export class App {
         if (params.live) { root = build(blockoutMaterials()); if (l > 0) continue; }
         else {
           const file = `${name}_lod${l}.glb`;
-          const g = await gltf.loadAsync(`${BASE}models/${file}`, (e) => tick(file, e.loaded));
+          const g = await gltf.loadAsync(`${BASE}models/${file}${ver(file)}`, (e) => tick(file, e.loaded));
           tick(file, manifest.files[file].bytes);
           root = g.scene.children[0] ?? g.scene;
         }
