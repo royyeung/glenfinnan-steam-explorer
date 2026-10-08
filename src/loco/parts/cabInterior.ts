@@ -209,9 +209,9 @@ export function tenderFront(b: Batch) {
   if (DETAIL < 1) return;
   const z = zTender, front = c('tenderFrontD'), top = v('tenderTankTopH');
   // shovelling plate tray under the coal doors, with coal on it
-  b.add('steel', boxMinMax(-0.45, 1.6, z(front) + 0.42, 0.45, 1.65, z(front)));
-  for (const s of [1, -1]) b.add('steel', boxMinMax(s * 0.45 - 0.01, 1.6, z(front) + 0.42, s * 0.45 + 0.01, 1.78, z(front)));
-  const heap = new THREE.SphereGeometry(0.32, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2); heap.scale(1.25, 0.35, 0.9); heap.translate(0, 1.64, z(front) + 0.18);
+  b.add('steel', boxMinMax(-0.45, 1.6, z(front) + 0.2, 0.45, 1.65, z(front)));
+  for (const s of [1, -1]) b.add('steel', boxMinMax(s * 0.45 - 0.01, 1.6, z(front) + 0.2, s * 0.45 + 0.01, 1.78, z(front)));
+  const heap = new THREE.SphereGeometry(0.3, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2); heap.scale(1.2, 0.35, 0.55); heap.translate(0, 1.64, z(front) + 0.08);
   b.add('coal', heap);
   // coal-door frame above the tray
   b.add('smokebox', boxMinMax(-0.4, 1.82, z(front) - 0.005, 0.4, 1.86, z(front) + 0.03));

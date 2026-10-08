@@ -4,6 +4,16 @@ import * as THREE from 'three';
 import { B5 } from '../specs/black5.ts';
 import { spec } from '../specs/spec.ts';
 import { antiTile } from '../render/antiTile.ts';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+/** Long track parts are built from short sections: one 360 m triangle reaching behind the camera
+ *  loses depth precision when clipped (seen as rails showing through the cab). */
+const SEG = 12;
+function sections(make: (z0: number, len: number) => THREE.BufferGeometry, z0: number, len: number) {
+  const parts: THREE.BufferGeometry[] = [];
+  for (let a = 0; a < len - 1e-6; a += SEG) { const g = make(z0 + a, Math.min(SEG, len - a)); parts.push(g.index ? g.toNonIndexed() : g); }
+  return mergeGeometries(parts, false)!;
+}
 
 export const SITE = {
   railHeight: spec(0.159, 'standard-practice', 'medium', 'BS113A flat-bottom rail, 158.75 mm'),
@@ -38,11 +48,10 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
   // ballast bed (trapezoid section along Z), UVs in metres / 1.2
   const top = -rh - 0.2, sTop = 1.9, sBot = 3.1;
   const sect = new THREE.Shape([new THREE.Vector2(-sBot, gy), new THREE.Vector2(sBot, gy), new THREE.Vector2(sTop, top), new THREE.Vector2(-sTop, top)]);
-  const bed = new THREE.ExtrudeGeometry(sect, { depth: len, bevelEnabled: false, UVGenerator: {
+  const bed = sections((za, l) => new THREE.ExtrudeGeometry(sect, { depth: l, bevelEnabled: false, UVGenerator: {
     generateTopUV: (_g, v, a, b, c) => [a, b, c].map((i) => new THREE.Vector2(v[i * 3] / 1.2, v[i * 3 + 1] / 1.2)),
-    generateSideWallUV: (_g, v, a, b, c, d) => [a, b, c, d].map((i) => new THREE.Vector2((v[i * 3] + v[i * 3 + 1]) / 1.2, v[i * 3 + 2] / 1.2)),
-  } });
-  bed.translate(0, 0, z0);
+    generateSideWallUV: (_g, v, a, b, c, d) => [a, b, c, d].map((i) => new THREE.Vector2((v[i * 3] + v[i * 3 + 1]) / 1.2, (v[i * 3 + 2] + za) / 1.2)),
+  } }).translate(0, 0, za), z0, len);
   const ballast = new THREE.Mesh(bed, pbr('ballast', tex.ballast, 1, 0xb5aea4, 0.12));
   ballast.name = 'ballast'; ballast.receiveShadow = true; g.add(ballast); colliders.push(ballast);
 
@@ -56,11 +65,11 @@ export function buildSite(tex: { ballast: PbrSet; ground: PbrSet }) {
   // rails: simplified flat-bottom profile extruded along Z, rail top at y = 0
   const p = (x: number, y: number) => new THREE.Vector2(x, y);
   const prof = new THREE.Shape([p(-0.07, -rh), p(0.07, -rh), p(0.07, -rh + 0.012), p(0.009, -rh + 0.03), p(0.009, -0.045), p(0.035, -0.035), p(0.035, -0.004), p(0.03, 0), p(-0.03, 0), p(-0.035, -0.004), p(-0.035, -0.035), p(-0.009, -0.045), p(-0.009, -rh + 0.03), p(-0.07, -rh + 0.012)]);
-  const railGeo = new THREE.ExtrudeGeometry(prof, { depth: len, bevelEnabled: false }).translate(0, 0, z0);
+  const railGeo = sections((za, l) => new THREE.ExtrudeGeometry(prof, { depth: l, bevelEnabled: false }).translate(0, 0, za), z0, len);
   const railMat = new THREE.MeshStandardMaterial({ name: 'rail', color: 0x6f5a4c, roughness: 0.55, metalness: 0.6 });
   for (const s of [1, -1]) { const r = new THREE.Mesh(railGeo, railMat); r.position.x = s * (half + 0.035); r.castShadow = r.receiveShadow = true; r.name = 'rail'; g.add(r); }
   // polished running band on the rail head
-  const bandGeo = new THREE.PlaneGeometry(0.045, len).rotateX(-Math.PI / 2).translate(0, 0.0015, z0 + len / 2);
+  const bandGeo = sections((za, l) => new THREE.PlaneGeometry(0.045, l).rotateX(-Math.PI / 2).translate(0, 0.0015, za + l / 2), z0, len);
   const bandMat = new THREE.MeshStandardMaterial({ name: 'rail_band', color: 0xc9c7c2, roughness: 0.22, metalness: 1 });
   for (const s of [1, -1]) { const b = new THREE.Mesh(bandGeo, bandMat); b.position.x = s * (half + 0.035); g.add(b); }
 

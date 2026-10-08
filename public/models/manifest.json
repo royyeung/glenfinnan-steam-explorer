@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-08T11:29:08.851Z",
+ "generated": "2026-10-08T12:06:10.058Z",
  "files": {
   "engine_lod0.glb": {
-   "bytes": 513912,
+   "bytes": 524408,
    "tris": 52506
   },
   "engine_lod1.glb": {
@@ -14,15 +14,15 @@
    "tris": 9976
   },
   "tender_lod0.glb": {
-   "bytes": 128148,
+   "bytes": 131332,
    "tris": 12186
   },
   "tender_lod1.glb": {
-   "bytes": 72824,
+   "bytes": 72936,
    "tris": 5943
   },
   "tender_lod2.glb": {
-   "bytes": 43204,
+   "bytes": 43316,
    "tris": 2903
   },
   "../textures/ballast_color.ktx2": {

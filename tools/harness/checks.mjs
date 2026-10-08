@@ -25,7 +25,7 @@ if (which === 'human' || which === 'all') {
   const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=low`, { w: 1280, h: 720 });
   const h = await page.evaluate(() => GX.humanScale());
   // walkthrough 1: platform -> cab steps -> footplate (right side, walking towards +X)
-  const start = await page.evaluate(() => GX.teleport(-2.15, 0.915, -6.0, -Math.PI / 2));
+  const start = await page.evaluate(() => GX.teleport(-2.15, 0.915, -5.9, -Math.PI / 2)); // middle of the entrance (d 12.1)
   const path1 = [];
   for (let i = 0; i < 6; i++) path1.push(await page.evaluate(() => GX.walk(1, 0, 0.25)));
   await page.screenshot({ path: path.join(OUT, 'walk_on_footplate.png'), timeout: 240000 });
@@ -74,7 +74,7 @@ if (which === 'perf' || which === 'all') {
   for (const [w, h, mobile] of [[1280, 720, false], [844, 390, true]]) {
     for (const q of ['low', 'medium', 'high']) {
       const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=${q}`, { w, h, mobile });
-      for (const view of ['front-34-l', 'site-wide']) {
+      for (const view of ['front-34-l', 'site-wide', 'backhead']) {
         const r = await page.evaluate((v) => {
           GX.view(v); GX.render(); GX.render();
           const gl = GX.app.renderer.getContext(), px = new Uint8Array(4);

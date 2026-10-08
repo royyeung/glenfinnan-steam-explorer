@@ -54,6 +54,7 @@ export class App {
   hotspots!: HotspotLayer;
   cutoff = 0.65;
   footplate = new Footplate();
+  private cabGroups: THREE.Object3D[] = [];
   cabRig!: CabRig;
   cabUI!: CabUI;
   private soundPointsCache: LocoSoundPoints | null = null;
@@ -150,6 +151,10 @@ export class App {
     this.hotspots = new HotspotLayer(this.engine, this.tender);
     // cab: simulation-driven controls, gauges, fire glow and lamps
     this.cabRig = new CabRig(this.engine.levels[0].object, this.tender.levels[0].object);
+    for (const root of [this.engine.levels[0].object, this.tender.levels[0].object]) {
+      const g = root.getObjectByName('cab_interior');
+      if (g) { this.cabGroups.push(g); g.traverse((o) => { o.castShadow = false; }); }
+    }
     for (const l of [this.cabRig.fireLight, this.cabRig.cabLamp]) { l.position.z = zEngine(l.userData.d); this.engine.add(l); }
     this.cabUI = new CabUI(this.canvas, [this.engine.levels[0].object, this.tender.levels[0].object], this.footplate);
     this.cabUI.onChange = (id, val) => {
@@ -316,6 +321,11 @@ export class App {
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) this.orbit.update();
     this.updateGates(params.fixed ? 1 : dt);
+    // the cab interior is only drawn when the camera is within 9 m of the cab
+    if (this.cabGroups.length) {
+      const near = this.camera.getWorldPosition(new THREE.Vector3()).distanceTo(this.engine.localToWorld(new THREE.Vector3(0, 2.6, zEngine(11.3)))) < 9;
+      for (const g of this.cabGroups) g.visible = near;
+    }
     this.cabRig?.apply(this.footplate, this.simTime);
     // aim with the crosshair when the mouse is captured; otherwise point with the cursor or finger
     if (this.cabUI) this.cabUI.update(this.camera, this.mode === 'walk' && document.pointerLockElement === this.canvas);

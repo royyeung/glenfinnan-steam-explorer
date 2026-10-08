@@ -25,7 +25,7 @@ function group(name: string, b: Batch, mats: Mats) {
 export function buildEngine(mats: Mats): THREE.Group {
   const E = new THREE.Group(); E.name = 'engine';
   const b = new Batch();
-  running(b); boiler(b); cab(b); cabInterior(b); motionStatic(b); engineLivery(b);
+  running(b); boiler(b); cab(b); motionStatic(b); engineLivery(b);
   for (const m of b.build('engine_static', mats)) E.add(m);
 
   const lay = engineLayout(), geo = motionGeometry(), vg = valveGearGeometry();
@@ -41,17 +41,30 @@ export function buildEngine(mats: Mats): THREE.Group {
   for (const [name, a, wb] of sets) { const g = group(name, wb, mats); g.position.set(0, a.y, a.z); E.add(g); }
   for (const g of buildMotionParts(mats)) E.add(g);
   for (const g of cabGates(mats)) E.add(g);
-  if (DETAIL >= 1) for (const g of [...controlNodes(mats, 'engine'), ...instrumentNodes(mats)]) E.add(g);
+  // cab interior in its own group: drawn only when the camera is near the cab (see App)
+  if (DETAIL >= 1) {
+    const ci = new THREE.Group(); ci.name = 'cab_interior';
+    const cb = new Batch(); cabInterior(cb);
+    for (const m of cb.build('cab_static', mats)) ci.add(m);
+    for (const g of [...controlNodes(mats, 'engine'), ...instrumentNodes(mats)]) ci.add(g);
+    E.add(ci);
+  }
   return E;
 }
 
 export function buildTender(mats: Mats): THREE.Group {
   const T = new THREE.Group(); T.name = 'tender';
   const b = new Batch();
-  tenderBody(b); tenderLivery(b); tenderFront(b);
+  tenderBody(b); tenderLivery(b);
   for (const m of b.build('tender_static', mats)) T.add(m);
   tenderWheelsets(T, mats);
-  if (DETAIL >= 1) for (const g of controlNodes(mats, 'tender')) T.add(g);
+  if (DETAIL >= 1) {
+    const ci = new THREE.Group(); ci.name = 'cab_interior';
+    const cb = new Batch(); tenderFront(cb);
+    for (const m of cb.build('tender_cab_static', mats)) ci.add(m);
+    for (const g of controlNodes(mats, 'tender')) ci.add(g);
+    T.add(ci);
+  }
   void zTender;
   return T;
 }

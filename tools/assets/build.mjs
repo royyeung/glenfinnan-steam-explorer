@@ -3,7 +3,7 @@
 // Run: tools/node.sh tools/assets/build.mjs   (Node 22 runs the .ts sources via type stripping)
 import fs from 'node:fs';
 import * as THREE from 'three';
-import { Document, NodeIO } from '@gltf-transform/core';
+import { Document, NodeIO, PropertyType } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { dedup, weld, simplify, meshopt, prune } from '@gltf-transform/functions';
 import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
@@ -57,7 +57,8 @@ for (const [name, build] of [['engine', buildEngine], ['tender', buildTender]]) 
     setDetail(LODS[l].detail);
     const root = build(blockoutMaterials());
     const doc = toDocument(root);
-    const steps = [dedup(), weld()];
+    // keep every material distinct: decals with identical factors get different textures at runtime
+    const steps = [dedup({ propertyTypes: [PropertyType.ACCESSOR, PropertyType.MESH, PropertyType.TEXTURE] }), weld()];
     if (LODS[l].ratio < 1) steps.push(simplify({ simplifier: MeshoptSimplifier, ratio: LODS[l].ratio, error: LODS[l].error, lockBorder: false }));
     // keepAttributes: decal panels get their textures at runtime, so their UVs must survive pruning
     steps.push(prune({ keepLeaves: true, keepAttributes: true }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));

@@ -94,6 +94,8 @@ export class HotspotLayer {
     if (!this.visible) return;
     const p = new THREE.Vector3(), camPos = camera.getWorldPosition(new THREE.Vector3());
     const placed: [number, number][] = [];
+    const camEng = this.engine.worldToLocal(camPos.clone());
+    const inCab = Math.abs(camEng.x) < 1.35 && camEng.y > 1.5 && camEng.y < 3.8 && camEng.z < zEngine(10.0) && camEng.z > zEngine(12.9);
     for (const m of this.marks) {
       const root = m.h.on === 'engine' ? this.engine : this.tender;
       p.copy(m.local); root.localToWorld(p);
@@ -103,7 +105,7 @@ export class HotspotLayer {
       const dist = p.distanceTo(camPos);
       p.project(camera);
       const sx = ((p.x + 1) / 2) * w, sy = ((1 - p.y) / 2) * h;
-      let show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && (m.h.near ? dist < 3.2 : dist < 45 && dist > 2.5 && (dist < 14 || MAIN.has(m.h.id)));
+      let show = !farSide && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && (m.h.near ? inCab && dist < 3.2 : !inCab && dist < 45 && (dist < 14 || MAIN.has(m.h.id)));
       if (show && placed.some(([x, y]) => Math.hypot(x - sx, y - sy) < 28)) show = false; // no overlapping markers
       m.el.hidden = !show;
       if (show) { placed.push([sx, sy]); m.el.style.transform = `translate(${sx - 13}px, ${sy - 13}px)`; }
