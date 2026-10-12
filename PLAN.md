@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 4 (carriages) complete on 2026-10-08, with first class and the buffet/shop added on 2026-10-12, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 5".**
+**Status:** Phase 5 (environment) built on 2026-10-12, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 6".**
 
 ---
 
@@ -63,7 +63,7 @@ The server's Caddy (v2.11.4) already maps `.glb`, `.ktx2`, `.wasm` and `.webmani
 | Tuning panel | `lil-gui` | 0.21.0 |
 | Unit tests | `vitest` (kinematics, specs, solar position) | 5.0.3 |
 | Asset processing | `@gltf-transform/cli` + `meshoptimizer`; KTX-Software `toktx` in a pinned Docker image | 4.5.1 / 1.3.0 |
-| Terrain processing | GDAL in a pinned `ghcr.io/osgeo/gdal` image | pin at Phase 5 |
+| Terrain processing | Python 3.12 slim with numpy, pyshp and Pillow (`tools/terrain/`). *Changed in Phase 5:* GDAL was not needed for ASCII grids and shapefiles | 2.2.6 / 2.3.1 / 11.2.1 |
 | Screenshots | Playwright in the official `mcr.microsoft.com/playwright` image (reusing the server's existing v1.49.1 image, Chromium 131) | 1.49.1 |
 | Images | Python 3.12 slim + Pillow/numpy (contact sheets, overlays, diffs) | |
 
@@ -392,6 +392,18 @@ Every phase ends the same way:
 - the attribution is in the app;
 - budgets are met.
 
+**Result (2026-10-12).** Details, checks and comparisons are in `shots/p5/NOTES.md`.
+
+- [x] **Terrain from OS Terrain 50**: two adaptive grids (25 m over 12.8 km, 5 m over the central 2.56 km), shaped along the line, river, roads and loch shore. Still no LiDAR for Glenfinnan.
+- [x] **Viaduct**: 21 arches of 15.24 m along the OS centreline (376 m, R 236 m), with piers, rings, imposts, pilasters, parapets and weathering. The thicker piers are not modelled, because the photos do not show them.
+- [x] **Landscape**: Loch Shiel, the River Finnan, about 119,000 trees from OS woodland, buildings, roads, the monument and the station platform.
+- [x] **Lighting**: weather presets (sunny, fair, overcast, mist) and time of day.
+- [x] **Train placement**: every vehicle on its own supports on the curve and grade (within 5 mm), at the viaduct or the station. Walking on the deck, under the arches, and from the platform into the train.
+- [x] **Attribution in the app**: OS notice and the no-LiDAR note.
+- [x] **Budgets met** on every tier at both sizes. Low first measured 0.75 M triangles; rails and sleepers in culled LOD pieces and lighter far trees brought it to 0.39 M.
+- [x] **Sound**: wind by exposure, river, loch waves, birds by day, owls at night, echo near the viaduct; every earlier check still passes.
+- [ ] **V01 matches**: only partly. From the photographers' GPS positions the hills match roughly, but the viaduct looks smaller and further away, probably because of a knoll missing from the 50 m data and GPS error. V07: no usable panorama with a known position.
+
 ### Phase 6: Motion and effects
 
 - **Movement:** the train runs along the track at realistic speed with correct acceleration. Wheel rotation is tied to distance.
@@ -425,6 +437,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 
 ## 12. Change log
 
+- 2026-10-12: Phase 5 built and verified (Glenfinnan from OS Terrain 50 and OpenMap Local: terrain, loch, river, trees, line, viaduct, village, station; weather presets; landscape sounds). The V01 match is only partial. Terrain tooling: numpy and pyshp instead of GDAL.
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
 - 2026-10-12: Phase 4 addendum: first class (5229, 5239), Mk1 buffet/shop (99318) and Mk2B coaches (5487, 5453), following the 2026 stock list found on railforums (S42).
 - 2026-10-08: Phase 4 built and verified (Mk2 TSO coaches, six-coach rake, boarding and walking through the train, door and footstep sounds). Model and texture URLs content-hashed; touch fix for the cab controls.

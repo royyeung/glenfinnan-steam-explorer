@@ -75,6 +75,14 @@ Research snapshot **2026-10-04**, updated **2026-10-05** with your decisions (§
 | S52 | Photo: WCR "First Class Open Carriage", EXIF 31 Mar 2018, on WCR's Classes & Carriages page (https://westcoastrailways.co.uk/img/jacobite/firstclasscarriage.jpg). A **Mk1** FO (curved ceiling, brass racks, wood panelling): 2+1 damask wingback armchairs, "FIRST CLASS" headrest covers, black/white tartan tie-back curtains, tartan lamps on brass bases, navy carpet. Page text: lamps "in the Mk1 carriages" |
 | S53 | Photo U04 (user, 2026-10-12; source and date unknown): first-class open saloon with **Mk2** features (flat ceiling with duct, rack light units, glazed end partition, black tables on yellow pedestal legs, no cloths), the same damask armchairs, headrest covers and tartan curtains and lamp as S52; "F"/"B" labels on the pillars (also on WCR standard-class photos: seat direction, not coach letters). Best available match for 5229/5239 |
 | S54 | Photo: Jacobite over Glenfinnan Viaduct, 24 Jul 2012, 96tommy, CC BY 2.0, 5184×3456, https://commons.wikimedia.org/wiki/File:A_Scottish_Adventure-_The_Jacobite_over_Glenfinnan_Viaduct.jpg (K1 62005, Mk1 coaches). Phase 5 viaduct reference; says nothing about the 2026 set |
+| S55 | **OS Terrain 50** (ASCII grid, tiles NM77-NM99, release 2026-05-29), OS Data Hub download, Open Government Licence v3.0. "Contains OS data © Crown copyright and database right 2026" |
+| S56 | **OS OpenMap - Local** (shapefile, square NM, 2026-04): railway track centreline, surface water (Loch Shiel, River Finnan), woodland, roads, buildings, named places, OGL v3.0 |
+| S57 | Photo: "Train on Glenfinnan viaduct", 30 Jun 2019, Commons, CC BY-SA 4.0, camera tag 56.875283 N 5.436089 W (low precision): the classic hillside view, train westbound chimney first, mist |
+| S58 | Photo: "Glenfinnan Viaduct - Jacobite Express", 22 Oct 2025, Commons, CC BY-SA 4.0: 45407 on the viaduct; concrete with lift lines, white lime streaks, moss on the parapet; **a diesel at the rear of the train** |
+| S59 | Photo: Geograph 8317847 "Glenfinnan Viaduct", 19 Apr 2026, CC BY-SA 2.0: piers and arches from the River Finnan: impost bands, projecting arch rings, pilaster blocks at the parapet, rocky river bed |
+| S60 | Photo: "Glenfinnan Viaduct Scotland 2018-08-25 by Marcok f01", Commons, CC BY-SA 4.0: the whole length; 21 equal arches, uniform piers |
+| S61 | Photo: "Glenfinnan Viaduct at Loch Shiel", 24 Aug 2017, Commons, CC BY-SA 4.0: the glen from the south, conifer plantation on the east slope |
+| S62 | Photo: Flickr (awsnews) "West Coast Railways Mk1 Buffet 1860", 13 Apr 2024, all rights reserved (comparison only): gold "BUFFET" lettering on a WCR Mk1 buffet in the replacement Jacobite set |
 
 The 35 reference images downloaded so far are listed with author and licence in `docs/reference-sources.md`. The image files themselves are in the git-ignored `reference/web/`.
 
@@ -336,6 +344,20 @@ The cutaway's info panel will say which dimensions are estimated.
 | Setting | Head of Loch Shiel; River Finnan; Glenfinnan station to the west; Glenfinnan Monument (1815) by the loch | S16, S18 | High |
 | | Exact loch level, river channel and vegetation | **UNVERIFIED** | From terrain data and photos |
 
+
+**Phase 5 measurements (2026-10-12):**
+
+| Item | Value | Source | Confidence |
+|---|---|---|---|
+| Plan curve from the OS centreline | Arc between the abutment vertices **376 m** (published 380.4 m); a circle fitted to it has **R = 236 m** (published 241.4 m), worst deviation 1.8 m; it turns **91°** | S56, derived | Medium–High |
+| Pier width | (376 − 21 × 15.24) / 20 = **2.8 m** at the springing | derived | Medium |
+| Rail level | Fitted to the 50 m ground along the line (median ±60 m, 100 m smoothing, bridged straight over the gorge, held to 1 in 40): **49.3 m** at the west end, **43.4 m** at the east end (rising west at 1 in 64, as "on the rise to a summit to the west"); 73.6 m at the station | S55, derived | Low (no survey) |
+| Height | Rail up to **32.4 m** above the 50 m ground under the deck (published 100 ft = 30.5 m) | derived | Low |
+| Details | Semicircular arch rings projecting slightly; impost band at the springing; a pilaster block above every pier at the parapet; horizontal lift (pour) lines; white lime streaks; moss on the parapet top | S58, S59, S60 | Medium (qualitative) |
+| Thicker piers ("pylons", S17) | **Not visible** in S58-S61: all piers look alike. Not modelled | S58-S61 | Open |
+| Parapet height above rail, overall width, arch ring and fill depth, pier batter | 1.05 m; 6.5 m; 1.75 m crown to rail; 22 mm per metre | estimates | Low |
+| Train on the viaduct in Oct 2025 | A diesel at the rear (S58). Not modelled | S58 | Medium |
+
 ## 8. Terrain and setting data
 
 ### 8.1 LiDAR coverage: important finding
@@ -355,6 +377,24 @@ On **2026-10-04** the Scottish Remote Sensing Portal's public WMS (S19) shows **
 - **OS Terrain 50:** 50 m post spacing, 10 m contours, OGL, updated annually (S23). Attribution: "Contains OS data © Crown copyright and database right <year>" (wording to re-check at download).
 - **Copernicus GLO-30:** 30 m, under its own licence. Not OGL, so it needs your approval.
 - **Hand-shaped near-field terrain:** the viaduct gorge, embankments and river, shaped from OS contours and your photos, and flagged as such.
+
+### 8.1a What the Phase 5 landscape is built from (2026-10-12)
+
+- **Heights:** OS Terrain 50 (S55). Bicubic-sampled to a 25 m grid over 12.8 km × 12.8 km, and a 5 m grid over a 2.56 km core: station, viaduct, loch head, monument.
+- **Map:** OS OpenMap - Local (S56):
+  - the railway centreline, chained and smoothed to a 2 m path;
+  - Loch Shiel and the River Finnan;
+  - woodland (tree positions);
+  - roads, with their widths estimated by class;
+  - buildings (footprints only; heights estimated).
+- **Hand-shaped in the core and flagged in the app:**
+  - railway formation: cut and fill at 1:1.5;
+  - river channel: 0.8 m below a smoothed water level;
+  - loch bed: shelving from the OS water level of 2.5 m;
+  - road benches;
+  - levelled building plots.
+- **Missing from the 50 m data:** the knoll of the classic viewpoint west of the viaduct. The classic view's camera is held at its estimated height (66 m) instead.
+- **Trees:** woodland polygons filled about every 6.5 m, plus scattered trees in the glen bottom. Species mix (about 80 % broadleaf) and sizes are estimates. The viewpoint is kept clear, as it is in reality.
 
 ### 8.2 Sun and sky (computed, not looked up)
 

@@ -8,6 +8,12 @@ Every external source, dataset, asset and library is listed here with its licenc
 |---|---|---|
 | `public/textures/ballast_*.ktx2` | Poly Haven, "Gravel Stones" (`gravel_stones`, 1k: diffuse, normal (GL), roughness), https://polyhaven.com/a/gravel_stones | CC0 |
 | `public/textures/ground_*.ktx2` | Poly Haven, "Aerial Grass Rock" (`aerial_grass_rock`, 1k: diffuse, normal (GL), roughness), https://polyhaven.com/a/aerial_grass_rock | CC0 |
+| `public/textures/rock_*.ktx2` | Poly Haven, "Aerial Rocks 02" (`aerial_rocks_02`, 1k), https://polyhaven.com/a/aerial_rocks_02 | CC0 |
+| `public/textures/forest_*.ktx2` | Poly Haven, "Forest Floor" (`forest_floor`, 1k), https://polyhaven.com/a/forest_floor | CC0 |
+| `public/textures/concrete_*.ktx2` | Poly Haven, "Concrete Wall 008" (`concrete_wall_008`, 1k), https://polyhaven.com/a/concrete_wall_008 | CC0 |
+| `public/textures/asphalt_*.ktx2` | Poly Haven, "Aerial Asphalt 01" (`aerial_asphalt_01`, 1k), https://polyhaven.com/a/aerial_asphalt_01 | CC0 |
+
+Also drawn at runtime by this project's code: the first-class damask and tartan, the water ripple normal map and the tree colours.
 
 Encoded to KTX2 with KTX-Software 4.4.2 (`tools/textures/build.sh`): ETC1S for colour and roughness, UASTC + Zstandard for normals.
 
@@ -19,7 +25,7 @@ Encoded to KTX2 with KTX-Software 4.4.2 (`tools/textures/build.sh`): ETC1S for c
 
 ## Sound
 
-All sound is procedural Web Audio synthesis (`src/audio/`): Phase 1 ambience and the engine at rest; Phase 2 rod clank, cylinder drain cocks, steam leaks and the injector; Phase 3 whistle, blower, safety valves, ejector, injectors, exhaust beats and clanks; Phase 4 footsteps by surface and coach doors (CDL beeps, slam). No recordings are used yet; any CC0 recording added later will be listed here.
+All sound is procedural Web Audio synthesis (`src/audio/`): Phase 1 ambience and the engine at rest; Phase 2 rod clank, cylinder drain cocks, steam leaks and the injector; Phase 3 whistle, blower, safety valves, ejector, injectors, exhaust beats and clanks; Phase 4 footsteps by surface and coach doors (CDL beeps, slam); Phase 5 the glen: wind that strengthens on the viaduct, the River Finnan, waves on Loch Shiel, birds and a curlew by day, owls at night, and an echo under the arches. No recordings are used yet; any CC0 recording added later will be listed here.
 
 ## Libraries (runtime)
 
@@ -35,11 +41,12 @@ All sound is procedural Web Audio synthesis (`src/audio/`): Phase 1 ambience and
 
 Vite 8.3.2 (MIT), TypeScript 7.0.2 (Apache-2.0), Vitest 5.0.3 (MIT), glTF-Transform 4.5.1 (MIT), meshoptimizer 1.3.0 (MIT), KTX-Software 4.4.2 (Apache-2.0), Playwright 1.49.1 (Apache-2.0), Pillow (MIT-CMU), OpenCV-Python headless (Apache-2.0, measurement scripts only).
 
-## Data (planned; to be confirmed when downloaded)
+## Data
 
 | Data | Source | Licence | Required attribution |
 |---|---|---|---|
-| Terrain, far field | OS Terrain 50, Ordnance Survey | Open Government Licence v3.0 | "Contains OS data © Crown copyright and database right <year>" (re-check wording at download) |
+| Terrain (`public/terrain/*.bin`) | OS Terrain 50, Ordnance Survey (ASCII grid, release 2026-05-29), downloaded 2026-10-12 from the OS Data Hub | Open Government Licence v3.0 | "Contains OS data © Crown copyright and database right 2026" (shown in the app and in About) |
+| Map layers (`public/terrain/world.json`, `cover_*.png`, `trees.bin`) | OS OpenMap - Local, Ordnance Survey (square NM, 2026-04): railway, water, woodland, roads, buildings | Open Government Licence v3.0 | as above |
 | Terrain, near field (when published for Glenfinnan) | Scottish Remote Sensing Portal, Scottish Land LiDAR Programme | Open Government Licence v3.0 | "Crown copyright Scottish Government © Crown copyright and database right (<year>)" (per the dataset record; re-check at download) |
 | (only if a Phase 5 tile is used) | LiDAR for Scotland Phase 5 | Open Government Licence v3.0 | "Crown copyright Scottish Government and Fugro (2021)" |
 
@@ -50,4 +57,4 @@ Vite 8.3.2 (MIT), TypeScript 7.0.2 (Apache-2.0), Vitest 5.0.3 (MIT), glTF-Transf
 
 ## Written sources
 
-All specification sources are cited inline in `REFERENCE.md` (S1–S41).
+All specification sources are cited inline in `REFERENCE.md` (S1–S62).
