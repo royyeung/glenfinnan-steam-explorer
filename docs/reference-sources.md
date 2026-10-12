@@ -322,3 +322,97 @@ A copy of `reference/captions.md` for the openly licensed web images in `referen
 - Source: https://commons.wikimedia.org/wiki/File:One_lump_or_two%3F_-_geograph.org.uk_-_3583972.jpg
 - Size: 480x640
 - Description: One lump or two? 
+
+## Coaches, Phase 4 addendum (2026-10-12)
+
+Saved in `reference/coach-p4b/` (git-ignored) by `meta.json` from the Commons API.
+
+### coach-p4b/BR_Mk1_TSO_No._M4910.jpg
+- Reference ID: S48
+- Date taken: 2019-03-24 12:51:11
+- Author: Bradley Wurth
+- Licence: CC BY-SA 4.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk1_TSO_No._M4910.jpg
+- Size: 3872x2592
+- Description: A preserved BR Mk1 TSO at Alresford railway station in Hampshire.
+
+### coach-p4b/BR_Mk1_TSO_4754.jpg
+- Reference ID: (general)
+- Date taken: 2019-03-11 15:30:24
+- Author: Bradley Wurth
+- Licence: CC BY-SA 4.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk1_TSO_4754.jpg
+- Size: 3872x2592
+- Description: This coach, formerly in use on the Bicester Military Railway, is now preserved on the Bluebell Railway and is under restoration.
+
+### coach-p4b/BR_Mk.I_TSO_No.S3769_Interior.jpg
+- Reference ID: (general)
+- Date taken: 2021-04-30 10:27:52
+- Author: hugh llewelyn
+- Licence: CC BY-SA 2.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk.I_TSO_No.S3769_Interior.jpg
+- Size: 6000x4000
+- Description: BR Mk.I TSO No.S3769 built as Diagram 93, Lot 30079, at BR (York), 1953; at Medstead &amp; Four Marks, Mid Hants Railway ('the Watercress Line'), 30 April 2021.
+
+### coach-p4b/5455_BR_Mk2B_TSO_Tourist_Second_Open.jpg
+- Reference ID: S46
+- Date taken: 2024-04-04
+- Author: kitmasterbloke
+- Licence: CC BY 2.0
+- Source: https://commons.wikimedia.org/wiki/File:5455_BR_Mk2B_TSO_Tourist_Second_Open.jpg
+- Size: 5337x4000
+- Description: Easter Days Out with Thomas at East Anglian Railway Museum 2024
+
+### coach-p4b/5455_BR_Mk2B_TSO_Tourist_Second_Open_-_53631312691.jpg
+- Reference ID: S46
+- Date taken: 2024-04-04
+- Author: kitmasterbloke
+- Licence: CC BY 2.0
+- Source: https://commons.wikimedia.org/wiki/File:5455_BR_Mk2B_TSO_Tourist_Second_Open_-_53631312691.jpg
+- Size: 5111x3018
+- Description: Easter Days Out with Thomas at East Anglian Railway Museum 2024
+
+### coach-p4b/Mk2_5482.jpg
+- Reference ID: S47
+- Date taken: 2020-05-21 11:11:19
+- Author: Neith-Nabu
+- Licence: CC BY-SA 4.0
+- Source: https://commons.wikimedia.org/wiki/File:Mk2_5482.jpg
+- Size: 4142x2775
+- Description: Mk2 railway carriage based on the Mid-Norfolk Railway in 2020.
+
+### coach-p4b/BR_Mk.I_RMB_No.S1840_(6731469581).jpg
+- Reference ID: (general)
+- Date taken: 2007-04
+- Author: Hugh Llewelyn
+- Licence: CC BY-SA 2.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk.I_RMB_No.S1840_(6731469581).jpg
+- Size: 2592x1944
+- Description: BR Mk.I RMB No.S1840 of West Coast Railway Co. in BR(SR) green livery built as Diagram 98, Lot 30507, by BR (Wolverton) in 1960; at Bristol Temple Meads, 04/07.
+
+### coach-p4b/BR_Mk.I_RMB_No.S1885.jpg
+- Reference ID: S50
+- Date taken: 2020-03-07 13:12:09
+- Author: hugh llewelyn
+- Licence: CC BY-SA 2.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk.I_RMB_No.S1885.jpg
+- Size: 6000x4000
+- Description: BR Mk.I RMB No.S1855 ex-No.M3764; later No.1885) partially repainted in BR maroon livery, built as a TSO No.M3764 by BR York in 1953, Diagram 93, Lot 30079 and later converted to a RMB. At Midsomer Norton South station on the Somerset &amp; Dorset Railway Diesel Gala, 7 March 2020.
+
+### coach-p4b/BR_Mark_1_SO_(RMB)_4346_repainted_2016.JPG
+- Reference ID: S49
+- Date taken: 2016-06-26
+- Author: Geof Sheppard
+- Licence: CC BY-SA 4.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mark_1_SO_(RMB)_4346_repainted_2016.JPG
+- Size: 1366x820
+- Description: Recently repainted in red and cream to denote its dual brakes (vacuum and air), British Rail mark 1 second class coach 4346, which has been fitted with a miniature buffet counter, is seen in a down train approaching Williton on the West Somerset Railway.
+
+### coach-p4b/BR_Mk.I_TSO_W4980_-_48666201702.jpg
+- Reference ID: (general)
+- Date taken: 2019-08-26 14:45:37
+- Author: hugh llewelyn
+- Licence: CC BY-SA 2.0
+- Source: https://commons.wikimedia.org/wiki/File:BR_Mk.I_TSO_W4980_-_48666201702.jpg
+- Size: 6000x4000
+- Description: BR Mk.I TSO No.W4980 of DFR in BR(WR) chocolate &amp; cream livery, Diagram 89, Lot 30690, built at BR (Wolverton) in 1961. At Parkend, Dean Forest Railway, 26 August 2019.

@@ -62,6 +62,16 @@ Research snapshot **2026-10-04**, updated **2026-10-05** with your decisions (§
 | S39 | Photo: WCR maroon Mk2 TSO 5249, 23 May 2017, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Taunton_-_WCR_Mk2_TSO_5249.JPG |
 | S40 | Photo: interior of WCR maroon Mk2 TSO M5125, 14 Apr 2012, Hugh Llewelyn, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:BR_Mk.II_TSO_No.M5125_(7169852174).jpg |
 | S41 | Photo: backhead of a Black Five (**not** 45407; loco unidentified), 11 Feb 2011, Tony Hisgett, CC BY 2.0, https://commons.wikimedia.org/wiki/File:Black_5_Cab_(5441663973).jpg |
+| S42 | railforums.co.uk, thread *WCR – Jacobite 2026*, pages 13–15 (posts June–Aug 2026). **Read only through search-engine summaries**: the site refuses automated access. Lists the stock taken north for 2026. https://www.railforums.co.uk/threads/wcr-jacobite-2026.297300/page-14 |
+| S43 | *Rail* magazine, "West Coast Railways resumes Jacobite service with Mk2 carriages" (2026; read through a search summary, site refuses automated access), https://www.railmagazine.com/news/west-coast-railways-to-resume-jacobite-service-with-mk2-coaches |
+| S44 | WCR, *The Jacobite: 2026 Season Update*, 4 Jun 2026, https://westcoastrailways.co.uk/news/the-jacobite-2026-season-update |
+| S45 | RailAdvent, "Jacobite steam train will run in 2026 as CDL deal agreed with ORR", 9 Apr 2026, https://www.railadvent.co.uk/2026/04/jacobite-steam-train-will-run-in-2026-as-cdl-deal-agreed-with-orr.html |
+| S46 | Photos: Mk2B TSO 5455 (BR blue/grey), 4 Apr 2024, kitmasterbloke, CC BY 2.0, https://commons.wikimedia.org/wiki/File:5455_BR_Mk2B_TSO_Tourist_Second_Open.jpg (and the "- 53631312691" view) |
+| S47 | Photo: Mk2B TSO E5482, 21 May 2020, Neith-Nabu, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Mk2_5482.jpg |
+| S48 | Photo: Mk1 TSO M4910 (maroon), 24 Mar 2019, Bradley Wurth, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:BR_Mk1_TSO_No._M4910.jpg |
+| S49 | Photo: Mk1 SO 4346 "fitted with a miniature buffet counter", 26 Jun 2016, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:BR_Mark_1_SO_(RMB)_4346_repainted_2016.JPG |
+| S50 | Photo: Mk1 RMB S1885 (converted from TSO M3764), 7 Mar 2020, Hugh Llewelyn, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:BR_Mk.I_RMB_No.S1885.jpg |
+| S51 | Photo: WCR Mk2 "42-seat second class (SO)" 5236, 3 Sep 2016, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Taunton_-_WCR_Mk2_SO_5236.JPG |
 
 The 35 reference images downloaded so far are listed with author and licence in `docs/reference-sources.md`. The image files themselves are in the git-ignored `reference/web/`.
 
@@ -237,12 +247,17 @@ The cutaway's info panel will say which dimensions are estimated.
 | WCR maroon Mk2 FOs (3313–3431) | These numbers are Mk2F FOs (3276–3439 range): air-conditioned with sealed windows | S10, S13 | Medium. So first class in 2026 may be Mk2F or Mk1: **UNVERIFIED** |
 | Support coach | Main-line steam usually runs with a support coach behind the tender (S27 depicts a Mk2A BFK). Whether one runs on the Jacobite in 2026 is unknown. | S27 | Low |
 | Formation (number and order of coaches) | **UNVERIFIED** for 2026 | none | Q4 |
+| Stock taken north for 2026 (S42) | 35517 (Mk1 BFK, the steam support coach of 45407's owner), 35486 (Mk1 BSK), 94225, 9539 (Mk2F BSO), TSOs 5487, 5453, 5419, **99318** (Mk1 TSO ex-4912 "converted to a buffet/shop at one end", fitted with CDL at Carnforth), **5229 and 5239** (Mk2 opens used as **first class**). The register (S10) lists every number as WCR, maroon. | S42, S10 | Low–medium (forum, read via summaries) |
+| Why a Mk1 in a Mk2 set | WCR asked in April–June 2026 to go back to Mk1s and fit CDL to them over time (S44, S45); the season restarted with Mk2s (S7, S43). A Mk1 already fitted with CDL can run among them. No catering vehicle was ever built to the Mk2 design, so Mk2 trains have always used Mk1 buffets (S11). | S7, S11, S43–S45 | Medium |
+| Mk2 subtypes in the set | Number ranges (S11): Mk2 5070–5228, **Mk2A 5257–5433** (5419), **Mk2B 5434–5497** (5453, 5487). 5229 and 5239 lie between the ranges; S51 shows their sister 5236 with the original layout (centre door). | S11, S51 | Medium |
+| First class in 5229 / 5239 | WCR describes first class as "open carriages with private tables for 2 and tables for 4 at either side of the aisle" (2+1). Sister coach 5236 is listed as a **42-seat** Mk2 SO (S51), consistent with 2+1 seating; it shows cream curtains and white tablecloths. | S4, S51 | Medium (layout); low (fittings) |
 | What 2025 photos show | 22 Oct 2025 (45407) and 8 Aug 2025 (44871) on the viaduct: **maroon BR Mk1 coaches** (sliding window ventilators, roof vents) in West Coast lettering, the first coach marked "C1". The Oct 2025 photo also seems to show a diesel at the rear. | S34, S37 | High (Mk1 in 2025); Low (diesel) |
 | WCR maroon pressure-ventilated Mk2 TSO (the probable 2026 type) | **Exterior** (5249, 2017): BR maroon with gold/black lining at waist and cantrail, "West Coast" lettering; hinged slam doors at both ends and at a centre vestibule (original Mk2 layout; S12: the Mk2B dropped the centre vestibule); large windows with small top-opening vents; black roof with a row of pressure-ventilation domes; B4 bogies. | S39 | Medium (as a type) |
 | | **Interior** (M5125, 2012): 2+2 seats with high vinyl-backed headrests and blue checked fabric; small tables; luggage racks with lights; curved ceiling | S40 | Medium (may have been refurbished since 2012) |
 | Modelling decision (2026-10-05) | **Maroon WCR pressure-ventilated Mk2 TSO** as the first enterable coach, matching S7's 2026 description. Flagged until a 2026 photo of the actual set is found. | S7, S39, S40 | Medium–Low |
 | Photo U01 (your photo, 45407 on the viaduct) | Shows **maroon Mk1** coaches (running number **4951** legible: Mk1 TSO on the WCR register), so U01 dates from the Mk1 years (2025 or earlier). Its black smokebox numberplate is therefore older than the blue plate of 2025; the model keeps blue. | U01, S10 | High (coach type) |
 | Phase 4 model (2026-10-08) | Mk2 (original) TSO built to S39/S40. Layout from S39: toilet window at the A end, door, four windows, centre door, four windows, door at the B end, i.e. two saloons of four bays with vestibules at both ends and in the centre. Interior from S40: 2+2 high-back blue seats with moquette, small tables, luggage racks with lights. Dimensions: body length (High); width, height, floor height, bogie centres, B4 bogie (Low or estimated). Formation of six WCR maroon Mk2 TSOs (5249, 5229, 5222, 5216, 5200, 5171): **numbers real, order and count estimated**. No first-class or buffet vehicle yet. | S11–S15, S39, S40 | Low–medium |
+| Phase 4 addendum (2026-10-12) | Six coaches after S42, in its order from the engine: **5487, 5453** (Mk2B TSO: no centre door, wide doors at the ends, one toilet at each end; S46, S47), **5419** (Mk2A TSO, as the Phase 4 coach), **99318** (Mk1 TSO with buffet/shop at the B end; S48–S50), **5229, 5239** (first class B and A: 2+1 seats, tablecloths, table lamps, cream curtains, headrest covers; S4, S51). The buffet layout, the first-class seats (Mk2 TSO seats re-spaced; real ones unknown), 48 first-class seats instead of 42, and the coach letters (A at the rear) are **estimates**. | S4, S10, S11, S42, S46–S51 | Low–medium |
 
 ### 6.2 BR Mark 2: general
 
@@ -282,7 +297,7 @@ The cutaway's info panel will say which dimensions are estimated.
 | Luggage racks, lights, seat fabric, table size, curtains/blinds | **UNVERIFIED** | none | Photos T07–T11 |
 | Catering | A buffet car is available | S4 | High (vehicle type in 2026 **UNVERIFIED**) |
 
-### 6.4 Mark 1 (only if you switch the target to Mk1)
+### 6.4 Mark 1 (the buffet/shop coach 99318)
 
 | Item | Value | Source | Confidence |
 |---|---|---|---|
@@ -290,6 +305,8 @@ The cutaway's info panel will say which dimensions are estimated.
 | Bogie centres | 46 ft 6 in (14.17 m) | S15 | Medium |
 | Bogies | BR1, BR2, Commonwealth or B4 | S15 | Medium |
 | Livery on WCR | Mostly BR maroon | S9, S10 | High |
+| Mk1 TSO side | Same layout as the Mk2 TSO (toilets at one end, doors at the ends and centre, 4 + 4 windows); narrower windows (about 0.64 of the 6 ft 6 in bay) in aluminium frames with two sliding top panes; door drop-lights; rain strips over the doors; two rows of shell roof vents; visible solebar and truss rods | S48, S49, S50, U01 | Medium (type); low (dimensions, from photos without scale) |
+| Buffet conversion of a Mk1 TSO | A counter fitted at one end of an ordinary TSO (4346, S49); in an RMB the windows at the counter are panelled over (S50). 99318's own layout is not published. | S49, S50 | Low for 99318 |
 
 ## 7. Glenfinnan Viaduct
 
@@ -397,7 +414,7 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 
 ### Still open (none block Phase 1)
 
-- **The 2026 coach set:** exact vehicles, number of coaches and order. If you see or ride the train, a side photo showing coach numbers settles it.
+- **The 2026 coach set:** S42 (forum, via summaries) gives the vehicles; the order, the coach letters and the inside of the buffet/shop 99318 and of first class 5229/5239 are still unconfirmed. A dated 2026 side photo showing the coach numbers, and interior photos of 99318 and 5229/5239, would settle them (T01, T08, T14).
 - **45407 cab interior:** no public photo of *this* loco's footplate yet. The class-level photo S41 will be used, with modern equipment from S27 flagged.
 
 ## 12. Reference photos
@@ -489,6 +506,7 @@ Put them in `reference/` with `reference/captions.md`, in the format of `docs/ca
 | T11 | `T11-ceiling-lights.jpg` | P2 | Ceiling, lights, luggage racks, window blinds or curtains |
 | T12 | `T12-underframe.jpg` | P3 | Underframe equipment, one side |
 | T13 | `T13-livery-detail.jpg` | P2 | Lining, lettering, class markings, numbers |
+| T14 | `T14-99318-buffet.jpg` | P1 | Buffet/shop coach 99318 inside: counter, shop shelves, which end, any blanked windows |
 
 ### Viaduct and landscape
 

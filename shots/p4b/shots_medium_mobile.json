@@ -1,0 +1,57 @@
+{
+ "errorsAtLoad": [],
+ "views": {
+  "buffet-ext": {
+   "view": "buffet-ext",
+   "stats": {
+    "tier": "medium",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 97,
+    "triangles": 87121,
+    "textures": 38,
+    "geometries": 86,
+    "textureMB": 34.5,
+    "frameMsCPU": 23.6,
+    "frameMsGPU": -1,
+    "dpr": 1,
+    "px": [
+     844,
+     390
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 15211,
+   "errors": []
+  },
+  "first-int": {
+   "view": "first-int",
+   "stats": {
+    "tier": "medium",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 68,
+    "triangles": 82411,
+    "textures": 40,
+    "geometries": 100,
+    "textureMB": 34.5,
+    "frameMsCPU": 9.8,
+    "frameMsGPU": 2771.14,
+    "dpr": 1,
+    "px": [
+     844,
+     390
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 10076,
+   "errors": []
+  }
+ }
+}
