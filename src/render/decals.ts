@@ -217,6 +217,81 @@ function buffetSign() {
   return c;
 }
 
+/** First-class armchair fabric: gold damask on navy, half-drop repeat (a generic pattern after S52/S53). */
+function damask() {
+  const { c, g } = canvas(256, 256), GOLDD = '#cdbb8a', NAVY = '#20203a';
+  g.fillStyle = NAVY; g.fillRect(0, 0, 256, 256);
+  const motif = (cx: number, cy: number, s: number) => {
+    g.save(); g.translate(cx, cy); g.scale(s / 100, s / 100);
+    g.fillStyle = GOLDD; g.strokeStyle = GOLDD; g.lineCap = 'round';
+    // ogee frame
+    g.lineWidth = 5; g.beginPath(); g.moveTo(0, -48);
+    g.bezierCurveTo(22, -36, 34, -14, 30, 4); g.bezierCurveTo(27, 22, 12, 34, 0, 48);
+    g.bezierCurveTo(-12, 34, -27, 22, -30, 4); g.bezierCurveTo(-34, -14, -22, -36, 0, -48); g.stroke();
+    // palmette: a fan of leaves rising from a small cup
+    for (let k = -2; k <= 2; k++) { g.save(); g.translate(0, 18); g.rotate(k * 0.42); g.beginPath(); g.ellipse(0, -18, 5.5 - Math.abs(k), 17 - 2 * Math.abs(k), 0, 0, Math.PI * 2); g.fill(); g.restore(); }
+    g.beginPath(); g.moveTo(-10, 18); g.quadraticCurveTo(0, 32, 10, 18); g.closePath(); g.fill();
+    g.fillRect(-1.5, 28, 3, 12);
+    // scrolls and sprigs outside the frame, top and sides
+    for (const k of [1, -1]) {
+      g.lineWidth = 3.5; g.beginPath(); g.arc(k * 40, -30, 9, 0, Math.PI * 1.5); g.stroke();
+      g.beginPath(); g.arc(k * 40, 30, 9, Math.PI * 0.5, Math.PI * 2); g.stroke();
+      g.beginPath(); g.ellipse(k * 46, 0, 4, 10, k * 0.3, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(k * 12, -56, 3.5, 8, k * 0.8, 0, Math.PI * 2); g.fill();
+    }
+    g.beginPath(); g.arc(0, -58, 4.5, 0, Math.PI * 2); g.fill();
+    g.restore();
+  };
+  for (const [x, y] of [[128, 128], [0, 0], [256, 0], [0, 256], [256, 256]]) motif(x, y, 118);
+  return c;
+}
+
+/** Black-and-white tartan with grey bands (curtains and lamp shades, S52/S53); generic sett. */
+function tartan() {
+  const { c, g } = canvas(256, 256);
+  g.fillStyle = '#ecebe6'; g.fillRect(0, 0, 256, 256);
+  const sett: [number, number, string][] = [[0, 46, '#151515'], [58, 8, '#151515'], [76, 30, '#8c8c8a'], [118, 4, '#151515'], [140, 46, '#151515'], [200, 24, '#8c8c8a'], [236, 6, '#151515']];
+  g.globalAlpha = 0.62;
+  for (const [p, w, col] of sett) { g.fillStyle = col; g.fillRect(p, 0, w, 256); }
+  for (const [p, w, col] of sett) { g.fillStyle = col; g.fillRect(0, p, 256, w); }
+  g.globalAlpha = 0.12; g.fillStyle = '#000';                                          // twill diagonal
+  for (let i = -256; i < 256; i += 4) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 256, 256); g.lineTo(i + 257, 256); g.lineTo(i + 1, 0); g.fill(); }
+  g.globalAlpha = 1;
+  return c;
+}
+
+function firstClassCover() {
+  const { c, g } = canvas(256, 128);
+  g.fillStyle = '#f3f1ec'; g.fillRect(0, 0, 256, 128);
+  g.strokeStyle = '#7d1f2c'; g.lineWidth = 5; g.strokeRect(3, 3, 250, 122);
+  g.fillStyle = '#9a2433'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '500 34px Georgia, "Times New Roman", serif';
+  g.fillText('FIRST CLASS', 128, 70);
+  return c;
+}
+
+function carpetFirst() {
+  const { c, g } = canvas(128, 128);
+  g.fillStyle = '#1c2148'; g.fillRect(0, 0, 128, 128);
+  for (let y = 0; y < 128; y += 16) for (let x = (y / 16) % 2 ? 8 : 0; x < 128; x += 16) { g.fillStyle = '#8f8a6a'; g.fillRect(x + 6, y + 6, 3, 3); }
+  return c;
+}
+
+/** Seat-direction labels: "F" (facing forward) on the left half, "B" (backward) on the right half. */
+function seatDir() {
+  const { c, g } = canvas(128, 64);
+  for (const [i, ch] of [[0, 'F'], [1, 'B']] as const) {
+    g.fillStyle = '#f4f4f0'; g.fillRect(i * 64, 0, 64, 64); g.strokeStyle = '#222'; g.lineWidth = 3; g.strokeRect(i * 64 + 3, 3, 58, 58);
+    g.fillStyle = '#111'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 44px ${FONT}`; g.fillText(ch, i * 64 + 32, 35);
+  }
+  return c;
+}
+
+function buffetLabel() {
+  const { c, g } = canvas(500, 120);
+  g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `600 84px ${FONT}`; g.fillText('BUFFET', 250, 64);
+  return c;
+}
+
 function coachLetterCanvas(letter: string) {
   const { c, g } = canvas(128, 128);
   g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, 128, 128);
@@ -240,6 +315,8 @@ export function paintCoachNumber(root: THREE.Object3D, num: string, anisotropy: 
 const PAINTERS: Record<string, () => HTMLCanvasElement> = {
   decal_seatfabric: seatFabric, decal_westcoast: westCoast, decal_coachnum: () => coachNumberCanvas(''),
   decal_goods: goods, decal_buffetsign: buffetSign, decal_coachletter: () => coachLetterCanvas(''),
+  decal_damask: damask, decal_firstclass: firstClassCover, decal_carpetfc: carpetFirst, decal_seatdir: seatDir, decal_buffetlabel: buffetLabel,
+  curtain: tartan, lamp_shade: tartan,
   decal_gauge_pressure: () => dial('BOILER', 300, 50, 10, 'LBS PER SQ IN', 225),
   decal_gauge_vacuum: () => dial('VACUUM', 30, 5, 1, 'INS. OF MERCURY'),
   decal_gauge_air: () => dial('AIR', 150, 25, 5, 'LBS PER SQ IN'),
@@ -263,9 +340,17 @@ export function paintDecals(root: THREE.Object3D, anisotropy: number) {
     if (!t) { t = new THREE.CanvasTexture(paint()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy; cache.set(m.name, t); }
     // glTF export keeps only base colour/roughness/metalness: restore the emissive part here
     if (m.name === 'decal_seatfabric') { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 1.5); m.map = t; m.color.set(0xffffff); m.transparent = false; m.needsUpdate = true; return; }
+    // tiled fabrics on UVs in metres (repeats per metre)
+    const tile: Record<string, number> = { decal_damask: 5, curtain: 5, lamp_shade: 5, decal_carpetfc: 2 };
+    if (tile[m.name]) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(tile[m.name], tile[m.name]);
+      m.map = t; m.color.set(0xffffff); m.transparent = false; m.side = m.name === 'curtain' || m.name === 'lamp_shade' ? THREE.DoubleSide : THREE.FrontSide;
+      if (m.name === 'lamp_shade') m.emissiveMap = t;   // the lit shade glows through its own tartan
+      m.needsUpdate = true; return;
+    }
     if (m.name === 'decal_fire') { m.emissiveMap = t; m.emissive.set(0xffffff); m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
     m.map = t; m.color.set(0xffffff);
-    m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff', 'decal_goods', 'decal_buffetsign', 'decal_coachletter'].includes(m.name) && !m.name.startsWith('decal_gauge');
+    m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff', 'decal_goods', 'decal_buffetsign', 'decal_coachletter', 'decal_firstclass', 'decal_seatdir'].includes(m.name) && !m.name.startsWith('decal_gauge');
     m.alphaTest = m.transparent ? 0.02 : 0;
     m.depthWrite = !m.transparent;
     m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2;

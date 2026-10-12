@@ -8,6 +8,7 @@ export type MatKey =
   | 'coach_maroon' | 'roof_black' | 'lining_gold' | 'underframe' | 'spring_red' | 'axle_yellow' | 'wood_panel' | 'ceiling' | 'carpet'
   | 'seat_vinyl' | 'decal_seatfabric' | 'table_top' | 'coach_light' | 'decal_coachnum' | 'decal_westcoast' | 'frosted' | 'cdl_light'
   | 'tablecloth' | 'curtain' | 'lamp_shade' | 'decal_goods' | 'decal_buffetsign' | 'decal_coachletter'
+  | 'decal_damask' | 'decal_firstclass' | 'decal_carpetfc' | 'decal_seatdir' | 'decal_buffetlabel'
   | 'copper' | 'wood' | 'chequer' | 'water' | 'backhead'
   | 'decal_gauge_pressure' | 'decal_gauge_vacuum' | 'decal_gauge_air' | 'decal_gauge_heat' | 'decal_waterplate' | 'decal_fire' | 'decal_cutoff'
   | 'decal_cabnum' | 'decal_emblem' | 'decal_emblem_l' | 'decal_numberplate' | 'decal_shedplate' | 'decal_headboard' | 'decal_nameplate' | 'decal_crest';
@@ -47,8 +48,13 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     frosted: m('frosted', 0xdfe3e6, 0.6, 0.0, { transparent: true, opacity: 0.85 }),
     cdl_light: m('cdl_light', 0x3a2a10, 0.3, 0.0, { emissive: 0xffa020, emissiveIntensity: 0 }),
     tablecloth: m('tablecloth', 0xeeece6, 0.85, 0.0),     // first class: tablecloths, antimacassars
-    curtain: m('curtain', 0xd9cfb4, 0.9, 0.0),           // cream tie-back curtains (seen in 5236)
-    lamp_shade: m('lamp_shade', 0xf0dcb0, 0.7, 0.0, { emissive: 0xffd9a0, emissiveIntensity: 0 }),
+    curtain: m('curtain', 0xffffff, 0.9, 0.0, { side: THREE.DoubleSide }),           // first class: tartan tie-back curtains (S52, S53)
+    lamp_shade: m('lamp_shade', 0xffffff, 0.7, 0.0, { side: THREE.DoubleSide, emissive: 0xffd9a0, emissiveIntensity: 0 }), // tartan shades
+    decal_damask: m('decal_damask', 0xffffff, 0.85, 0.0),          // first-class armchair damask (S52, S53)
+    decal_firstclass: m('decal_firstclass', 0xffffff, 0.8, 0.0),   // "FIRST CLASS" headrest covers
+    decal_carpetfc: m('decal_carpetfc', 0xffffff, 0.95, 0.0),      // navy patterned first-class carpet
+    decal_seatdir: m('decal_seatdir', 0xffffff, 0.6, 0.0),         // F / B seat-direction labels on the window pillars
+    decal_buffetlabel: m('decal_buffetlabel', 0xffffff, 0.45, 0.0, { transparent: true }), // "BUFFET" on the bodyside (as on WCR 1860)
     decal_goods: m('decal_goods', 0xffffff, 0.6, 0.0),
     decal_buffetsign: m('decal_buffetsign', 0xffffff, 0.5, 0.0),
     decal_coachletter: m('decal_coachletter', 0xffffff, 0.6, 0.0),

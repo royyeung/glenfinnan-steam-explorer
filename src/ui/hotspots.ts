@@ -84,14 +84,14 @@ HOTSPOTS.push(
     { id: 'kb_vent', name: 'Mark 1 window', what: 'Narrower windows in aluminium frames, with two sliding panes at the top.', does: 'Slide the panes apart for air. Compare the Mark 2 windows next door: wider, with a tipping vent.', d: L1.bays[1], h: 2.75, x: -1.45 },
     { id: 'kb_roof', name: 'Roof vents', what: 'Two rows of small shell vents on the roof.', does: 'Let stale air out; the Mark 2s use a single row of domes instead.', d: 6.5, h: 3.9, x: -0.62 },
     { id: 'kb_truss', name: 'Trussed underframe', what: 'The Mark 1 body sits on a separate steel underframe, braced by angled truss rods.', does: 'Carries the load between the bogies. The Mark 2 body is a stronger steel tube and needs no truss.', d: L1.L / 2, h: 0.86, x: -1.3 },
-    { id: 'kb_counter', name: 'Buffet counter', what: 'Counter with a coffee machine, hot-water urn and till (layout estimated).', does: 'Hot and cold drinks and snacks for both classes.', d: L1.buffet![0] + 1.2, h: 2.4, x: -0.5, near: true, inside: true },
-    { id: 'kb_shop', name: 'Shop shelves', what: 'Souvenirs and gifts on shelves under the windows (goods are generic).', does: 'Reported in 2026 to be reachable from the platform, too.', d: L1.buffet![0] + 2.2, h: 1.9, x: 1.0, near: true, inside: true },
+    { id: 'kb_counter', name: 'Buffet counter', what: 'A counter along the coach with the staff behind it: cake dome, chalkboard, till and a glass cabinet (layout estimated).', does: 'Hot and cold drinks and snacks for both classes.', d: L1.buffet![0] + 1.4, h: 2.4, x: -0.15, near: true, inside: true },
+    { id: 'kb_shop', name: 'Shelves behind the counter', what: 'Goods on shelves against the bodyside, its windows boarded over (the goods are generic).', does: 'Served over the counter, as in buffet-counter photos. The shop was reported in 2026 to be reachable from the platform, too.', d: L1.buffet![0] + 2.0, h: 2.2, x: -1.0, near: true, inside: true },
   ]),
   ...co('5239', [
     { id: 'kf_coach', name: 'First class (coach A)', what: 'A Mark 2 open coach used as first class.', does: 'First class: larger seats, tables for two and four, and complimentary tea or coffee.', d: 8, h: 2.4, x: -1.45 },
     { id: 'kf_letter', name: 'Coach letter', what: 'Card in the corner of the end window.', does: 'Matches the letter printed on the tickets (A and B are first class).', d: LF.bays[0] - LF.winW / 2 + 0.16, h: 2.5, x: -1.45 },
-    { id: 'kf_seats', name: '2 + 1 seating', what: 'Pairs of seats on the left, single seats on the right.', does: 'Tables for four on one side, private tables for two on the other.', d: LF.bays[2], h: 1.9, x: -0.95, near: true, inside: true },
-    { id: 'kf_lamp', name: 'Table lamps and cloths', what: 'White tablecloths, small lamps, curtains and headrest covers.', does: 'The traditional first-class touch (exact 2026 fittings unconfirmed).', d: LF.bays[3], h: 2.15, x: 1.15, near: true, inside: true },
+    { id: 'kf_seats', name: 'Wingback armchairs, 2 + 1', what: 'Damask armchairs with "FIRST CLASS" headrest covers: pairs on the left, singles on the right.', does: 'Tables for four on one side, private tables for two on the other.', d: LF.bays[2], h: 1.9, x: -0.95, near: true, inside: true },
+    { id: 'kf_lamp', name: 'Tartan lamps and curtains', what: 'A tartan-shaded lamp on each table and matching tie-back curtains.', does: 'The traditional first-class touch, as WCR describes and photographs it (the exact 2026 fittings of this coach are unconfirmed).', d: LF.bays[3], h: 2.15, x: 1.15, near: true, inside: true },
   ]),
 );
 

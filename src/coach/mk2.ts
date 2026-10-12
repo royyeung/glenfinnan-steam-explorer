@@ -2,7 +2,7 @@
 // mid-length; +Z = A end, +X = left side):
 //   tso2     Mk2/2A Tourist Standard Open, maroon WCR (S39, S40)
 //   tso2b    Mk2B TSO: no centre door, wide doors at the very ends, one toilet at each end (5455, E5482)
-//   fo2      Mk2 open coach used as first class: 2+1 seats, tablecloths, lamps, curtains (S4, 5236)
+//   fo2      Mk2 open coach used as first class: 2+1 damask wingback armchairs, tartan lamps and curtains (S52, S53)
 //   buffet1  Mk1 TSO with a buffet/shop at one end (99318): Mk1 windows, roof vents, trussed underframe
 // Node names used by the app:
 //   coach_door_<A|C|B>_<L|R>  hinged slam doors (pivot at the hinge)
@@ -88,8 +88,8 @@ function lodMats(mats: Mats, detail: number): Mats {
   const far = detail < 0.4;
   const map: Partial<Record<MatKey, MatKey>> = {
     steel: 'underframe', rubber: 'underframe', spring_red: 'underframe', axle_yellow: 'underframe', wheel: 'underframe',
-    frosted: 'glass', cdl_light: 'coach_maroon', wood_panel: 'coach_maroon', decal_coachletter: 'glass',
-    ...(far ? { lining_gold: 'coach_maroon', decal_coachnum: 'coach_maroon', decal_westcoast: 'coach_maroon', glass: 'underframe' } as const : {}),
+    frosted: 'glass', cdl_light: 'coach_maroon', wood_panel: 'coach_maroon', decal_coachletter: 'glass', curtain: 'coach_maroon', lamp_shade: 'coach_maroon',
+    ...(far ? { lining_gold: 'coach_maroon', decal_coachnum: 'coach_maroon', decal_westcoast: 'coach_maroon', decal_buffetlabel: 'coach_maroon', glass: 'underframe' } as const : {}),
   };
   return new Proxy(mats, { get: (t, k: string) => t[(map[k as MatKey] ?? k) as MatKey] }) as Mats;
 }
@@ -140,6 +140,11 @@ export function buildCoach(matsIn: Mats, type: CoachType = 'tso2'): THREE.Group 
     b.add('decal_coachnum', num);
     const wc = new THREE.PlaneGeometry(0.5, 0.2); wc.rotateY(s > 0 ? Math.PI / 2 : -Math.PI / 2); wc.translate(s * (w + 0.005), v('waistH') - 0.2, z(lay.wcA));
     b.add('decal_westcoast', wc);
+    // "BUFFET" below the waist at the buffet end, as on WCR's Mk1 buffet 1860 (Flickr, 13 Apr 2024); 99318's own lettering unconfirmed
+    if (lay.buffet) {
+      const bl = new THREE.PlaneGeometry(0.6, 0.144); bl.rotateY(s > 0 ? Math.PI / 2 : -Math.PI / 2); bl.translate(s * (w + 0.005), v('waistH') - 0.24, z((lay.buffet[0] + lay.buffet[1]) / 2));
+      b.add('decal_buffetlabel', bl);
+    }
     // coach letter card in the corner of the end windows (as on WCR coaches, e.g. 5236)
     for (const a of [lay.bays[0] - winW / 2 + 0.16, lay.bays[lay.bays.length - 1] + winW / 2 - 0.16]) {
       const lt = new THREE.PlaneGeometry(0.17, 0.17); lt.rotateY(s > 0 ? Math.PI / 2 : -Math.PI / 2); lt.translate(s * (w - 0.022), wTop - lay.ventDepth - 0.16, z(a));
@@ -265,6 +270,7 @@ function buildInterior(mats: Mats, lay: CoachLayout): THREE.Group {
 
   // floor, ceiling, side lining with window reveals
   b.add('carpet', boxMinMax(-w, floor - 0.03, z(L), w, floor, z(0)));
+  if (lay.first) b.add('decal_carpetfc', floorPlane(-w, w, z(L), z(0), floor + 0.002));   // navy patterned carpet (S52, S53)
   b.add('ceiling', extrudeSection([...roofArc(-0.08, w), ...roofArc(-0.095, w).reverse()], z(L) + 0.04, z(0) - 0.04));
   b.add('ceiling', boxMinMax(-0.18, v('height') - 0.17, z(L) + 0.05, 0.18, v('height') - 0.13, z(0) - 0.05)); // ventilation duct
   const winHoles = lay.bays.map((a) => roundedRect(z(a + winW / 2), wBot, z(a - winW / 2), wTop, 0.08));
@@ -285,7 +291,7 @@ function buildInterior(mats: Mats, lay: CoachLayout): THREE.Group {
   }
 
   // seats: standard = two facing double seats each side of the aisle with a table between;
-  // first = doubles (table for 4) on the left, singles (table for 2) on the right (S4)
+  // first = wingback armchairs, pairs (table for 4) on the left, singles (table for 2) on the right (S52, S53)
   const sw = v('seatWidth'), aisle = v('aisleWidth') / 2, bp = lay.bayPitch, off = bp / 2 - 0.36 * (bp / 1.98);
   const seat = (x0: number, x1: number, zc: number, facing: 1 | -1) => {
     const back = zc - facing * 0.32;
@@ -297,46 +303,41 @@ function buildInterior(mats: Mats, lay: CoachLayout): THREE.Group {
     for (const xa of [x0, x1]) b.add('seat_vinyl', roundBox(xa - 0.03, floor + 0.42, xa + 0.03, floor + 0.62, zc - 0.22, zc + 0.18, 0.02)); // armrests
     for (const xa of [x0 - 0.012, x1 + 0.012]) b.add('ceiling', roundBox(xa - 0.012, floor + 0.36, xa + 0.012, floor + 1.18, bz0 - 0.03, bz1 + 0.04, 0.01)); // pale plastic seat shells (S40)
     b.add('steel', boxMinMax(x0 + 0.05, floor, zc - 0.2, x1 - 0.05, floor + 0.12, zc + 0.15));                         // frame
-    // first class: white antimacassar over the front of the headrest
-    if (lay.first) { const f = facing > 0 ? bz1 + 0.03 : bz0 - 0.03; b.add('tablecloth', roundBox(x0 + 0.06, floor + 1.0, x1 - 0.06, floor + 1.2, f - 0.006, f + 0.006, 0.005)); }
   };
-  const table = (x0: number, x1: number, zc: number, s: number) => {
+  const table = (x0: number, x1: number, zc: number) => {
     b.add('table_top', roundBox(x0 + 0.04, floor + 0.7, x1 - 0.04, floor + 0.74, zc - 0.32, zc + 0.32, 0.03));
-    b.add('steel', cylBetween(V((x0 + x1) / 2 + s * 0.2, floor, zc), V((x0 + x1) / 2 + s * 0.2, floor + 0.7, zc), 0.025, 8));
-    if (!lay.first) return;
-    // first class: white cloth with a drop on the aisle side, and a table lamp by the window
-    b.add('tablecloth', roundBox(x0 + 0.02, floor + 0.74, x1 - 0.02, floor + 0.746, zc - 0.34, zc + 0.34, 0.002));
-    const xa = s > 0 ? x0 + 0.02 : x1 - 0.02;
-    b.add('tablecloth', boxMinMax(xa - 0.004, floor + 0.6, zc - 0.34, xa + 0.004, floor + 0.746, zc + 0.34));
-    const xl = s > 0 ? x1 - 0.14 : x0 + 0.14;
-    b.add('brass', latheY([[0, 0], [0.06, 0], [0.05, 0.02], [0.012, 0.03], [0.012, 0.2], [0, 0.2]], xl, floor + 0.746, zc, 12));
-    b.add('lamp_shade', latheY([[0.085, 0], [0.05, 0.12], [0.035, 0.12]], xl, floor + 0.9, zc, 14));
+    b.add('steel', cylBetween(V((x0 + x1) / 2, floor, zc), V((x0 + x1) / 2, floor + 0.7, zc), 0.025, 8));
   };
   for (const a of lay.bays) {
     if (inBuffet(a)) continue;
     const zc = z(a);
     for (const s of [1, -1]) {
-      const single = lay.first && s < 0;
-      const xIn = single ? s * (aisle + 2 * sw - 0.64) : s * aisle, xOut = s * (aisle + 2 * sw);
-      const [x0, x1] = s > 0 ? [xIn, xOut] : [xOut, xIn];
-      seat(x0, x1, zc + off, -1); // faces back towards the table
-      seat(x0, x1, zc - off, 1);
-      table(x0, x1, zc, s);
+      if (lay.first) {
+        // pairs of armchairs on the left (table for four), single armchairs on the right (table for two)
+        const [x0, x1] = s > 0 ? [0.25, w - 0.03] : [-(w - 0.03), -0.69], xm = (x0 + x1) / 2;
+        const chairs: [number, number][] = s > 0 ? [[x0, xm - 0.01], [xm + 0.01, x1]] : [[x0, x1]];
+        for (const [c0, c1] of chairs) { armchair(b, c0, c1, zc + off, -1, floor); armchair(b, c0, c1, zc - off, 1, floor); }
+        firstTable(b, x0, x1, zc, s, floor);
+      } else {
+        const xIn = s * aisle, xOut = s * (aisle + 2 * sw);
+        const [x0, x1] = s > 0 ? [xIn, xOut] : [xOut, xIn];
+        seat(x0, x1, zc + off, -1); // faces back towards the table
+        seat(x0, x1, zc - off, 1);
+        table(x0, x1, zc);
+      }
       // luggage rack above the windows with reading-light strip underneath
       b.add('steel', boxMinMax(s > 0 ? w - 0.36 : -w, 3.02, zc - bp / 2 + 0.05, s > 0 ? w : -w + 0.36, 3.05, zc + bp / 2 - 0.05));
       b.add('steel', boxMinMax(s > 0 ? w - 0.37 : -w + 0.35, 3.02, zc - bp / 2 + 0.05, s > 0 ? w - 0.35 : -w + 0.37, 3.1, zc + bp / 2 - 0.05));
       b.add('coach_light', boxMinMax(s > 0 ? w - 0.3 : -w + 0.05, 3.0, zc - bp / 2 + 0.2, s > 0 ? w - 0.05 : -w + 0.3, 3.015, zc + bp / 2 - 0.2));
     }
-    // first class: tie-back curtains at both sides of each window, gathered in folds at the tie
-    if (lay.first) for (const s of [1, -1]) for (const e of [1, -1]) {
-      const zz = zc + e * (winW / 2 - 0.02), xc = s * (w - 0.05), yTie = wBot + 0.32;
-      for (let f = 0; f < 5; f++) {
-        const u = f / 4 - 0.5, x = xc + s * 0.012 * (f % 2);
-        const top = V(x, wTop + 0.12, zz + e * u * 0.2 - e * 0.05), tie = V(x, yTie, zz + e * u * 0.05), low = V(x, wBot - 0.02, zz + e * u * 0.1);
-        b.add('curtain', cylBetween(top, tie, 0.022, 6), cylBetween(tie, low, 0.02, 6));
-      }
-      b.add('curtain', boxMinMax(xc - 0.035, yTie - 0.02, zz - 0.07, xc + 0.035, yTie + 0.02, zz + 0.07));   // tie-back band
-    }
+    // first class: tartan curtains at both sides of each window, tied back
+    if (lay.first) for (const s of [1, -1]) for (const e of [1, -1]) b.add('curtain', curtain(s, w, zc + e * (winW / 2), e, wTop + 0.12, wBot + 0.36, wBot - 0.04));
+  }
+  // seat-direction labels on the window pillars between bays: F (facing the engine) and B (back to it), as on WCR coaches
+  for (let k = 0; k + 1 < lay.bays.length; k++) {
+    const [p, q] = [lay.bays[k], lay.bays[k + 1]];
+    if (Math.abs(q - p - bp) > 0.05 || inBuffet(p) || inBuffet(q)) continue;
+    for (const s of [1, -1]) for (const [dz, back] of [[0.045, false], [-0.045, true]] as const) b.add('decal_seatdir', seatLabel(s, w, z((p + q) / 2) + dz, wTop - 0.1, back));
   }
   // saloon end partitions: wood lower panels, glazed upper panels, open doorway on the aisle
   const part = (zz: number) => {
@@ -366,30 +367,127 @@ function buildInterior(mats: Mats, lay: CoachLayout): THREE.Group {
   return G;
 }
 
-/** Buffet and shop at the B end of the Mk1 coach (99318). The real fit-out is not published, so this
- * is an estimate (REFERENCE §6): servery on the right (counter facing the aisle, staff behind it),
- * shop shelves under the windows on the left, a tall display and a sign where the saloon ends. */
+/** Plane on the floor with UVs in metres (tiled carpet). */
+function floorPlane(x0: number, x1: number, z0: number, z1: number, y: number) {
+  const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0); g.rotateX(-Math.PI / 2); g.translate((x0 + x1) / 2, y, (z0 + z1) / 2);
+  const p = g.getAttribute('position'), uv = g.getAttribute('uv');
+  for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i), p.getZ(i));
+  return g;
+}
+
+/** Slab with rounded corners in plan (x, z), from y0 to y1. */
+function slabY(x0: number, x1: number, z0: number, z1: number, y0: number, y1: number, r: number) {
+  const g = extrudeSection(roundedRect(x0, -z1, x1, -z0, r), y0, y1);
+  g.rotateX(-Math.PI / 2);   // section (x, -z) extruded along +y
+  return g;
+}
+
+/** First-class wingback armchair (S52, S53): damask, rolled arms, wings, short wooden legs and a
+ * white "FIRST CLASS" headrest cover. Seat centre zs, facing f (+1 = towards +Z). */
+function armchair(b: Batch, x0: number, x1: number, zs: number, f: 1 | -1, floor: number) {
+  const zr = (p: number, q: number): [number, number] => [Math.min(zs + f * p, zs + f * q), Math.max(zs + f * p, zs + f * q)];
+  const [bb0, bb1] = zr(-0.35, -0.21), [sb0, sb1] = zr(-0.35, 0.27), [cs0, cs1] = zr(-0.21, 0.26), [wg0, wg1] = zr(-0.21, 0.02), arm = 0.07;
+  for (const x of [x0 + 0.05, x1 - 0.05]) for (const zz of [zs - 0.29, zs + 0.21].map((d) => zs + f * (d - zs))) b.add('wood', cylBetween(V(x, floor, zz), V(x, floor + 0.13, zz), 0.018, 6));
+  b.add('decal_damask', roundBox(x0, floor + 0.12, x1, floor + 0.4, sb0, sb1, 0.03));               // base
+  b.add('decal_damask', roundBox(x0 + arm, floor + 0.4, x1 - arm, floor + 0.48, cs0, cs1, 0.04));   // seat cushion
+  b.add('decal_damask', roundBox(x0 + 0.01, floor + 0.4, x1 - 0.01, floor + 1.26, bb0, bb1, 0.06)); // tall back
+  for (const xa of [x0, x1 - arm]) {
+    b.add('decal_damask', roundBox(xa, floor + 0.4, xa + arm, floor + 0.66, cs0, cs1 + (f > 0 ? 0.01 : 0), 0.035)); // rolled arm
+    b.add('decal_damask', roundBox(xa, floor + 0.66, xa + arm, floor + 1.17, wg0, wg1, 0.035));                     // wing
+  }
+  // headrest cover: white cloth over the top of the back, printed "FIRST CLASS"
+  const zf = f > 0 ? bb1 : bb0, xc = (x0 + x1) / 2, cw = x1 - x0 - 0.24;
+  b.add('tablecloth', boxMinMax(x0 + 0.12, floor + 0.96, Math.min(zf, zf + f * 0.008), x1 - 0.12, floor + 1.265, Math.max(zf, zf + f * 0.008)));
+  b.add('tablecloth', boxMinMax(x0 + 0.12, floor + 1.255, bb0 + 0.01, x1 - 0.12, floor + 1.268, bb1 - 0.01));
+  const tag = new THREE.PlaneGeometry(cw, cw / 2); if (f < 0) tag.rotateY(Math.PI); tag.translate(xc, floor + 1.12, zf + f * 0.0095);
+  b.add('decal_firstclass', tag);
+}
+
+/** First-class table: black top with rounded corners on yellow legs, tartan lamp at the window (S53). */
+function firstTable(b: Batch, x0: number, x1: number, zc: number, s: number, floor: number) {
+  b.add('table_top', slabY(x0 + 0.02, x1, zc - 0.3, zc + 0.3, floor + 0.7, floor + 0.735, 0.09));
+  const xa = s > 0 ? x0 + 0.12 : x1 - 0.12;                       // legs at the aisle end
+  for (const k of [1, -1]) b.add('axle_yellow', cylBetween(V(xa, floor, zc + k * 0.22), V(xa, floor + 0.7, zc + k * 0.12), 0.016, 8));
+  b.add('axle_yellow', cylBetween(V(xa, floor + 0.12, zc - 0.205), V(xa, floor + 0.12, zc + 0.205), 0.012, 6));
+  const xl = s > 0 ? x1 - 0.16 : x0 + 0.16, yl = floor + 0.735;
+  b.add('brass', latheY([[0, 0], [0.065, 0], [0.06, 0.015], [0.022, 0.03], [0.014, 0.05], [0.014, 0.26], [0.02, 0.27], [0, 0.28]], xl, yl, zc, 14));
+  b.add('lamp_shade', lampShade(xl, yl + 0.23, zc, 0.11, 0.055, 0.14));
+  b.add('tablecloth', latheY([[0.112, -0.022], [0.114, -0.022], [0.114, 0.0], [0.112, 0.0]], xl, yl + 0.23, zc, 24)); // white trim
+}
+
+/** Conical lamp shade with a scalloped lower edge; UVs in metres for the tartan. */
+function lampShade(x: number, y: number, zc: number, rb: number, rt: number, h: number, seg = 32) {
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [], rm = (rb + rt) / 2;
+  for (let i = 0; i <= seg; i++) {
+    const a = (i / seg) * Math.PI * 2, sc = 0.014 * Math.abs(Math.sin(a * 5));
+    for (const [r, yy] of [[rb, -sc], [rt, h]]) { pos.push(x + Math.cos(a) * r, y + yy, zc + Math.sin(a) * r); uv.push(a * rm, yy); }
+  }
+  for (let i = 0; i < seg; i++) { const p = i * 2; idx.push(p, p + 1, p + 2, p + 1, p + 3, p + 2); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+/** Curtain at a window edge (z = ze, the window lies towards -e): pleated, gathered at the tie. */
+function curtain(s: number, w: number, ze: number, e: number, yTop: number, yTie: number, yBot: number) {
+  const nu = 12, rows: { y: number; out: number; inn: number; fold: number }[] = [];
+  for (let j = 0; j <= 6; j++) { const t = j / 6, k = t * t * (3 - 2 * t); rows.push({ y: yTop + (yTie - yTop) * t, out: 0.1 + (0.02 - 0.1) * k, inn: 0.22 + (0.07 - 0.22) * k, fold: 0.022 + 0.014 * k }); }
+  for (let j = 1; j <= 3; j++) { const t = j / 3; rows.push({ y: yTie + (yBot - yTie) * t, out: 0.02 + 0.03 * t, inn: 0.07 + 0.06 * t, fold: 0.036 - 0.006 * t }); }
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  for (const r of rows) for (let i = 0; i <= nu; i++) {
+    const u = i / nu, zz = ze + e * (r.out - u * (r.out + r.inn)), xx = s * (w - 0.04 - r.fold * (0.5 + 0.5 * Math.sin(u * Math.PI * 6)));
+    pos.push(xx, r.y, zz); uv.push(u * 0.5, r.y);
+  }
+  for (let j = 0; j + 1 < rows.length; j++) for (let i = 0; i < nu; i++) { const p = j * (nu + 1) + i, q = p + nu + 1; idx.push(p, q, p + 1, p + 1, q, q + 1); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+/** F/B label card on a window pillar, facing into the saloon (left or right half of the decal). */
+function seatLabel(s: number, w: number, zz: number, y: number, back: boolean) {
+  const g = new THREE.PlaneGeometry(0.07, 0.07); g.rotateY(s > 0 ? -Math.PI / 2 : Math.PI / 2); g.translate(s * (w - 0.004), y, zz);
+  const uv = g.getAttribute('uv');
+  for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * 0.5 + (back ? 0.5 : 0));
+  return g;
+}
+
+/** Buffet and shop at the B end of the Mk1 coach (99318). Its own fit-out is not published, so this
+ * is an estimate (REFERENCE §6.4): a counter along the coach with the customers on the left; behind
+ * the staff, a back counter and shelves of goods against the bodyside, its windows boarded over (as in
+ * Mk1 buffets, S50, and the counter photo U03); cake dome, chalkboard, till, coffee machine, water
+ * boiler, a glass cabinet at the end and two dome lights. Goods are generic. */
 function buffetEnd(b: Batch, lay: CoachLayout, w: number, floor: number) {
-  const [a0, a1] = lay.buffet!, z = lay.z, wBot = v('windowBottomH'), cant = v('cantrailH');
-  const cx0 = -0.8, cx1 = -0.36, ca0 = a0 + 0.3, ca1 = a1 - 1.1, at = (d: number) => z(ca0 + d);
-  b.add('wood_panel', boxMinMax(cx0, floor, z(ca1), cx1, floor + 0.98, z(ca0)));                     // counter front and ends
-  b.add('table_top', boxMinMax(cx0, floor + 0.98, z(ca1), cx1 + 0.04, floor + 1.02, z(ca0)));         // worktop
-  b.add('glass', boxMinMax(cx1 - 0.34, floor + 1.02, at(0.9), cx1 - 0.02, floor + 1.3, at(0.15)));    // cake display
-  b.add('steel', boxMinMax(cx0 + 0.04, floor + 1.02, at(1.5), cx1 - 0.12, floor + 1.42, at(1.1)));    // coffee machine
-  b.add('steel', cylBetween(V(cx0 + 0.2, floor + 1.02, at(1.85)), V(cx0 + 0.2, floor + 1.44, at(1.85)), 0.13, 14)); // hot-water urn
-  b.add('underframe', boxMinMax(cx1 - 0.3, floor + 1.02, at(2.45), cx1 - 0.05, floor + 1.15, at(2.2))); // till
-  b.add('steel', boxMinMax(-w, floor, z(a1 - 0.05), cx0 - 0.04, floor + 1.75, z(a1 - 0.62)));        // fridge in the corner
-  // shop: shelves under the windows on the left with goods on them, a tall display facing the shop
-  const sz0 = z(a0 + 0.42), sz1 = z(a1 - 0.05);
-  b.add('wood_panel', boxMinMax(w - 0.42, floor, sz1, w, floor + 0.04, sz0));
-  for (const y of [0.3, 0.55, wBot - floor - 0.06]) b.add('wood_panel', boxMinMax(w - 0.42, floor + y, sz1, w, floor + y + 0.025, sz0));
-  const goods = (wd: number, ht: number, x: number, y: number, zz: number, ry: number) => { const g = new THREE.PlaneGeometry(wd, ht); g.rotateY(ry); g.translate(x, y, zz); return g; };
-  b.add('decal_goods', goods(sz0 - sz1, wBot - floor - 0.1, w - 0.425, floor + (wBot - floor) / 2 - 0.02, (sz0 + sz1) / 2, -Math.PI / 2));
-  const tz = z(a0) - 0.02;
-  b.add('wood_panel', boxMinMax(0.5, floor, tz - 0.36, w, floor + 1.95, tz));
-  b.add('decal_goods', goods(w - 0.54, 1.8, (0.5 + w) / 2, floor + 1.0, tz - 0.365, Math.PI));
-  // sign hanging over the aisle, facing the seats
-  b.add('decal_buffetsign', goods(0.9, 0.24, 0.1, cant - 0.02, z(a0), 0));
-  b.add('decal_buffetsign', goods(0.9, 0.24, 0.1, cant - 0.02, z(a0) - 0.004, Math.PI));
-  for (const x of [-0.3, 0.5]) b.add('steel', cylBetween(V(x, cant + 0.1, z(a0)), V(x, roofY(x) - 0.1, z(a0)), 0.008, 6));
+  const [a0, a1] = lay.buffet!, z = lay.z, cant = v('cantrailH');
+  const ca0 = a0 + 0.8, ca1 = a1 - 0.95, fx = 0.08, bx = -0.42, at = (d: number) => z(ca0 + d);
+  const top = floor + 1.02;
+  b.add('wood_panel', boxMinMax(bx, floor, z(ca1), fx, floor + 0.98, z(ca0)));                              // counter
+  b.add('table_top', boxMinMax(bx - 0.02, floor + 0.98, z(ca1), fx + 0.05, top, z(ca0)));                   // worktop
+  b.add('steel', latheY([[0, 0], [0.16, 0], [0.16, 0.012], [0, 0.012]], -0.12, top, at(0.35), 20));        // cake stand
+  b.add('wood', latheY([[0, 0], [0.11, 0], [0.11, 0.07], [0, 0.07]], -0.12, top + 0.012, at(0.35), 16));   // cake
+  b.add('glass', latheY([[0.15, 0], [0.145, 0.1], [0.11, 0.18], [0.05, 0.22], [0.012, 0.23], [0.012, 0.26], [0, 0.26]], -0.12, top + 0.012, at(0.35), 20)); // glass dome
+  for (const k of [1, -1]) { const g = boxMinMax(-0.008, 0, -0.12, 0.008, 0.32, 0.12); g.rotateZ(k * 0.22); g.translate(-0.02 + k * 0.035, top, at(0.85)); b.add('rubber', g); } // chalkboard (A-frame)
+  b.add('underframe', boxMinMax(-0.36, top, at(1.55), -0.12, top + 0.13, at(1.3)));                         // till
+  b.add('decal_goods', (() => { const g = new THREE.PlaneGeometry(ca1 - ca0 - 0.6, 0.86); g.rotateY(Math.PI / 2); g.translate(-w + 0.27, floor + 1.58, (z(ca0) + z(ca1 - 0.6)) / 2); return g; })());
+  // back counter, shelves and boarded-over windows on the right-hand bodyside
+  b.add('wood_panel', boxMinMax(-w, floor, z(ca1 + 0.4), -w + 0.36, floor + 0.9, z(ca0 - 0.3)));
+  b.add('table_top', boxMinMax(-w, floor + 0.9, z(ca1 + 0.4), -w + 0.38, floor + 0.93, z(ca0 - 0.3)));
+  b.add('wood_panel', boxMinMax(-w, floor + 0.93, z(a1 - 0.1), -w + 0.02, cant, z(a0 + 0.1)));
+  for (const y of [1.14, 1.44, 1.74, 2.04]) b.add('wood_panel', boxMinMax(-w, floor + y, z(ca1 - 0.6), -w + 0.28, floor + y + 0.025, z(ca0)));
+  for (const zz of [z(ca0), z(ca1 - 0.6)]) b.add('wood_panel', boxMinMax(-w, floor + 0.93, zz - 0.02, -w + 0.28, floor + 2.07, zz + 0.02));
+  b.add('steel', boxMinMax(-w + 0.04, floor + 0.93, z(ca1 - 0.05), -w + 0.36, floor + 1.35, z(ca1 - 0.45)));   // coffee machine
+  b.add('ceiling', boxMinMax(-w + 0.02, floor + 1.45, z(ca1), -w + 0.24, floor + 1.95, z(ca1 - 0.4)));        // wall water boiler
+  b.add('steel', cylBetween(V(-w + 0.2, floor + 0.93, z(ca1 + 0.25)), V(-w + 0.2, floor + 1.33, z(ca1 + 0.25)), 0.12, 14)); // hot-water urn
+  b.add('steel', boxMinMax(-w, floor, z(a1 - 0.05), -0.5, floor + 1.75, z(a1 - 0.62)));                       // fridge in the corner
+  // glass cabinet at the end of the counter
+  b.add('glass', boxMinMax(bx + 0.02, top, z(ca1), fx, top + 0.55, z(ca1 - 0.5)));
+  for (const y of [top + 0.005, top + 0.28, top + 0.55]) b.add('steel', boxMinMax(bx + 0.02, y - 0.006, z(ca1), fx, y + 0.006, z(ca1 - 0.5)));
+  // two dome lights over the counter
+  for (const d of [0.5, ca1 - ca0 - 0.5]) b.add('coach_light', latheY([[0, 0], [0.15, 0], [0.13, -0.06], [0.07, -0.1], [0, -0.11]], -0.3, roofY(-0.3) - 0.1, at(d), 16));
+  // sign hanging over the customer side, facing the seats
+  const sign = (ry: number, dz: number) => { const g = new THREE.PlaneGeometry(0.9, 0.24); g.rotateY(ry); g.translate(0.55, cant - 0.02, z(a0) + dz); return g; };
+  b.add('decal_buffetsign', sign(0, 0), sign(Math.PI, -0.004));
+  for (const x of [0.15, 0.95]) b.add('steel', cylBetween(V(x, cant + 0.1, z(a0)), V(x, roofY(x) - 0.1, z(a0)), 0.008, 6));
 }
