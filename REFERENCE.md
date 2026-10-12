@@ -72,6 +72,9 @@ Research snapshot **2026-10-04**, updated **2026-10-05** with your decisions (§
 | S49 | Photo: Mk1 SO 4346 "fitted with a miniature buffet counter", 26 Jun 2016, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:BR_Mark_1_SO_(RMB)_4346_repainted_2016.JPG |
 | S50 | Photo: Mk1 RMB S1885 (converted from TSO M3764), 7 Mar 2020, Hugh Llewelyn, CC BY-SA 2.0, https://commons.wikimedia.org/wiki/File:BR_Mk.I_RMB_No.S1885.jpg |
 | S51 | Photo: WCR Mk2 "42-seat second class (SO)" 5236, 3 Sep 2016, Geof Sheppard, CC BY-SA 4.0, https://commons.wikimedia.org/wiki/File:Taunton_-_WCR_Mk2_SO_5236.JPG |
+| S52 | Photo: WCR "First Class Open Carriage", EXIF 31 Mar 2018, on WCR's Classes & Carriages page (https://westcoastrailways.co.uk/img/jacobite/firstclasscarriage.jpg). A **Mk1** FO (curved ceiling, brass racks, wood panelling): 2+1 damask wingback armchairs, "FIRST CLASS" headrest covers, black/white tartan tie-back curtains, tartan lamps on brass bases, navy carpet. Page text: lamps "in the Mk1 carriages" |
+| S53 | Photo U04 (user, 2026-10-12; source and date unknown): first-class open saloon with **Mk2** features (flat ceiling with duct, rack light units, glazed end partition, black tables on yellow pedestal legs, no cloths), the same damask armchairs, headrest covers and tartan curtains and lamp as S52; "F"/"B" labels on the pillars (also on WCR standard-class photos: seat direction, not coach letters). Best available match for 5229/5239 |
+| S54 | Photo: Jacobite over Glenfinnan Viaduct, 24 Jul 2012, 96tommy, CC BY 2.0, 5184×3456, https://commons.wikimedia.org/wiki/File:A_Scottish_Adventure-_The_Jacobite_over_Glenfinnan_Viaduct.jpg (K1 62005, Mk1 coaches). Phase 5 viaduct reference; says nothing about the 2026 set |
 
 The 35 reference images downloaded so far are listed with author and licence in `docs/reference-sources.md`. The image files themselves are in the git-ignored `reference/web/`.
 
@@ -414,7 +417,7 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 
 ### Still open (none block Phase 1)
 
-- **The 2026 coach set:** S42 (forum, via summaries) gives the vehicles; the order, the coach letters and the inside of the buffet/shop 99318 and of first class 5229/5239 are still unconfirmed. A dated 2026 side photo showing the coach numbers, and interior photos of 99318 and 5229/5239, would settle them (T01, T08, T14).
+- **The 2026 coach set:** S42 (forum, via summaries) gives the vehicles; the register (S10) confirms 99318 = ex-4912, a Mk1 **TSO** (not built as an RMB). The order and the coach letters are still unconfirmed: a dated 2026 side photo showing the coach numbers would settle them (T01). First class now has S52/S53 (furnishings settled; whether 5229/5239 are exactly U04 is unconfirmed). Buffet: user photo U03 (railway unknown) shows shelves behind the counter; 99318 itself still unphotographed (T14).
 - **45407 cab interior:** no public photo of *this* loco's footplate yet. The class-level photo S41 will be used, with modern equipment from S27 flagged.
 
 ## 12. Reference photos
