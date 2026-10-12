@@ -1,9 +1,9 @@
 // Fixed-view screenshots in one page (views switch without reloading).
-// Usage: tools/run.sh shoot.mjs <stage> [--q=low|medium|high] [--views=a,b] [--mobile] [--hour=11.25] [--suffix=x]
+// Usage: tools/run.sh shoot.mjs <stage> [--q=low|medium|high] [--views=a,b] [--mobile] [--hour=11.25] [--suffix=x] [--extra=site=test&place=station]
 import fs from 'node:fs'; import path from 'node:path';
 import { ROOT, serve, browser, openPage } from './common.mjs';
 const args = process.argv.slice(2), stage = args.shift();
-const opt = Object.fromEntries(args.map((a) => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
+const opt = Object.fromEntries(args.map((a) => { const s = a.replace(/^--/, ''), i = s.indexOf('='); return i < 0 ? [s, true] : [s.slice(0, i), s.slice(i + 1)]; }));
 const OUT = path.join(ROOT, 'shots', stage); fs.mkdirSync(OUT, { recursive: true });
 const views = (opt.views || 'front-34-l,rear-34-r,motion-l,site-wide,human-scale,cab-entry,cab-inside,left-elev,right-elev,front-end,plan').split(',');
 const sizes = { 'left-elev': [1760, 480], 'right-elev': [1760, 480], 'front-end': [800, 800], 'plan': [1320, 300] };
@@ -11,7 +11,7 @@ const def = opt.mobile ? [844, 390] : [1280, 720];
 const suffix = (opt.q ? '_' + opt.q : '') + (opt.mobile ? '_mobile' : '') + (opt.suffix ? '_' + opt.suffix : '');
 const { server, url } = await serve();
 const b = await browser();
-const { page, errors } = await openPage(b, `${url}?fixed=1&q=${opt.q || 'high'}&hour=${opt.hour || 11.25}`, { w: def[0], h: def[1], mobile: !!opt.mobile });
+const { page, errors } = await openPage(b, `${url}?fixed=1&q=${opt.q || 'high'}&hour=${opt.hour || 11.25}${opt.extra ? '&' + opt.extra : ''}`, { w: def[0], h: def[1], mobile: !!opt.mobile });
 const log = {};
 for (const v of views) {
   const [w, h] = opt.mobile ? def : (sizes[v] || def);

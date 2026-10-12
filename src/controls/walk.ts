@@ -40,7 +40,7 @@ export class Walker {
       geos.push(g.index ? g.toNonIndexed() : g);
     });
     const merged = mergeGeometries(geos, false);
-    this.bvh = merged ? new MeshBVH(merged) : null;
+    this.bvh = merged ? new MeshBVH(merged, { maxDepth: 64 }) : null;
   }
 
   teleport(x: number, y: number, z: number, yaw = this.yaw) {

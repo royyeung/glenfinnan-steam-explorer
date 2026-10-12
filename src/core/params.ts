@@ -1,5 +1,6 @@
 // URL parameters: ?q=high|medium|low  ?debug=1  ?fixed=1 (deterministic: sim advances only via GX.step)
 // ?shot=<view> (harness capture mode)  ?perf=1 (overlay)  ?tune=1 (tuning panel)  ?live=1 (generate, no GLB)
+// ?site=test (the Phase 1-4 straight test track, used by the regression checks)  ?place=viaduct|station  ?weather=fair|sunny|overcast|mist
 import type { Tier } from './quality.ts';
 
 const u = new URLSearchParams(location.search);
@@ -15,4 +16,7 @@ export const params = {
   live: flag('live'),
   view: u.get('view'),
   hour: u.has('hour') ? Number(u.get('hour')) : null,
+  site: (u.get('site') === 'test' ? 'test' : 'glenfinnan') as 'test' | 'glenfinnan',
+  place: (u.get('place') === 'station' ? 'station' : 'viaduct') as 'viaduct' | 'station',
+  weather: u.get('weather'),
 };

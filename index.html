@@ -35,6 +35,7 @@
     #about .card { background: #16191c; border-radius: 12px; max-width: 620px; max-height: 85vh; overflow: auto; padding: 18px 20px; }
     #about h2 { margin-top: 0; }
     #about li { margin: 4px 0; }
+    #osAttr { position: fixed; left: 12px; bottom: calc(66px + env(safe-area-inset-bottom)); max-width: min(560px, calc(100vw - 24px)); font-size: 11px; color: var(--dim); background: rgba(16, 18, 20, 0.6); padding: 3px 8px; border-radius: 6px; z-index: 4; pointer-events: none; }
     #perf { position: fixed; top: 54px; left: 12px; background: rgba(0, 0, 0, 0.72); font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; border-radius: 8px; white-space: pre; z-index: 6; pointer-events: none; }
     .joy { position: fixed; bottom: calc(90px + env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); background: rgba(0, 0, 0, 0.18); z-index: 4; touch-action: none; }
     .joy i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
@@ -61,7 +62,7 @@
   <div id="loading" role="dialog" aria-modal="true" aria-labelledby="ltitle">
     <div class="card">
       <h1 id="ltitle">Glenfinnan Steam Explorer</h1>
-      <p class="sub">LMS Black Five 45407 “The Lancashire Fusilier” · Phase 1 foundations</p>
+      <p class="sub">LMS Black Five 45407 “The Lancashire Fusilier” and the Jacobite set at Glenfinnan</p>
       <div class="bar" aria-hidden="true"><i id="loadBar"></i></div>
       <div id="loadText" role="status" aria-live="polite">Preparing…</div>
       <button id="start" class="btn">Start (sound on)</button>
@@ -69,7 +70,8 @@
     </div>
   </div>
 
-  <div id="title" hidden><b>45407</b> · blockout · <span id="modeName">Orbit</span></div>
+  <div id="title" hidden><b>45407</b> · Glenfinnan · <span id="modeName">Orbit</span></div>
+  <div id="osAttr" hidden>Terrain and map: contains OS data © Crown copyright and database right 2026. Gorge, river and railway formation shaped by hand (no LiDAR here yet).</div>
   <div id="help" hidden></div>
   <div id="perf" hidden></div>
   <div id="cross" hidden></div>
@@ -86,6 +88,17 @@
       <label>Reverser <input type="range" id="cutoff" min="-100" max="100" step="5" value="65" aria-label="Reverser: forward or backward gear" /></label>
       <button class="btn" id="infoBtn" aria-pressed="false" title="Show labelled parts">Info</button>
       <label>Time <input type="range" id="hour" min="4" max="22" step="0.25" aria-label="Time of day" /></label>
+    </div>
+    <div class="group" id="worldGroup" hidden>
+      <select class="btn" id="weather" aria-label="Weather">
+        <option value="sunny">Sunny</option><option value="fair">Bright, broken cloud</option><option value="overcast">Overcast</option><option value="mist">Mist and low cloud</option>
+      </select>
+      <select class="btn" id="place" aria-label="Where the train stands">
+        <option value="viaduct">Train on the viaduct</option><option value="station">Train at Glenfinnan station</option>
+      </select>
+      <select class="btn" id="goto" aria-label="Go to a viewpoint">
+        <option value="">Go to…</option><option value="v01-classic">Classic hillside view</option><option value="viaduct-river">Under the arches</option><option value="viaduct-deck">On the viaduct</option><option value="loch-head">Loch Shiel shore</option><option value="station-platform">Station platform</option><option value="aerial">From the air</option><option value="front-34-l">The engine</option>
+      </select>
     </div>
     <div class="group">
       <button class="btn" id="mute" aria-pressed="false" aria-label="Mute sound">Sound on</button>
@@ -115,9 +128,9 @@
       <ul id="estList"></ul>
       <h3>Credits</h3>
       <ul>
-        <li>Textures: Poly Haven “Gravel Stones” and “Aerial Grass Rock”, CC0.</li>
+        <li>Textures: Poly Haven “Gravel Stones”, “Aerial Grass Rock”, “Aerial Rocks 02”, “Forest Floor”, “Concrete Wall 008” and “Aerial Asphalt 01”, CC0.</li>
         <li>Software: three.js (MIT), three-mesh-bvh (MIT), lil-gui (MIT), Basis Universal transcoder (Apache-2.0), glTF-Transform and meshoptimizer (MIT).</li>
-        <li>Terrain (from Phase 5): OS Terrain 50, contains OS data © Crown copyright and database right; Scottish LiDAR where published, © Crown copyright Scottish Government.</li>
+        <li>Terrain and map: OS Terrain 50 and OS OpenMap – Local. Contains OS data © Crown copyright and database right 2026 (Open Government Licence v3.0). Glenfinnan has no published LiDAR yet, so the ground comes from 50 m heights; the gorge, river channel, railway cuttings and embankments, roads and plots are shaped by hand from the map and photographs, and tree positions follow the mapped woodland.</li>
         <li>Sound: procedural (Web Audio), no recordings.</li>
       </ul>
       <button class="btn" id="aboutClose">Close</button>

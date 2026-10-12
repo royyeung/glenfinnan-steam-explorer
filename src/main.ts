@@ -26,6 +26,7 @@ app.load((f, t) => { bar.style.width = `${(f * 100).toFixed(0)}%`; text.textCont
 function begin(withSound: boolean) {
   $('loading').hidden = true;
   if (!(params.fixed || params.shot) || new URLSearchParams(location.search).has('hud')) for (const id of ['hud', 'title', 'help']) $(id).hidden = false;
+  if (app.world) { $('osAttr').hidden = false; $('worldGroup').hidden = false; }
   if (params.perf) $('perf').hidden = false;
   if (withSound) app.audio.unlock().then(syncSound);
   installTuning(app, params.tune);
@@ -82,6 +83,14 @@ function wireUI() {
   const hour = $<HTMLInputElement>('hour');
   hour.value = String(app.atmosphere.params.hour);
   hour.oninput = () => { app.atmosphere.params.hour = Number(hour.value); app.atmosphere.invalidate(); };
+  if (app.world) {
+    const w = $<HTMLSelectElement>('weather'); w.value = app.weather;
+    w.onchange = () => app.setWeather(w.value as typeof app.weather);
+    const pl = $<HTMLSelectElement>('place'); pl.value = app.placeName;
+    pl.onchange = () => { app.placeTrain(pl.value as 'viaduct' | 'station'); };
+    const go = $<HTMLSelectElement>('goto');
+    go.onchange = () => { if (go.value) { app.setView(go.value); setMode(app.mode === 'walk' ? 'walk' : 'orbit'); } go.value = ''; };
+  }
   $('mute').onclick = async () => {
     if (!app.audio.running) await app.audio.unlock(); else app.audio.setMuted(!app.audio.muted);
     syncSound();

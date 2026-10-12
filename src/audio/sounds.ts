@@ -87,6 +87,107 @@ export class Soundscape {
     this.timers.push(window.setTimeout(schedule, 2000));
   }
 
+  // ---------------------------------------------------------------- Phase 5: the glen
+  private windBed: GainNode | null = null; private windHi: GainNode | null = null;
+  private hourOf: () => number = () => 11;
+
+  /** Glenfinnan: wind (stronger and whistling on the viaduct), the River Finnan along its bed,
+   *  small waves on Loch Shiel's shore, birds by day and owls at night, echo under the arches. */
+  landscape(world: { json: { water: { kind: string; hole: boolean; ring: [number, number][]; y: number[] }[]; lochLevel: number; landmarks: { monument: [number, number, number] } } }, hour: () => number) {
+    const ctx = this.a.ctx!; this.hourOf = hour;
+    const brown = noiseBuffer(ctx, 'brown', 6, 3), pink = noiseBuffer(ctx, 'pink', 5, 7), white = noiseBuffer(ctx, 'white', 3, 11);
+    // wind bed with gusts; a high whistle band rises with exposure (see landscapeUpdate)
+    const wind = this.windBed = this.a.bed(0.0), lp = filt(ctx, 'lowpass', 500, 0.5);
+    loop(ctx, brown).connect(lp).connect(wind);
+    const hi = this.windHi = ctx.createGain(); hi.gain.value = 0;
+    loop(ctx, pink).connect(filt(ctx, 'bandpass', 2300, 3)).connect(hi).connect(wind);
+    const gust = () => { const t = ctx.currentTime; wind.gain.setTargetAtTime((0.09 + 0.12 * this.rand()) * this.exposure, t, 1.5 + 2 * this.rand()); lp.frequency.setTargetAtTime(300 + 700 * this.rand() + 400 * (this.exposure - 1), t, 2.0); };
+    gust(); this.timers.push(window.setInterval(gust, 4000));
+    // the river: rushing water at points along the River Finnan near the viaduct
+    const river = world.json.water.filter((w) => w.kind === 'river' && !w.hole);
+    const pts: THREE.Vector3[] = [];
+    for (const r of river) for (let i = 0; i < r.ring.length; i += 6) { const [x, z] = r.ring[i]; if (Math.hypot(x, z + 40) < 700) pts.push(new THREE.Vector3(x, r.y[i] + 0.3, z)); }
+    const chosen: THREE.Vector3[] = [];
+    for (const p of pts) if (chosen.every((c) => c.distanceTo(p) > 90)) chosen.push(p);
+    for (const [i, p] of chosen.slice(0, 7).entries()) {
+      const s = this.a.spatial('river', p, 9, 1.1); s.gain.gain.value = 0.16;
+      loop(ctx, white).connect(filt(ctx, 'bandpass', 1800 + 500 * (i % 3), 0.5)).connect(filt(ctx, 'lowpass', 7000)).connect(s.gain);
+      loop(ctx, pink).connect(filt(ctx, 'bandpass', 500 + 120 * i, 0.7)).connect(s.gain);
+    }
+    // the loch: slow waves breaking on the shingle by the monument
+    const [mx, , mz] = world.json.landmarks.monument;
+    for (const [dx, dz] of [[-60, 25], [70, 40], [0, 70]]) {
+      const s = this.a.spatial('loch', new THREE.Vector3(mx + dx, world.json.lochLevel + 0.2, mz + dz), 7, 1.2); s.gain.gain.value = 0;
+      const env = ctx.createGain(); env.gain.value = 0;
+      loop(ctx, pink).connect(filt(ctx, 'lowpass', 1200, 0.6)).connect(env).connect(s.gain);
+      s.gain.gain.value = 0.22;
+      const wave = () => { const t = ctx.currentTime, a = 0.4 + 0.6 * this.rand(); env.gain.setTargetAtTime(a, t, 0.5); env.gain.setTargetAtTime(0.05, t + 1.2 + this.rand(), 0.9); };
+      wave(); this.timers.push(window.setInterval(wave, 3800 + Math.floor(this.rand() * 2400)));
+    }
+    // wildlife: song birds by day (busiest at dawn), a curlew over the moor now and then, owls at night
+    const call = () => {
+      const h = this.hourOf(), day = h > 5 && h < 21.5, dawn = Math.max(0, 1 - Math.abs(h - 6) / 2);
+      if (day) {
+        this.chirp(ctx, new THREE.Vector3((this.rand() - 0.5) * 300, 40 + this.rand() * 30, (this.rand() - 0.5) * 300));
+        if (this.rand() < 0.08) this.curlew(ctx, new THREE.Vector3((this.rand() - 0.5) * 900, 120, (this.rand() - 0.5) * 900));
+      } else if (this.rand() < 0.35) this.owl(ctx, new THREE.Vector3((this.rand() - 0.5) * 400, 40, (this.rand() - 0.5) * 400));
+      this.timers.push(window.setTimeout(call, (day ? 2500 + this.rand() * 7000 : 7000 + this.rand() * 12000) / (1 + 2 * dawn)));
+    };
+    this.timers.push(window.setTimeout(call, 1500));
+  }
+
+  private exposure = 1;
+  /** Per frame: wind exposure from the height above the ground below; echo near the viaduct. */
+  landscapeUpdate(listener: THREE.Vector3, world: { data: { height: (x: number, z: number) => number; track: { viaduct: [number, number]; nearest: (x: number, z: number) => number; at: (s: number) => THREE.Vector3 } } }) {
+    if (!this.windBed) return;
+    const above = listener.y - world.data.height(listener.x, listener.z);
+    this.exposure = 1 + THREE.MathUtils.clamp((above - 4) / 22, 0, 1) * 0.9;
+    const t = this.a.ctx!.currentTime;
+    this.windHi!.gain.setTargetAtTime(THREE.MathUtils.clamp((above - 10) / 20, 0, 1) * 0.05, t, 0.8);
+    const tr = world.data.track, s = tr.nearest(listener.x, listener.z), [sW, sE] = tr.viaduct;
+    const p = tr.at(s), d = Math.hypot(p.x - listener.x, p.z - listener.z);
+    const near = s > sW - 5 && s < sE + 5 && d < 45 && listener.y < p.y - 3 ? 1 - d / 45 : 0;   // below the deck, beside or under the arches
+    this.a.setEcho(near);
+  }
+
+  private chirp(ctx: AudioContext, pos: THREE.Vector3) {
+    const t = ctx.currentTime + 0.05, n = 2 + Math.floor(this.rand() * 5);
+    const s = this.a.spatial('bird', pos, 14, 1.0); s.gain.gain.value = 0.05;
+    const base = 3200 + this.rand() * 2400;
+    for (let i = 0; i < n; i++) {
+      const o = ctx.createOscillator(), e = ctx.createGain(), t0 = t + i * (0.09 + this.rand() * 0.05);
+      o.frequency.setValueAtTime(base, t0); o.frequency.exponentialRampToValueAtTime(base * (1.25 + this.rand() * 0.4), t0 + 0.05);
+      e.gain.setValueAtTime(0, t0); e.gain.linearRampToValueAtTime(1, t0 + 0.008); e.gain.exponentialRampToValueAtTime(0.001, t0 + 0.07);
+      o.connect(e).connect(s.gain); o.start(t0); o.stop(t0 + 0.08);
+    }
+    window.setTimeout(() => s.gain.disconnect(), 2000);
+  }
+  /** Curlew-like rising "cur-lee" whistles (synthesised). */
+  private curlew(ctx: AudioContext, pos: THREE.Vector3) {
+    const s = this.a.spatial('curlew', pos, 40, 1.0); s.gain.gain.value = 0.06;
+    let t = ctx.currentTime + 0.05;
+    for (let i = 0; i < 3 + Math.floor(this.rand() * 3); i++) {
+      const o = ctx.createOscillator(), e = ctx.createGain(); o.type = 'sine';
+      o.frequency.setValueAtTime(1800, t); o.frequency.exponentialRampToValueAtTime(2600, t + 0.35);
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(1, t + 0.06); e.gain.setTargetAtTime(0, t + 0.3, 0.06);
+      o.connect(e).connect(s.gain); o.start(t); o.stop(t + 0.6); t += 0.55;
+    }
+    window.setTimeout(() => s.gain.disconnect(), 4000);
+  }
+  /** Tawny owl: a hoot, a pause, then a wavering hoo-hoo-hooo (synthesised). */
+  private owl(ctx: AudioContext, pos: THREE.Vector3) {
+    const s = this.a.spatial('owl', pos, 25, 1.0); s.gain.gain.value = 0.07;
+    const note = (t0: number, d: number, f: number, vib = 0) => {
+      const o = ctx.createOscillator(), e = ctx.createGain(); o.frequency.setValueAtTime(f, t0);
+      if (vib) { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = vib; lg.gain.value = 18; l.connect(lg).connect(o.frequency); l.start(t0); l.stop(t0 + d); }
+      e.gain.setValueAtTime(0, t0); e.gain.linearRampToValueAtTime(1, t0 + 0.05); e.gain.setTargetAtTime(0, t0 + d - 0.1, 0.05);
+      o.connect(filt(ctx, 'lowpass', 1200)).connect(e).connect(s.gain); o.start(t0); o.stop(t0 + d + 0.2);
+    };
+    const t = ctx.currentTime + 0.05;
+    note(t, 0.6, 720); note(t + 2.4, 0.25, 700); note(t + 2.9, 1.1, 690, 9);
+    window.setTimeout(() => s.gain.disconnect(), 6000);
+  }
+
   /** A locomotive standing in steam. */
   locoIdle(p: LocoSoundPoints) {
     const ctx = this.a.ctx!;

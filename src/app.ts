@@ -10,10 +10,11 @@ import { params } from './core/params.ts';
 import { Atmosphere } from './render/atmosphere.ts';
 import { Post } from './render/post.ts';
 import { buildSite } from './world/site.ts';
+import { World, WORLD_TIERS, type Placeable } from './world/world.ts';
 import { buildEngine, buildTender } from './loco/engine.ts';
 import { blockoutMaterials } from './loco/materials.ts';
 import { LocoRig } from './loco/rig.ts';
-import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine, zTender } from './specs/black5.ts';
+import { B5, ENGINE_ORIGIN_D, TENDER_ORIGIN_D, zEngine, zTender, engineAxlesD, tenderAxlesD } from './specs/black5.ts';
 import { Walker } from './controls/walk.ts';
 import { WalkInputs } from './controls/input.ts';
 import { AudioEngine } from './audio/engine.ts';
@@ -31,6 +32,15 @@ import { FORMATION, MK2, type CoachType } from './specs/mk2.ts';
 import { paintCoachLetter, paintCoachNumber } from './render/decals.ts';
 
 const BASE = import.meta.env.BASE_URL;
+const SITE_PLATFORM_TOP = 0.915;
+export type WeatherName = 'sunny' | 'fair' | 'overcast' | 'mist';
+/** Weather presets (sky clouds, haze per metre for the 12 km landscape, air turbidity). */
+export const WEATHER: Record<WeatherName, { cloudCoverage: number; cloudDensity: number; turbidity: number; haze: number }> = {
+  sunny: { cloudCoverage: 0.22, cloudDensity: 0.45, turbidity: 3.2, haze: 0.00011 },
+  fair: { cloudCoverage: 0.45, cloudDensity: 0.55, turbidity: 5, haze: 0.00022 },
+  overcast: { cloudCoverage: 0.88, cloudDensity: 0.8, turbidity: 8, haze: 0.00038 },
+  mist: { cloudCoverage: 1.0, cloudDensity: 0.92, turbidity: 10, haze: 0.0013 },
+};
 export type Mode = 'orbit' | 'walk' | 'free';
 const SIM_HZ = 120;
 
@@ -61,10 +71,16 @@ export class App {
   private stepDist = 0;
   /** What the walker is standing on, by height and position (for footstep sounds). */
   private surface(): 'ground' | 'platform' | 'steel' | 'carpet' {
-    const y = this.walker.groundHeight;
-    if (y > 1.5) return 'steel';
-    if (y > 1.2) return 'carpet';
-    if (y > 0.85) return 'platform';
+    const byHeight = (y: number) => (y > 1.5 ? 'steel' : y > 1.2 ? 'carpet' : y > 0.85 ? 'platform' : 'ground');
+    if (!this.world) return byHeight(this.walker.groundHeight);
+    // world mode: heights are above the OS datum, so judge them in the frame of the vehicle underfoot
+    const feet = this.walker.feet;
+    for (const v of this.trainFrame) {
+      const l = v.obj.worldToLocal(feet.clone()), half = v.obj === this.tender ? 4.8 : 10.4;
+      if (Math.abs(l.x) < 1.45 && Math.abs(l.z) < half && l.y > 0.5) return byHeight(l.y);
+    }
+    const path = this.world.data.track, s = path.nearest(feet.x, feet.z), pl = this.world.settlement.platform;
+    if (s > pl.s0 && s < pl.s1 && feet.y > path.at(s).y + 0.7 && feet.distanceTo(path.at(s)) < 7) return 'platform';
     return 'ground';
   }
   train!: Train;
@@ -74,7 +90,11 @@ export class App {
   private soundPointsCache: LocoSoundPoints | null = null;
   engine = new THREE.LOD();
   tender = new THREE.LOD();
-  site!: ReturnType<typeof buildSite>;
+  site: ReturnType<typeof buildSite> | null = null;
+  world: World | null = null;
+  /** Where the train stands (world mode): arc length of the engine's front buffer. */
+  placeName: 'viaduct' | 'station' = params.place;
+  private vehicles: Placeable[] = [];
   simTime = 0;
   theta = 0;
   motionOn = false;
@@ -133,8 +153,20 @@ export class App {
       return t;
     };
     const [bc, bn, br, gc, gn, gr] = await Promise.all(['ballast_color', 'ballast_normal', 'ballast_rough', 'ground_color', 'ground_normal', 'ground_rough'].map(tex));
-    this.site = buildSite({ ballast: { color: bc, normal: bn, rough: br }, ground: { color: gc, normal: gn, rough: gr } });
-    this.scene.add(this.site.group);
+    if (params.site === 'test') {
+      this.site = buildSite({ ballast: { color: bc, normal: bn, rough: br }, ground: { color: gc, normal: gn, rough: gr } });
+      this.scene.add(this.site.group);
+    } else {
+      // Glenfinnan from OS data (Phase 5): terrain, water, trees, track, viaduct, village
+      const w = this.world = new World();
+      const [rc, fc, cc, cn, cr, ac, an, ar] = await Promise.all(['rock_color', 'forest_color', 'concrete_color', 'concrete_normal', 'concrete_rough', 'asphalt_color', 'asphalt_normal', 'asphalt_rough'].map(tex));
+      await w.load(BASE, ver, tick);
+      w.build({ grass: { color: gc, normal: gn, rough: gr }, rock: rc, forest: fc, asphalt: ac, ballast: { color: bc, normal: bn, rough: br }, concrete: { color: cc, normal: cn, rough: cr }, asphaltSet: { color: ac, normal: an, rough: ar } }, WORLD_TIERS[this.tierName]);
+      this.scene.add(w.group);
+      // clearer air over a 12 km landscape than the test site's close haze
+      this.atmosphere.params.haze = 0.00022;
+      this.setWeather((params.weather as WeatherName) ?? 'fair');
+    }
 
     // locomotive: compressed GLB LODs (default) or live generation (?live=1, for development)
     const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx2);
@@ -177,6 +209,15 @@ export class App {
     // Low tier: coaches drop to the simplest model sooner (phones have the tightest draw-call budget)
     this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110]);
     this.scene.add(this.train.group);
+    // every vehicle's position in the straight train frame and its two supports (for track placement)
+    const ax = engineAxlesD(), tx = tenderAxlesD(), bcz = MK2.bogieCentres.v / 2;
+    this.vehicles = [
+      { obj: this.engine, z0: 0, supports: [zEngine((ax.bogieFront + ax.bogieRear) / 2), zEngine(ax.drive)] },
+      { obj: this.tender, z0: this.tender.position.z, supports: [zTender(tx[0]), zTender(tx[2])] },
+      ...this.train.coaches.map((c) => ({ obj: c.lod as THREE.Object3D, z0: c.lod.position.z, supports: [bcz, -bcz] as [number, number] })),
+    ];
+    this.trainFrame = this.vehicles.map((v) => ({ ...v, z1: v.z0 }));
+    if (this.world) this.world.placeTrain(this.world.places[this.placeName], this.vehicles);
     this.train.onDoor = (pos, opening) => this.sounds.door(pos, opening);
     for (const c of this.train.coaches) {
       paintDecals(c.lod, this.tier.anisotropy);
@@ -217,7 +258,7 @@ export class App {
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);
-    this.walker.setColliders([...this.site.colliders, this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels]);
+    this.rebuildColliders();
     this.inputs = new WalkInputs(this.canvas, this.walker.input);
     this.inputs.clickTaken = () => !!this.cabUI?.wantsClick;
     this.inputs.lookSuspended = () => !!this.cabUI?.dragging && !!this.cabUI.selected;
@@ -225,12 +266,14 @@ export class App {
     // controls
     this.orbit = new OrbitControls(this.persp, this.canvas);
     this.orbit.enableDamping = true; this.orbit.dampingFactor = 0.08;
-    this.orbit.minDistance = 1.5; this.orbit.maxDistance = 150; this.orbit.maxPolarAngle = 1.53;
-    this.setView('front-34-l');
+    this.orbit.minDistance = 1.5; this.orbit.maxDistance = this.world ? 6000 : 150; this.orbit.maxPolarAngle = 1.53;
+    if (this.world) this.registerTrackViews();
+    this.setView(this.world ? 'v01-classic' : 'front-34-l');
 
     // sound (starts on the first user gesture)
     this.audio.onStart(() => {
-      this.sounds.ambience(new THREE.Vector3(-60, -0.5, -40));
+      if (this.world) this.sounds.landscape(this.world.data, () => this.atmosphere.params.hour);
+      else this.sounds.ambience(new THREE.Vector3(-60, -0.5, -40));
       this.sounds.locoIdle(this.soundPoints());
     });
 
@@ -294,7 +337,14 @@ export class App {
     const v = VIEWS[name];
     if (!v) throw new Error(`unknown view ${name}`);
     this.orthoView = null;
-    this.site.group.visible = v.kind !== 'ortho';
+    if (this.site) this.site.group.visible = v.kind !== 'ortho';
+    if (this.world) this.world.group.visible = v.kind !== 'ortho';
+    if (v.frame === 'world' && !this.world) throw new Error(`view ${name} needs the Glenfinnan world`);
+    // train-frame views follow the train wherever it stands (world mode)
+    const P = (p: [number, number, number], agl = false) => {
+      if (v.frame !== 'world') return this.trainToWorld(new THREE.Vector3(...p));
+      const q = new THREE.Vector3(...p); if (agl) q.y += this.world!.data.height(q.x, q.z); return q;
+    };
     // elevations are measured views: always full detail (LOD switching would use the 120 m camera distance)
     for (const lod of [this.engine, this.tender]) {
       lod.autoUpdate = v.kind !== 'ortho';
@@ -303,22 +353,78 @@ export class App {
     if (v.kind === 'persp') {
       this.setMode('orbit'); this.setCamera(this.persp);
       this.persp.fov = v.fov; this.persp.updateProjectionMatrix();
-      this.persp.position.set(...v.pos); this.orbit.target.set(...v.target); this.orbit.update();
+      this.persp.position.copy(P(v.pos, v.agl)); this.orbit.target.copy(P(v.target)); this.orbit.update();
     } else if (v.kind === 'walk') {
       this.setMode('walk');
-      this.walker.teleport(...v.feet, v.yaw); this.walker.pitch = v.pitch; this.walker.applyTo(this.persp);
+      const f = P(v.feet, v.agl);
+      this.walker.teleport(f.x, f.y, f.z, v.yaw + (v.frame === 'world' ? 0 : this.trainYawAt(new THREE.Vector3(...v.feet)))); this.walker.pitch = v.pitch; this.walker.applyTo(this.persp);
     } else {
       this.setMode('orbit'); this.orbit.enabled = false;
       this.orthoView = { dir: v.dir, centre: v.centre, pxPerM: v.pxPerM };
       const [cx, cy, cz] = v.centre, D = 120;
       const pos: Record<string, [number, number, number]> = { left: [cx + D, cy, cz], right: [cx - D, cy, cz], front: [cx, cy, cz + D], top: [cx, cy + D, cz] };
-      this.ortho.position.set(...pos[v.dir]);
-      this.ortho.up.set(v.dir === 'top' ? 1 : 0, v.dir === 'top' ? 0 : 1, 0); // plan: engine left side at the top, front to the right
-      this.ortho.lookAt(cx, cy, cz);
+      // measured elevations are taken in the engine's own frame wherever it stands
+      const toW = (p: THREE.Vector3) => this.engine.localToWorld(p);
+      this.ortho.position.copy(toW(new THREE.Vector3(...pos[v.dir])));
+      this.ortho.up.set(v.dir === 'top' ? 1 : 0, v.dir === 'top' ? 0 : 1, 0).applyQuaternion(this.engine.getWorldQuaternion(new THREE.Quaternion())); // plan: engine left side at the top, front to the right
+      this.ortho.lookAt(toW(new THREE.Vector3(cx, cy, cz)));
       this.ortho.near = 1; this.ortho.far = 400;
       this.updateOrtho();
       this.setCamera(this.ortho);
     }
+  }
+
+  private trainFrame: (Placeable & { z1: number })[] = [];
+  /** The vehicle a straight-train-frame point belongs to (nearest by z). */
+  private vehicleAt(p: THREE.Vector3) {
+    let best = this.trainFrame[0], bd = Infinity;
+    for (const v of this.trainFrame) {
+      const len = v.obj === this.engine ? 12 : v.obj === this.tender ? 9 : 10.5, d = Math.abs(p.z - v.z0);
+      const dd = Math.max(0, d - len);
+      if (dd < bd) { bd = dd; best = v; }
+    }
+    return best;
+  }
+  /** Map a point given in the straight train frame (Phase 1-4 views and checks) to the world. */
+  trainToWorld(p: THREE.Vector3) {
+    if (!this.world || !this.trainFrame.length) return p.clone();
+    const v = this.vehicleAt(p);
+    return v.obj.localToWorld(new THREE.Vector3(p.x, p.y, p.z - v.z0));
+  }
+  /** Heading of the vehicle carrying a train-frame point (radians about +Y). */
+  trainYawAt(p: THREE.Vector3) {
+    if (!this.world || !this.trainFrame.length) return 0;
+    const f = new THREE.Vector3(0, 0, 1).applyQuaternion(this.vehicleAt(p).obj.getWorldQuaternion(new THREE.Quaternion()));
+    return Math.atan2(f.x, f.z);
+  }
+  /** Move the whole train to a named place on the line. */
+  placeTrain(name: 'viaduct' | 'station') {
+    if (!this.world) return;
+    this.placeName = name;
+    this.world.placeTrain(this.world.places[name], this.vehicles);
+    this.scene.updateMatrixWorld(true);
+    this.soundPointsCache = null;
+    if (this.audio.running) this.sounds.moveLoco(this.soundPoints());
+    this.rebuildColliders();
+  }
+  /** Views tied to the line: on the viaduct deck and on the station platform (world mode). */
+  private registerTrackViews() {
+    const path = this.world!.data.track, [sW] = path.viaduct, pl = this.world!.settlement.platform;
+    const look = (s: number, sign: number) => { const t = path.tangent(s).multiplyScalar(sign); return Math.atan2(-t.x, -t.z); };
+    const on = (s: number, u: number, dy: number): [number, number, number] => { const p = path.at(s), q = path.side(s); return [p.x + q.x * u, p.y + dy, p.z + q.z * u]; };
+    VIEWS['viaduct-deck'] = { kind: 'walk', frame: 'world', feet: on(sW + 24, -2.15, -0.36), yaw: look(sW + 24, 1), pitch: -0.05 };
+    VIEWS['viaduct-parapet'] = { kind: 'walk', frame: 'world', feet: on(sW + 190, -2.2, -0.36), yaw: look(sW + 190, 1) - 1.35, pitch: -0.32 };
+    VIEWS['station-platform'] = { kind: 'walk', frame: 'world', feet: on(pl.s0 + 120, pl.u0 - 2.2, SITE_PLATFORM_TOP), yaw: look(pl.s0 + 120, -1) + 0.25, pitch: -0.02 };
+  }
+
+  rebuildColliders() {
+    this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? []), this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels]);
+  }
+  weather: WeatherName = 'fair';
+  setWeather(w: WeatherName) {
+    const p = WEATHER[w] ?? WEATHER.fair; this.weather = w;
+    Object.assign(this.atmosphere.params, p);
+    this.atmosphere.invalidate();
   }
 
   setMotion(on: boolean) { this.motionOn = on; }
@@ -329,7 +435,7 @@ export class App {
   /** Cab gates swing open when you walk up to the cab, and close again when you leave. */
   private updateGates(dt: number) {
     const lvl = this.engine.levels[0]?.object; if (!lvl) return;
-    const near = this.mode === 'walk' && this.walker.feet.distanceTo(new THREE.Vector3(0, B5.footplateH.v, zEngine(12.1))) < 2.6;
+    const near = this.mode === 'walk' && this.walker.feet.distanceTo(this.engine.localToWorld(new THREE.Vector3(0, B5.footplateH.v, zEngine(12.1)))) < 2.6;
     this.gateOpen = THREE.MathUtils.clamp(this.gateOpen + (near ? 1 : -1) * dt * 1.5, 0, 1);
     const a = THREE.MathUtils.smoothstep(this.gateOpen, 0, 1) * 1.45;
     for (const l of this.engine.levels) for (const [n, s] of [['cab_gate_L', 1], ['cab_gate_R', -1]] as const) { const g = l.object.getObjectByName(n); if (g) g.rotation.y = s * a; }
@@ -358,7 +464,8 @@ export class App {
 
   setSilhouette(on: boolean) {
     this.silhouette = on;
-    this.site.group.visible = !on;
+    if (this.site) this.site.group.visible = !on;
+    if (this.world) this.world.group.visible = !on;
     this.atmosphere.sky.visible = !on;
     this.scene.overrideMaterial = on ? new THREE.MeshBasicMaterial({ color: 0x000000 }) : null;
     this.scene.background = on ? new THREE.Color(0xffffff) : null;
@@ -390,6 +497,11 @@ export class App {
       const c = this.footplate.c, inj = (c.injL > 0.3 && c.waterL > 0.5 ? 1 : 0) + (c.injR > 0.3 && c.waterR > 0.5 ? 1 : 0);
       this.sounds.footplate({ blower: c.blower, safety: this.footplate.safetyLift, ejector: Math.min(1, c.ejectorLarge + 0.3 * c.ejectorSmall), whistle: c.whistle, injectors: inj }, this.soundPointsCache ??= this.soundPoints());
     }
+    // near plane: close for walking (cab, coaches), pushed out for orbit views over the landscape
+    const near = this.mode === 'walk' ? 0.06 : THREE.MathUtils.clamp(this.persp.position.distanceTo(this.orbit.target) * 0.004, 0.05, 2);
+    if (Math.abs(near - this.persp.near) > 1e-3) { this.persp.near = near; this.persp.updateProjectionMatrix(); }
+    this.world?.update(this.camera.getWorldPosition(new THREE.Vector3()), this.simTime);
+    if (this.world && this.audio.running) this.sounds.landscapeUpdate(this.camera.getWorldPosition(new THREE.Vector3()), this.world);
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     // moving rods cast shadows on High/Medium (not on Low): keep shadows live while the wheels turn
     this.atmosphere.dynamicShadows = this.tierName !== 'low' && (this.motionOn || this.footplate.wheelOmega !== 0);

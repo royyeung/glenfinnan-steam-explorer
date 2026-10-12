@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-12T10:53:22.233Z",
+ "generated": "2026-10-12T14:41:14.140Z",
  "files": {
   "engine_lod0.glb": {
    "bytes": 529640,
@@ -32,9 +32,9 @@
    "hash": "49b2c7bc884f"
   },
   "coach_tso2_lod0.glb": {
-   "bytes": 574888,
-   "tris": 56096,
-   "hash": "3c682d18a4ce"
+   "bytes": 577100,
+   "tris": 56144,
+   "hash": "7e314526b106"
   },
   "coach_tso2_lod1.glb": {
    "bytes": 176016,
@@ -47,9 +47,9 @@
    "hash": "d6f6c9e2e56c"
   },
   "coach_tso2b_lod0.glb": {
-   "bytes": 561596,
-   "tris": 54900,
-   "hash": "bae5c17ecdf3"
+   "bytes": 563800,
+   "tris": 54956,
+   "hash": "c26890adfe10"
   },
   "coach_tso2b_lod1.glb": {
    "bytes": 166712,
@@ -62,9 +62,9 @@
    "hash": "63832a811a7d"
   },
   "coach_fo2_lod0.glb": {
-   "bytes": 709076,
-   "tris": 70816,
-   "hash": "9bf09bd6aad6"
+   "bytes": 994804,
+   "tris": 80690,
+   "hash": "cd89f9248ff8"
   },
   "coach_fo2_lod1.glb": {
    "bytes": 176016,
@@ -77,19 +77,55 @@
    "hash": "7336c272ee7d"
   },
   "coach_buffet1_lod0.glb": {
-   "bytes": 517736,
-   "tris": 51308,
-   "hash": "38d5aa6bebc2"
+   "bytes": 530872,
+   "tris": 52174,
+   "hash": "2bf79c68ac13"
   },
   "coach_buffet1_lod1.glb": {
-   "bytes": 186476,
-   "tris": 22892,
-   "hash": "fa9a5a38533e"
+   "bytes": 187364,
+   "tris": 22896,
+   "hash": "ac9ee2eb1df8"
   },
   "coach_buffet1_lod2.glb": {
    "bytes": 114564,
    "tris": 12136,
    "hash": "72d54126e69a"
+  },
+  "../terrain/cover_far.png": {
+   "bytes": 39075,
+   "hash": "1fde11037883"
+  },
+  "../terrain/cover_near.png": {
+   "bytes": 115285,
+   "hash": "a942d35e1032"
+  },
+  "../terrain/far.bin": {
+   "bytes": 526338,
+   "hash": "dfffbd93d426"
+  },
+  "../terrain/near.bin": {
+   "bytes": 526338,
+   "hash": "981c7039ead9"
+  },
+  "../terrain/trees.bin": {
+   "bytes": 1189080,
+   "hash": "e86203afc947"
+  },
+  "../terrain/world.json": {
+   "bytes": 561630,
+   "hash": "dcda06b4ebdd"
+  },
+  "../textures/asphalt_color.ktx2": {
+   "bytes": 195666,
+   "hash": "8a6c2c1c53c4"
+  },
+  "../textures/asphalt_normal.ktx2": {
+   "bytes": 1119871,
+   "hash": "a22d15315a72"
+  },
+  "../textures/asphalt_rough.ktx2": {
+   "bytes": 149683,
+   "hash": "389f89ec5c53"
   },
   "../textures/ballast_color.ktx2": {
    "bytes": 190229,
@@ -103,6 +139,30 @@
    "bytes": 169090,
    "hash": "3fd6d5320176"
   },
+  "../textures/concrete_color.ktx2": {
+   "bytes": 170580,
+   "hash": "9c477bbf7ff8"
+  },
+  "../textures/concrete_normal.ktx2": {
+   "bytes": 748069,
+   "hash": "c70dc608c0ba"
+  },
+  "../textures/concrete_rough.ktx2": {
+   "bytes": 78008,
+   "hash": "5a933cd52b9b"
+  },
+  "../textures/forest_color.ktx2": {
+   "bytes": 234664,
+   "hash": "e79af06d465b"
+  },
+  "../textures/forest_normal.ktx2": {
+   "bytes": 1263012,
+   "hash": "d691f9564174"
+  },
+  "../textures/forest_rough.ktx2": {
+   "bytes": 168786,
+   "hash": "530953687ad5"
+  },
   "../textures/ground_color.ktx2": {
    "bytes": 216042,
    "hash": "384d3174c017"
@@ -114,6 +174,18 @@
   "../textures/ground_rough.ktx2": {
    "bytes": 163496,
    "hash": "ff2aff529404"
+  },
+  "../textures/rock_color.ktx2": {
+   "bytes": 232116,
+   "hash": "a5d3cbb0981d"
+  },
+  "../textures/rock_normal.ktx2": {
+   "bytes": 1267669,
+   "hash": "9f2f9800922d"
+  },
+  "../textures/rock_rough.ktx2": {
+   "bytes": 174987,
+   "hash": "9d4851e2d135"
   }
  }
 }

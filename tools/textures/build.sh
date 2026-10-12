@@ -15,3 +15,8 @@ enc() { # id map out kind
 }
 enc gravel_stones Diffuse ballast_color color; enc gravel_stones nor_gl ballast_normal normal; enc gravel_stones Rough ballast_rough data
 enc aerial_grass_rock Diffuse ground_color color; enc aerial_grass_rock nor_gl ground_normal normal; enc aerial_grass_rock Rough ground_rough data
+# Phase 5: landscape and viaduct
+enc aerial_rocks_02 Diffuse rock_color color; enc aerial_rocks_02 nor_gl rock_normal normal; enc aerial_rocks_02 Rough rock_rough data
+enc forest_floor Diffuse forest_color color; enc forest_floor nor_gl forest_normal normal; enc forest_floor Rough forest_rough data
+enc concrete_wall_008 Diffuse concrete_color color; enc concrete_wall_008 nor_gl concrete_normal normal; enc concrete_wall_008 Rough concrete_rough data
+enc aerial_asphalt_01 Diffuse asphalt_color color; enc aerial_asphalt_01 nor_gl asphalt_normal normal; enc aerial_asphalt_01 Rough asphalt_rough data

@@ -3,8 +3,25 @@
 // gentle low-frequency variation. (userData.baseHook keeps the hook available for chaining.)
 import type * as THREE from 'three';
 
+/** Our KTX2 normal maps are encoded in Basis "normal mode": X in RGB, Y in alpha (tools/textures/build.sh). */
+export const KTX_NORMAL_GLSL = /* glsl */ `
+  vec3 ktxN(vec4 t) { vec2 xy = vec2(t.r, t.a) * 2.0 - 1.0; return vec3(xy, sqrt(clamp(1.0 - dot(xy, xy), 0.0, 1.0))); }`;
+
+/** For materials using three's own normal-map chunk with one of our KTX2 normal maps. */
+export function ktxNormalChunk(fragmentShader: string) {
+  return fragmentShader
+    .replace('#include <common>', `#include <common>\n${KTX_NORMAL_GLSL}`)
+    .replace('#include <normal_fragment_maps>', `
+      #ifdef USE_NORMALMAP_TANGENTSPACE
+        vec3 mapN = ktxN(texture2D(normalMap, vNormalMapUv));
+        mapN.xy *= normalScale;
+        normal = normalize(tbn * mapN);
+      #endif`);
+}
+
 const GLSL = /* glsl */ `
-  float atHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+${KTX_NORMAL_GLSL}
+  float atHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }   // sine-free: stable at large coordinates
   float atNoise(vec2 x) {
     vec2 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
     return mix(mix(atHash(i), atHash(i + vec2(1, 0)), f.x), mix(atHash(i + vec2(0, 1)), atHash(i + vec2(1, 1)), f.x), f.y);
@@ -36,12 +53,12 @@ export function antiTile(mat: THREE.MeshStandardMaterial, macro = 0.25) {
         roughnessFactor = max(roughnessFactor, 0.72); // natural ground is never glossy`)
       .replace('#include <normal_fragment_maps>', `
         #ifdef USE_NORMALMAP_TANGENTSPACE
-          vec3 mapN = atSample(normalMap, vNormalMapUv).xyz * 2.0 - 1.0;
+          vec3 mapN = ktxN(atSample(normalMap, vNormalMapUv));
           mapN.xy *= normalScale;
           normal = normalize(tbn * mapN);
         #else
           #include <normal_fragment_maps>
         #endif`);
   };
-  mat.customProgramCacheKey = () => `antitile2-${macro}`;
+  mat.customProgramCacheKey = () => `antitile3-${macro}`;
 }

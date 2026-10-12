@@ -10,6 +10,7 @@ export class AudioEngine {
   bus!: GainNode; // everything mixes here, before the limiter
   analyser!: AnalyserNode;
   private limiter!: DynamicsCompressorNode;
+  private echo!: GainNode;
   private sources: SpatialSource[] = [];
   private builders: ((a: AudioEngine) => void)[] = [];
   volume = 0.8;
@@ -31,6 +32,13 @@ export class AudioEngine {
       this.master = this.ctx.createGain();
       this.analyser = this.ctx.createAnalyser(); this.analyser.fftSize = 2048;
       this.bus.connect(this.limiter).connect(this.master).connect(this.analyser).connect(this.ctx.destination);
+      // echo send (Phase 5): two short delays with feedback, opened under and beside the viaduct
+      this.echo = this.ctx.createGain(); this.echo.gain.value = 0;
+      const d1 = new DelayNode(this.ctx, { delayTime: 0.11, maxDelayTime: 1 }), d2 = new DelayNode(this.ctx, { delayTime: 0.23, maxDelayTime: 1 });
+      const fb = this.ctx.createGain(); fb.gain.value = 0.32;
+      const lp = new BiquadFilterNode(this.ctx, { type: 'lowpass', frequency: 2400 });
+      this.bus.connect(d1); d1.connect(lp); lp.connect(d2); d2.connect(fb); fb.connect(d1);
+      lp.connect(this.echo); d2.connect(this.echo); this.echo.connect(this.limiter);
       this.applyVolume();
       for (const b of this.builders) b(this);
     }
@@ -60,6 +68,9 @@ export class AudioEngine {
     this.sources.push(s);
     return s;
   }
+
+  /** Echo level (0..1): reflections off the viaduct's piers and arches. */
+  setEcho(level: number) { if (this.ctx) this.echo.gain.setTargetAtTime(level * 0.35, this.ctx.currentTime, 0.3); }
 
   /** Non-spatial bed (ambience). */
   bed(level = 1) { const g = this.ctx!.createGain(); g.gain.value = level; g.connect(this.bus); return g; }

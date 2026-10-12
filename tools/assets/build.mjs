@@ -38,8 +38,8 @@ function toDocument(root) {
       const geo = o.geometry, prim = doc.createPrimitive().setMaterial(material(o.material));
       prim.setAttribute('POSITION', acc(new Float32Array(geo.getAttribute('position').array), 'VEC3'));
       if (geo.getAttribute('normal')) prim.setAttribute('NORMAL', acc(new Float32Array(geo.getAttribute('normal').array), 'VEC3'));
-      // only decal panels need UVs (everything else is shaded procedurally): keeps files small
-      if (geo.getAttribute('uv') && /^decal_/.test(o.material.name)) prim.setAttribute('TEXCOORD_0', acc(new Float32Array(geo.getAttribute('uv').array), 'VEC2'));
+      // only decal panels and the tartan fabrics need UVs (everything else is shaded procedurally): keeps files small
+      if (geo.getAttribute('uv') && /^(decal_|curtain$|lamp_shade$)/.test(o.material.name)) prim.setAttribute('TEXCOORD_0', acc(new Float32Array(geo.getAttribute('uv').array), 'VEC2'));
       if (geo.index) prim.setIndices(acc(new Uint32Array(geo.index.array), 'SCALAR'));
       n.setMesh(doc.createMesh(o.name).addPrimitive(prim));
     }
@@ -76,6 +76,7 @@ for (const [name, build] of [['engine', buildEngine], ['tender', buildTender], .
     console.log(`${file}: ${(bytes / 1024).toFixed(1)} kB, ${Math.round(tris)} triangles`);
   }
 }
+for (const f of fs.existsSync('public/terrain') ? fs.readdirSync('public/terrain') : []) { const p = `public/terrain/${f}`; manifest.files[`../terrain/${f}`] = { bytes: fs.statSync(p).size, hash: crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12) }; }
 for (const f of fs.readdirSync('public/textures')) { const p = `public/textures/${f}`; manifest.files[`../textures/${f}`] = { bytes: fs.statSync(p).size, hash: crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 12) }; }
 fs.writeFileSync(`${OUT}/manifest.json`, JSON.stringify(manifest, null, 1));
 void THREE;
