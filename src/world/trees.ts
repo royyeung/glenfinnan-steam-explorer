@@ -53,9 +53,14 @@ function shapes(ring: number) {
   if (ring === 1) {
     return { broad: build([crownGeo([[0, 0.6, 0, 0.3, 0.36]], 0, 13, leaf, leafDark)]), con: build([crownGeo([[0, 0.45, 0, 0.18, 0.47]], 0, 17, needle, needleDark)]) };
   }
+  // far: a three-sided double pyramid (6 triangles), enough for a crown a few pixels across
   const oct = (r: number, h: number, y: number, top: THREE.Color, bot: THREE.Color) => {
-    const g = new THREE.OctahedronGeometry(1, 0), p = g.getAttribute('position'), pos: number[] = [], nor: number[] = [], col: number[] = [];
-    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i) * r, y + p.getY(i) * h, p.getZ(i) * r); const n = new THREE.Vector3(p.getX(i), p.getY(i) * 0.8 + 0.25, p.getZ(i)).normalize(); nor.push(n.x, n.y, n.z); const c = bot.clone().lerp(top, 0.5 + p.getY(i) * 0.5); col.push(c.r, c.g, c.b); }
+    const pos: number[] = [], nor: number[] = [], col: number[] = [];
+    const ring = [0, 1, 2].map((k) => [Math.cos((k * 2 * Math.PI) / 3), 0, Math.sin((k * 2 * Math.PI) / 3)]);
+    for (const tip of [[0, 1, 0], [0, -1, 0]]) for (let k = 0; k < 3; k++) {
+      const a = ring[k], b = ring[(k + 1) % 3], tri = tip[1] > 0 ? [tip, b, a] : [tip, a, b];
+      for (const v of tri) { pos.push(v[0] * r, y + v[1] * h, v[2] * r); const n = new THREE.Vector3(v[0], v[1] * 0.8 + 0.25, v[2]).normalize(); nor.push(n.x, n.y, n.z); const c = bot.clone().lerp(top, 0.5 + v[1] * 0.5); col.push(c.r, c.g, c.b); }
+    }
     return { pos, nor, col };
   };
   return { broad: build([oct(0.3, 0.4, 0.58, leaf, leafDark)]), con: build([oct(0.17, 0.46, 0.5, needle, needleDark)]) };

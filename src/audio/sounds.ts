@@ -146,7 +146,7 @@ export class Soundscape {
     this.windHi!.gain.setTargetAtTime(THREE.MathUtils.clamp((above - 10) / 20, 0, 1) * 0.05, t, 0.8);
     const tr = world.data.track, s = tr.nearest(listener.x, listener.z), [sW, sE] = tr.viaduct;
     const p = tr.at(s), d = Math.hypot(p.x - listener.x, p.z - listener.z);
-    const near = s > sW - 5 && s < sE + 5 && d < 45 && listener.y < p.y - 3 ? 1 - d / 45 : 0;   // below the deck, beside or under the arches
+    const near = s > sW - 5 && s < sE + 5 && d < 90 && listener.y < p.y - 3 ? 1 - d / 90 : 0;   // below the deck, under the arches or out in the glen facing them
     this.a.setEcho(near);
   }
 

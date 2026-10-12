@@ -18,7 +18,7 @@ export interface WorldTier { nearError: number; farError: number; trees: TreeTie
 export const WORLD_TIERS: Record<'high' | 'medium' | 'low', WorldTier> = {
   high: { nearError: 0.25, farError: 1.5, trees: { nearR: 750, farR: 5200, nearMax: 18000, farMax: 60000, shadows: true } },
   medium: { nearError: 0.45, farError: 2.5, trees: { nearR: 450, farR: 3600, nearMax: 8000, farMax: 36000, shadows: true } },
-  low: { nearError: 0.8, farError: 4.0, trees: { nearR: 260, farR: 2200, nearMax: 3000, farMax: 14000, shadows: false } },
+  low: { nearError: 1.0, farError: 6.0, trees: { nearR: 220, farR: 1800, nearMax: 3000, farMax: 6000, shadows: false } },
 };
 
 /** A vehicle placed on the track: its object, its position in the straight train frame and its supports. */

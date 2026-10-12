@@ -1,4 +1,4 @@
-// Automated checks. Usage: tools/run.sh checks.mjs <stage> kin|human|audio|perf|cab|coach|world|audio5|perf5|all
+// Automated checks. Usage: tools/run.sh checks.mjs <stage> kin|human|audio|perf|cab|coach|world|audio5|perf5|all [desktop|phone]
 // Phase 1-4 checks run on the straight test track (?site=test); Phase 5 checks on Glenfinnan.
 import fs from 'node:fs'; import path from 'node:path';
 import { ROOT, serve, browser, openPage } from './common.mjs';
@@ -245,26 +245,31 @@ if (which === 'audio5' || which === 'all') {
   const a = { levels: [] };
   for (const v of ['v01-classic', 'viaduct-river', 'viaduct-deck', 'loch-head', 'aerial']) a.levels.push(await sample(v));
   a.levels.push({ ...(await sample('viaduct-river', 23.0)), note: 'night (owls)' });
-  a.echo = await page.evaluate(() => { GX.view('viaduct-river'); GX.render(); return GX.app.audio.echo.gain.value; });
+  // the echo gain eases in (time constant 0.3 s): keep rendering for 2 s before reading it
+  const echoAt = async (view) => { await page.evaluate((v) => { GX.setHour(11.25); GX.view(v); GX.render(); }, view);
+    for (let i = 0; i < 8; i++) { await page.evaluate(() => GX.render()); await page.waitForTimeout(250); }
+    return page.evaluate((v) => ({ view: v, gain: +GX.app.audio.echo.gain.value.toFixed(3) }), view); };
+  a.echo = [await echoAt('viaduct-river'), await echoAt('v01-classic'), await echoAt('viaduct-deck')];
   await page.evaluate(() => GX.app.audio.setMuted(true)); await page.waitForTimeout(600);
   a.muted = await sample('v01-classic', 11.25);
-  a.pass = a.levels.every((l) => l.peakDb < -1 && l.rmsDb > -60 && l.rmsDb < -10) && (a.muted.rmsDb < -80 || !isFinite(a.muted.rmsDb));
+  a.pass = a.levels.every((l) => l.peakDb < -1 && l.rmsDb > -60 && l.rmsDb < -10) && a.echo[0].gain > 0.05 && a.echo[1].gain < 0.01 && a.echo[2].gain < 0.01 && (a.muted.rmsDb < -80 || !isFinite(a.muted.rmsDb));
   a.errors = errors; save('audio5', a); await ctx.close();
 }
 
 if (which === 'perf5' || which === 'all') {
-  const perf = [];
-  for (const [w, h, mobile] of [[1280, 720, false], [844, 390, true]]) {
+  // optional 3rd argument: desktop | phone (each takes about an hour under SwiftShader)
+  const only = process.argv[4], perf = [];
+  for (const [w, h, mobile] of [[1280, 720, false], [844, 390, true]].filter(([, , m]) => !only || (only === 'phone') === m)) {
     for (const q of ['low', 'medium', 'high']) {
       const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=${q}`, { w, h, mobile });
       for (const view of ['v01-classic', 'aerial', 'viaduct-river', 'viaduct-deck', 'loch-head', 'front-34-l', 'coach-aisle', 'backhead']) {
         const r = await page.evaluate((v) => {
-          GX.view(v); GX.render(); GX.render();
+          GX.view(v); GX.render();
           const gl = GX.app.renderer.getContext(), px = new Uint8Array(4);
           const sync = () => { gl.finish(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
           sync();
           const t = [];
-          for (let i = 0; i < 2; i++) { const t0 = performance.now(); GX.render(); sync(); t.push(performance.now() - t0); }
+          for (let i = 0; i < 1; i++) { const t0 = performance.now(); GX.render(); sync(); t.push(performance.now() - t0); }
           return { view: v, msPerFrame: +(t.reduce((x, y) => x + y, 0) / t.length).toFixed(1), stats: GX.stats() };
         }, view);
         perf.push({ viewport: `${w}x${h}${mobile ? ' (touch)' : ''}`, tier: q, ...r, errors: errors.length });
@@ -273,7 +278,7 @@ if (which === 'perf5' || which === 'all') {
       await ctx.close();
     }
   }
-  save('perf5', perf);
+  save(only ? `perf5-${only}` : 'perf5', perf);
 }
 
 await b.close(); server.close();
