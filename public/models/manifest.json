@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-08T16:32:38.047Z",
+ "generated": "2026-10-12T10:53:22.233Z",
  "files": {
   "engine_lod0.glb": {
    "bytes": 529640,
@@ -31,20 +31,65 @@
    "tris": 2903,
    "hash": "49b2c7bc884f"
   },
-  "coach_lod0.glb": {
-   "bytes": 573128,
-   "tris": 56088,
-   "hash": "ef6024f51a50"
+  "coach_tso2_lod0.glb": {
+   "bytes": 574888,
+   "tris": 56096,
+   "hash": "3c682d18a4ce"
   },
-  "coach_lod1.glb": {
-   "bytes": 175940,
-   "tris": 21774,
-   "hash": "e747b126bd66"
+  "coach_tso2_lod1.glb": {
+   "bytes": 176016,
+   "tris": 21782,
+   "hash": "ad17ede6223d"
   },
-  "coach_lod2.glb": {
+  "coach_tso2_lod2.glb": {
    "bytes": 105532,
    "tris": 11204,
-   "hash": "b3f7d5260874"
+   "hash": "d6f6c9e2e56c"
+  },
+  "coach_tso2b_lod0.glb": {
+   "bytes": 561596,
+   "tris": 54900,
+   "hash": "bae5c17ecdf3"
+  },
+  "coach_tso2b_lod1.glb": {
+   "bytes": 166712,
+   "tris": 20682,
+   "hash": "c7d38dafd2e7"
+  },
+  "coach_tso2b_lod2.glb": {
+   "bytes": 96584,
+   "tris": 10184,
+   "hash": "63832a811a7d"
+  },
+  "coach_fo2_lod0.glb": {
+   "bytes": 709076,
+   "tris": 70816,
+   "hash": "9bf09bd6aad6"
+  },
+  "coach_fo2_lod1.glb": {
+   "bytes": 176016,
+   "tris": 21782,
+   "hash": "a37e8eec6042"
+  },
+  "coach_fo2_lod2.glb": {
+   "bytes": 105532,
+   "tris": 11204,
+   "hash": "7336c272ee7d"
+  },
+  "coach_buffet1_lod0.glb": {
+   "bytes": 517736,
+   "tris": 51308,
+   "hash": "38d5aa6bebc2"
+  },
+  "coach_buffet1_lod1.glb": {
+   "bytes": 186476,
+   "tris": 22892,
+   "hash": "fa9a5a38533e"
+  },
+  "coach_buffet1_lod2.glb": {
+   "bytes": 114564,
+   "tris": 12136,
+   "hash": "72d54126e69a"
   },
   "../textures/ballast_color.ktx2": {
    "bytes": 190229,

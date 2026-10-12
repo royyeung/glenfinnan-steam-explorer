@@ -27,8 +27,8 @@ import { CabRig } from './loco/cabRig.ts';
 import { CabUI } from './ui/cabUI.ts';
 import { Train } from './coach/train.ts';
 import { buildCoach } from './coach/mk2.ts';
-import { MK2 } from './specs/mk2.ts';
-import { paintCoachNumber } from './render/decals.ts';
+import { FORMATION, MK2, type CoachType } from './specs/mk2.ts';
+import { paintCoachLetter, paintCoachNumber } from './render/decals.ts';
 
 const BASE = import.meta.env.BASE_URL;
 export type Mode = 'orbit' | 'walk' | 'free';
@@ -157,21 +157,23 @@ export class App {
     this.engine.position.set(0, 0, 0);
     this.tender.position.set(0, 0, -(TENDER_ORIGIN_D - ENGINE_ORIGIN_D));
     this.scene.add(this.engine, this.tender);
-    // the coaches: three LOD levels loaded once, cloned for each coach of the formation
-    const coachLevels: THREE.Object3D[] = [];
-    for (let l = 0; l < 3; l++) {
-      let root: THREE.Object3D;
-      if (params.live) { root = buildCoach(blockoutMaterials()); }
-      else {
-        const file = `coach_lod${l}.glb`;
-        const g = await gltf.loadAsync(`${BASE}models/${file}${ver(file)}`, (e) => tick(file, e.loaded));
-        tick(file, manifest.files[file].bytes);
-        root = g.scene.children[0] ?? g.scene;
-      }
-      // only the close-up coach casts sun shadows (not at all on Low); interiors never do
-      root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = l === 0 && this.tierName !== 'low' && !/^coach_int/.test(o.name); o.receiveShadow = true; } });
-      coachLevels.push(root);
-    }
+    // the coaches: three LOD levels per coach type, loaded once and cloned for each coach of that type
+    const coachLevels: Partial<Record<CoachType, THREE.Object3D[]>> = {};
+    await Promise.all([...new Set(FORMATION.map((f) => f.type))].map(async (type) => {
+      coachLevels[type] = await Promise.all([0, 1, 2].map(async (l) => {
+        let root: THREE.Object3D;
+        if (params.live) root = buildCoach(blockoutMaterials(), type);
+        else {
+          const file = `coach_${type}_lod${l}.glb`;
+          const g = await gltf.loadAsync(`${BASE}models/${file}${ver(file)}`, (e) => tick(file, e.loaded));
+          tick(file, manifest.files[file].bytes);
+          root = g.scene.children[0] ?? g.scene;
+        }
+        // only the close-up coach casts sun shadows (not at all on Low); interiors never do
+        root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = l === 0 && this.tierName !== 'low' && !/^coach_int/.test(o.name); o.receiveShadow = true; } });
+        return root;
+      }));
+    }));
     // Low tier: coaches drop to the simplest model sooner (phones have the tightest draw-call budget)
     this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110]);
     this.scene.add(this.train.group);
@@ -179,7 +181,9 @@ export class App {
     for (const c of this.train.coaches) {
       paintDecals(c.lod, this.tier.anisotropy);
       paintCoachNumber(c.lod, c.number, this.tier.anisotropy);
+      paintCoachLetter(c.lod, c.vehicle.letter, this.tier.anisotropy);
       c.lod.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+        if (m?.name === 'lamp_shade') { m.emissive.set(0xffd9a0); m.emissiveIntensity = 3; }
         if (m?.name === 'coach_light') { m.emissive.set(0xfff6e0); m.emissiveIntensity = 6; }
         if (m?.name === 'cdl_light') { m.emissive.set(0xffa020); m.emissiveIntensity = 8; } });
     }
@@ -195,7 +199,7 @@ export class App {
     const hw = MK2.bodyWidth.v / 2 - 0.02, hl = MK2.bodyLength.v / 2 - 0.02;
     Weathering.occlusion.set('coach', { min: new THREE.Vector3(-hw, MK2.floorH.v - 0.05, -hl), max: new THREE.Vector3(hw, MK2.height.v - 0.05, hl), f: 0.45, rampZ: 0.05 });
     for (const c of this.train.coaches) for (const l of c.lod.levels) this.weathering.apply(l.object, c.lod, 'coach');
-    this.hotspots = new HotspotLayer(this.engine, this.tender, this.train.coaches[0].lod);
+    this.hotspots = new HotspotLayer(this.engine, this.tender, this.train.coaches);
     // cab: simulation-driven controls, gauges, fire glow and lamps
     this.cabRig = new CabRig(this.engine.levels[0].object, this.tender.levels[0].object);
     for (const root of [this.engine.levels[0].object, this.tender.levels[0].object]) {

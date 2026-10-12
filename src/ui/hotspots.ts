@@ -4,9 +4,9 @@
 import * as THREE from 'three';
 import { B5, zEngine, zTender } from '../specs/black5.ts';
 import { CONTROLS, GAUGES } from '../loco/cabControls.ts';
-import { mk2Layout } from '../coach/mk2.ts';
+import { coachLayout, type CoachLayout } from '../coach/mk2.ts';
 
-export interface Hotspot { id: string; name: string; what: string; does: string; d: number; h: number; x: number; on: 'engine' | 'tender' | 'coach'; near?: boolean; inside?: boolean }
+export interface Hotspot { id: string; name: string; what: string; does: string; d: number; h: number; x: number; on: 'engine' | 'tender' | 'coach'; near?: boolean; inside?: boolean; /** running number of the coach it belongs to */ coach?: string }
 
 const v = (k: keyof typeof B5) => B5[k].v;
 
@@ -56,24 +56,47 @@ export const HOTSPOTS: Hotspot[] = [
 HOTSPOTS.push(...CONTROLS.map((k) => ({ id: `c_${k.id}`, name: k.name, what: k.what, does: k.does, d: k.d - 0.03, h: k.h, x: k.x, on: k.on, near: true })),
   ...GAUGES.map((g) => ({ id: `g_${g.id}`, name: g.name, what: g.what, does: '', d: g.d - 0.03, h: g.h, x: g.x, on: 'engine' as const, near: true })));
 
-// first coach (d = metres from its A end, towards the engine)
+// coaches (d = metres from the coach's A end, towards the engine); each type is explained on one coach
+const L2 = coachLayout('tso2'), L2B = coachLayout('tso2b'), L1 = coachLayout('buffet1'), LF = coachLayout('fo2');
+const co = (num: string, list: Omit<Hotspot, 'on' | 'coach'>[]) => list.map((h) => ({ ...h, on: 'coach' as const, coach: num }));
 HOTSPOTS.push(
-  { id: 'k_coach', name: 'Mark 2 coach (TSO)', what: 'A British Rail Mark 2 "Tourist Standard Open", built in the mid-1960s; this maroon one belongs to West Coast Railways.', does: 'Carries 64 standard-class passengers in two open saloons with seats around tables. In 2026 the Jacobite ran with Mk2s.', d: 6, h: 2.4, x: -1.45, on: 'coach' },
-  { id: 'k_num', name: 'Running number', what: 'The coach\'s number (this one is the first of the formation).', does: 'Identifies the vehicle for maintenance and records.', d: 0.6, h: 1.5, x: -1.45, on: 'coach' },
-  { id: 'k_door', name: 'Slam door and door light', what: 'Hinged door with a drop-light window; the orange light above is the central door locking (CDL) indicator.', does: 'Since 2024 the doors must lock centrally before the train moves; the light shows when a door is unlocked.', d: 10.42, h: 2.6, x: -1.45, on: 'coach' },
-  { id: 'k_vent', name: 'Opening window vent', what: 'The narrow top section of each window tips open.', does: 'Fresh air: these early Mk2s are pressure-ventilated, not air-conditioned, so the windows open (one reason they suit a steam train).', d: 3.03, h: 2.75, x: -1.45, on: 'coach' },
-  { id: 'k_roof', name: 'Ventilation domes', what: 'Small domes along the roof.', does: 'Air outlets for the pressure ventilation system.', d: 8, h: 3.95, x: 0, on: 'coach' },
-  { id: 'k_gangway', name: 'Gangway', what: 'The rubber-framed connection at each end.', does: 'Lets passengers and staff walk from coach to coach.', d: -0.15, h: 2.3, x: -0.6, on: 'coach' },
-  { id: 'k_buffers', name: 'Buffers and buckeye coupler', what: 'Two buffers and a central automatic "buckeye" coupler.', does: 'The coupler joins the coaches together; the buffers take the push and are used when coupled to the engine\'s screw coupling.', d: -0.15, h: 1.04, x: 0.87, on: 'coach' },
-  { id: 'k_bogie', name: 'B4 bogie', what: 'The two-axle truck under each end, with coil springs.', does: 'Carries the coach and gives a smooth ride up to 100 mph.', d: 2.75, h: 0.75, x: -1.15, on: 'coach' },
-  { id: 'k_toilet', name: 'Toilet window', what: 'Small frosted window at the end.', does: 'The two toilets are at this end of the coach.', d: 0.58, h: 2.5, x: -1.45, on: 'coach' },
-  { id: 'k_seats', name: 'Seats and tables', what: '2 + 2 seats facing each other around tables, blue vinyl and moquette.', does: 'Standard class: tables for four on both sides of the aisle.', d: 5.0, h: 1.9, x: 0.6, on: 'coach', near: true, inside: true },
-  { id: 'k_racks', name: 'Luggage racks', what: 'Shelves above the windows with lights underneath.', does: 'For bags and coats; the lights also light the seats.', d: 7.0, h: 3.05, x: 1.1, on: 'coach', near: true, inside: true },
-  { id: 'k_partition', name: 'Saloon partition', what: 'Wood and glass screen between the saloon and the vestibule.', does: 'Keeps draughts from the doors out of the seating area.', d: 9.96, h: 2.8, x: 0.7, on: 'coach', near: true, inside: true },
+  ...co('5419', [
+    { id: 'k_coach', name: 'Mark 2A coach (TSO)', what: 'A British Rail Mark 2A "Tourist Standard Open", built in the late 1960s; this maroon one belongs to West Coast Railways.', does: 'Carries 64 standard-class passengers in two open saloons with seats around tables. In 2026 the Jacobite runs mainly with Mk2s.', d: 6, h: 2.4, x: -1.45 },
+    { id: 'k_num', name: 'Running number', what: 'The coach\'s number, low down at one end.', does: 'Identifies the vehicle for maintenance and records.', d: L2.numA, h: 1.5, x: -1.45 },
+    { id: 'k_door', name: 'Slam door and door light', what: 'Hinged door with a drop-light window; the orange light above is the central door locking (CDL) indicator.', does: 'Since 2024 the doors must lock centrally before the train moves; the light shows when a door is unlocked.', d: L2.doors.C, h: 2.6, x: -1.45 },
+    { id: 'k_vent', name: 'Opening window vent', what: 'The narrow top section of each window tips open.', does: 'Fresh air: these early Mk2s are pressure-ventilated, not air-conditioned, so the windows open (one reason they suit a steam train).', d: L2.bays[0], h: 2.75, x: -1.45 },
+    { id: 'k_roof', name: 'Ventilation domes', what: 'Small domes along the roof.', does: 'Air outlets for the pressure ventilation system.', d: 8, h: 3.95, x: 0 },
+    { id: 'k_gangway', name: 'Gangway', what: 'The rubber-framed connection at each end.', does: 'Lets passengers and staff walk from coach to coach.', d: -0.15, h: 2.3, x: -0.6 },
+    { id: 'k_buffers', name: 'Buffers and buckeye coupler', what: 'Two buffers and a central automatic "buckeye" coupler.', does: 'The coupler joins the coaches together; the buffers take the push and are used when coupled to the engine\'s screw coupling.', d: -0.15, h: 1.04, x: 0.87 },
+    { id: 'k_bogie', name: 'B4 bogie', what: 'The two-axle truck under each end, with coil springs.', does: 'Carries the coach and gives a smooth ride up to 100 mph.', d: 2.75, h: 0.75, x: -1.15 },
+    { id: 'k_toilet', name: 'Toilet window', what: 'Small frosted window at the end.', does: 'The two toilets are at this end of the coach.', d: 0.58, h: 2.5, x: -1.45 },
+    { id: 'k_seats', name: 'Seats and tables', what: '2 + 2 seats facing each other around tables, blue vinyl and moquette.', does: 'Standard class: tables for four on both sides of the aisle.', d: L2.bays[1], h: 1.9, x: 0.6, near: true, inside: true },
+    { id: 'k_racks', name: 'Luggage racks', what: 'Shelves above the windows with lights underneath.', does: 'For bags and coats; the lights also light the seats.', d: L2.bays[2], h: 3.05, x: 1.1, near: true, inside: true },
+    { id: 'k_partition', name: 'Saloon partition', what: 'Wood and glass screen between the saloon and the vestibule.', does: 'Keeps draughts from the doors out of the seating area.', d: L2.partitions[1], h: 2.8, x: 0.7, near: true, inside: true },
+  ]),
+  ...co('5487', [
+    { id: 'k2b_coach', name: 'Mark 2B coach (TSO)', what: 'A Mark 2B standard-class open coach (1969): the same family as the 2A, but with a different layout.', does: 'No door in the middle: passengers board at the ends only, and the seating runs almost the whole length.', d: 8, h: 2.4, x: -1.45 },
+    { id: 'k2b_door', name: 'Wide end door', what: 'A wider door right at the end of the coach.', does: 'The Mk2B moved the doors to the ends, wider than before, to speed up boarding.', d: L2B.doors.A, h: 2.6, x: -1.45 },
+    { id: 'k2b_toilet', name: 'Toilet (no window)', what: 'The plain panel between the door and the first window.', does: 'One toilet at each end of a Mk2B, instead of two at one end.', d: L2B.numA, h: 2.4, x: -1.45 },
+  ]),
+  ...co('99318', [
+    { id: 'kb_coach', name: 'Mark 1 coach: buffet and shop', what: 'An older British Rail Mark 1 coach (1950s design, ex-4912), converted with a buffet and shop at one end.', does: 'Sells drinks, snacks and souvenirs. No catering cars were built to the Mark 2 design, so Mark 2 trains used Mark 1 buffets.', d: 8, h: 2.4, x: -1.45 },
+    { id: 'kb_vent', name: 'Mark 1 window', what: 'Narrower windows in aluminium frames, with two sliding panes at the top.', does: 'Slide the panes apart for air. Compare the Mark 2 windows next door: wider, with a tipping vent.', d: L1.bays[1], h: 2.75, x: -1.45 },
+    { id: 'kb_roof', name: 'Roof vents', what: 'Two rows of small shell vents on the roof.', does: 'Let stale air out; the Mark 2s use a single row of domes instead.', d: 6.5, h: 3.9, x: -0.62 },
+    { id: 'kb_truss', name: 'Trussed underframe', what: 'The Mark 1 body sits on a separate steel underframe, braced by angled truss rods.', does: 'Carries the load between the bogies. The Mark 2 body is a stronger steel tube and needs no truss.', d: L1.L / 2, h: 0.86, x: -1.3 },
+    { id: 'kb_counter', name: 'Buffet counter', what: 'Counter with a coffee machine, hot-water urn and till (layout estimated).', does: 'Hot and cold drinks and snacks for both classes.', d: L1.buffet![0] + 1.2, h: 2.4, x: -0.5, near: true, inside: true },
+    { id: 'kb_shop', name: 'Shop shelves', what: 'Souvenirs and gifts on shelves under the windows (goods are generic).', does: 'Reported in 2026 to be reachable from the platform, too.', d: L1.buffet![0] + 2.2, h: 1.9, x: 1.0, near: true, inside: true },
+  ]),
+  ...co('5239', [
+    { id: 'kf_coach', name: 'First class (coach A)', what: 'A Mark 2 open coach used as first class.', does: 'First class: larger seats, tables for two and four, and complimentary tea or coffee.', d: 8, h: 2.4, x: -1.45 },
+    { id: 'kf_letter', name: 'Coach letter', what: 'Card in the corner of the end window.', does: 'Matches the letter printed on the tickets (A and B are first class).', d: LF.bays[0] - LF.winW / 2 + 0.16, h: 2.5, x: -1.45 },
+    { id: 'kf_seats', name: '2 + 1 seating', what: 'Pairs of seats on the left, single seats on the right.', does: 'Tables for four on one side, private tables for two on the other.', d: LF.bays[2], h: 1.9, x: -0.95, near: true, inside: true },
+    { id: 'kf_lamp', name: 'Table lamps and cloths', what: 'White tablecloths, small lamps, curtains and headrest covers.', does: 'The traditional first-class touch (exact 2026 fittings unconfirmed).', d: LF.bays[3], h: 2.15, x: 1.15, near: true, inside: true },
+  ]),
 );
 
 /** Shown at any distance; the rest appear as you come closer (de-clutters the overview). */
-const MAIN = new Set(['chimney', 'smokebox', 'buffers', 'bogie', 'cylinder', 'drivers', 'link', 'boiler', 'dome', 'firebox', 'cab', 'tender', 'coal', 'nameplate']);
+const MAIN = new Set(['k_coach', 'k2b_coach', 'kb_coach', 'kf_coach', 'chimney', 'smokebox', 'buffers', 'bogie', 'cylinder', 'drivers', 'link', 'boiler', 'dome', 'firebox', 'cab', 'tender', 'coal', 'nameplate']);
 
 export class HotspotLayer {
   private el: HTMLElement;
@@ -82,10 +105,11 @@ export class HotspotLayer {
   visible = false;
   private engine: THREE.Object3D;
   private tender: THREE.Object3D;
-  private coach: THREE.Object3D;
+  private coaches: Map<string, { root: THREE.Object3D; lay: CoachLayout }>;
 
-  constructor(engine: THREE.Object3D, tender: THREE.Object3D, coach: THREE.Object3D) {
-    this.engine = engine; this.tender = tender; this.coach = coach;
+  constructor(engine: THREE.Object3D, tender: THREE.Object3D, coaches: { number: string; lod: THREE.Object3D; lay: CoachLayout }[]) {
+    this.engine = engine; this.tender = tender;
+    this.coaches = new Map(coaches.map((c) => [c.number, { root: c.lod, lay: c.lay }]));
     this.el = document.getElementById('hotspots')!;
     this.panel = document.getElementById('infoPanel')!;
     HOTSPOTS.forEach((h, i) => {
@@ -93,7 +117,7 @@ export class HotspotLayer {
       b.className = 'hs'; b.textContent = String(i + 1); b.title = h.name; b.setAttribute('aria-label', h.name);
       b.onclick = () => this.show(h);
       this.el.appendChild(b);
-      const local = new THREE.Vector3(h.x, h.h, h.on === 'engine' ? zEngine(h.d) : h.on === 'tender' ? zTender(h.d) : mk2Layout().z(h.d));
+      const local = new THREE.Vector3(h.x, h.h, h.on === 'engine' ? zEngine(h.d) : h.on === 'tender' ? zTender(h.d) : this.coaches.get(h.coach!)!.lay.z(h.d));
       this.marks.push({ h, el: b, local });
     });
     document.getElementById('infoClose')!.onclick = () => { this.panel.hidden = true; };
@@ -114,10 +138,15 @@ export class HotspotLayer {
     const placed: [number, number][] = [];
     const camEng = this.engine.worldToLocal(camPos.clone());
     const inCab = Math.abs(camEng.x) < 1.35 && camEng.y > 1.5 && camEng.y < 3.8 && camEng.z < zEngine(10.0) && camEng.z > zEngine(12.9);
-    const camCo = this.coach.worldToLocal(camPos.clone()), lay = mk2Layout();
-    const inCoach = Math.abs(camCo.x) < lay.halfW && camCo.y > 1.2 && camCo.y < 4 && Math.abs(camCo.z) < lay.L / 2;
+    // which coach (if any) the camera is inside
+    let inside: string | null = null;
+    for (const [num, c] of this.coaches) {
+      const q = c.root.worldToLocal(camPos.clone());
+      if (Math.abs(q.x) < c.lay.halfW && q.y > 1.2 && q.y < 4 && Math.abs(q.z) < c.lay.L / 2) inside = num;
+    }
+    const inCoach = inside !== null;
     for (const m of this.marks) {
-      const root = m.h.on === 'engine' ? this.engine : m.h.on === 'tender' ? this.tender : this.coach;
+      const root = m.h.on === 'engine' ? this.engine : m.h.on === 'tender' ? this.tender : this.coaches.get(m.h.coach!)!.root;
       p.copy(m.local); root.localToWorld(p);
       // hide markers on the far side of the vehicle from the camera
       const camLocal = root.worldToLocal(camPos.clone());
@@ -125,7 +154,7 @@ export class HotspotLayer {
       const dist = p.distanceTo(camPos);
       p.project(camera);
       const sx = ((p.x + 1) / 2) * w, sy = ((1 - p.y) / 2) * h;
-      const ok = m.h.inside ? inCoach && dist < 8 : m.h.near ? inCab && dist < 3.2 : !inCab && !inCoach && dist < 45 && (dist < 14 || MAIN.has(m.h.id) || m.h.id === 'k_coach');
+      const ok = m.h.inside ? inside === m.h.coach && dist < 8 : m.h.near ? inCab && dist < 3.2 : !inCab && !inCoach && dist < 45 && (dist < 14 || MAIN.has(m.h.id));
       let show = !(farSide && !m.h.inside) && p.z < 1 && Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && ok;
       if (show && placed.some(([x, y]) => Math.hypot(x - sx, y - sy) < 28)) show = false; // no overlapping markers
       m.el.hidden = !show;

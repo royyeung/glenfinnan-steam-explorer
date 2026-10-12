@@ -188,6 +188,49 @@ function coachNumberCanvas(num: string) {
   return c;
 }
 
+/** Shop shelves in the buffet coach: rows of generic goods (no real products or brands). */
+function goods() {
+  const { c, g } = canvas(1024, 256);
+  g.fillStyle = '#3a2618'; g.fillRect(0, 0, 1024, 256);
+  const cols = ['#b8322a', '#1f4f9e', '#2f6b3a', '#d9b24c', '#e8ddb5', '#6a2a5a', '#ffffff', '#202020', '#c8702a'];
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (const [y0, y1] of [[8, 80], [92, 164], [176, 248]]) {
+    let x = 4;
+    while (x < 1018) {
+      const kind = rnd(), wd = kind < 0.3 ? 18 + rnd() * 14 : kind < 0.6 ? 34 + rnd() * 30 : 22 + rnd() * 10;
+      const ht = (y1 - y0) * (kind < 0.3 ? 0.9 : kind < 0.6 ? 0.55 + rnd() * 0.3 : 0.45);
+      g.fillStyle = cols[Math.floor(rnd() * cols.length)];
+      if (kind >= 0.6) { g.beginPath(); g.ellipse(x + wd / 2, y1 - ht / 2, wd / 2, ht / 2, 0, 0, Math.PI * 2); g.fill(); } // mugs and tins
+      else g.fillRect(x, y1 - ht, wd, ht);                                                                     // books, boxes, tea towels
+      if (kind < 0.6) { g.fillStyle = 'rgba(255,255,255,0.35)'; g.fillRect(x + 2, y1 - ht + 4, wd - 4, 3); }
+      x += wd + 2 + rnd() * 3;
+    }
+  }
+  return c;
+}
+
+function buffetSign() {
+  const { c, g } = canvas(450, 120);
+  g.fillStyle = '#5a1416'; g.fillRect(0, 0, 450, 120);
+  g.strokeStyle = GOLD; g.lineWidth = 4; g.strokeRect(6, 6, 438, 108);
+  g.fillStyle = CREAM; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `600 52px ${FONT}`; g.fillText('BUFFET  ·  SHOP', 225, 62);
+  return c;
+}
+
+function coachLetterCanvas(letter: string) {
+  const { c, g } = canvas(128, 128);
+  g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, 128, 128);
+  g.strokeStyle = '#111'; g.lineWidth = 4; g.strokeRect(6, 6, 116, 116);
+  g.fillStyle = '#111'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 92px ${FONT}`; g.fillText(letter, 64, 70);
+  return c;
+}
+
+/** Each coach carries its own letter card in the end windows. */
+export function paintCoachLetter(root: THREE.Object3D, letter: string, anisotropy: number) {
+  const t = new THREE.CanvasTexture(coachLetterCanvas(letter)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy;
+  root.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (m?.name === 'decal_coachletter') { m.map = t; m.needsUpdate = true; } });
+}
+
 /** Each coach carries its own running number (materials are per coach). */
 export function paintCoachNumber(root: THREE.Object3D, num: string, anisotropy: number) {
   const t = new THREE.CanvasTexture(coachNumberCanvas(num)); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropy;
@@ -196,6 +239,7 @@ export function paintCoachNumber(root: THREE.Object3D, num: string, anisotropy: 
 
 const PAINTERS: Record<string, () => HTMLCanvasElement> = {
   decal_seatfabric: seatFabric, decal_westcoast: westCoast, decal_coachnum: () => coachNumberCanvas(''),
+  decal_goods: goods, decal_buffetsign: buffetSign, decal_coachletter: () => coachLetterCanvas(''),
   decal_gauge_pressure: () => dial('BOILER', 300, 50, 10, 'LBS PER SQ IN', 225),
   decal_gauge_vacuum: () => dial('VACUUM', 30, 5, 1, 'INS. OF MERCURY'),
   decal_gauge_air: () => dial('AIR', 150, 25, 5, 'LBS PER SQ IN'),
@@ -221,7 +265,7 @@ export function paintDecals(root: THREE.Object3D, anisotropy: number) {
     if (m.name === 'decal_seatfabric') { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.5, 1.5); m.map = t; m.color.set(0xffffff); m.transparent = false; m.needsUpdate = true; return; }
     if (m.name === 'decal_fire') { m.emissiveMap = t; m.emissive.set(0xffffff); m.map = null; m.color.set(0x000000); m.needsUpdate = true; return; }
     m.map = t; m.color.set(0xffffff);
-    m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff'].includes(m.name) && !m.name.startsWith('decal_gauge');
+    m.transparent = !['decal_numberplate', 'decal_nameplate', 'decal_waterplate', 'decal_cutoff', 'decal_goods', 'decal_buffetsign', 'decal_coachletter'].includes(m.name) && !m.name.startsWith('decal_gauge');
     m.alphaTest = m.transparent ? 0.02 : 0;
     m.depthWrite = !m.transparent;
     m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2;

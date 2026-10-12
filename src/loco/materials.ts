@@ -7,6 +7,7 @@ export type MatKey =
   | 'cab_inside' | 'coal' | 'blue_plate' | 'lining' | 'lining_red' | 'rubber' | 'glass' | 'lamp_lens'
   | 'coach_maroon' | 'roof_black' | 'lining_gold' | 'underframe' | 'spring_red' | 'axle_yellow' | 'wood_panel' | 'ceiling' | 'carpet'
   | 'seat_vinyl' | 'decal_seatfabric' | 'table_top' | 'coach_light' | 'decal_coachnum' | 'decal_westcoast' | 'frosted' | 'cdl_light'
+  | 'tablecloth' | 'curtain' | 'lamp_shade' | 'decal_goods' | 'decal_buffetsign' | 'decal_coachletter'
   | 'copper' | 'wood' | 'chequer' | 'water' | 'backhead'
   | 'decal_gauge_pressure' | 'decal_gauge_vacuum' | 'decal_gauge_air' | 'decal_gauge_heat' | 'decal_waterplate' | 'decal_fire' | 'decal_cutoff'
   | 'decal_cabnum' | 'decal_emblem' | 'decal_emblem_l' | 'decal_numberplate' | 'decal_shedplate' | 'decal_headboard' | 'decal_nameplate' | 'decal_crest';
@@ -45,6 +46,12 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     decal_westcoast: m('decal_westcoast', 0xffffff, 0.45, 0.0, { transparent: true }),
     frosted: m('frosted', 0xdfe3e6, 0.6, 0.0, { transparent: true, opacity: 0.85 }),
     cdl_light: m('cdl_light', 0x3a2a10, 0.3, 0.0, { emissive: 0xffa020, emissiveIntensity: 0 }),
+    tablecloth: m('tablecloth', 0xeeece6, 0.85, 0.0),     // first class: tablecloths, antimacassars
+    curtain: m('curtain', 0xd9cfb4, 0.9, 0.0),           // cream tie-back curtains (seen in 5236)
+    lamp_shade: m('lamp_shade', 0xf0dcb0, 0.7, 0.0, { emissive: 0xffd9a0, emissiveIntensity: 0 }),
+    decal_goods: m('decal_goods', 0xffffff, 0.6, 0.0),
+    decal_buffetsign: m('decal_buffetsign', 0xffffff, 0.5, 0.0),
+    decal_coachletter: m('decal_coachletter', 0xffffff, 0.6, 0.0),
     copper: m('copper', 0xc07a52, 0.38, 1.0),            // copper pipework (grimy)
     wood: m('wood', 0x6b4a30, 0.75, 0.0),                // floorboards, seats, window frames
     chequer: m('chequer', 0x3a3b3c, 0.55, 0.8),          // chequer-plate floor
