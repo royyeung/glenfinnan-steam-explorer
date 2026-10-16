@@ -12,6 +12,7 @@ import { buildEngine, buildTender } from '../../src/loco/engine.ts';
 import { blockoutMaterials } from '../../src/loco/materials.ts';
 import { setDetail } from '../../src/loco/geom.ts';
 import { buildCoach } from '../../src/coach/mk2.ts';
+import { buildClass47 } from '../../src/diesel/class47.ts';
 
 const OUT = 'public/models';
 fs.mkdirSync(OUT, { recursive: true });
@@ -55,7 +56,7 @@ const LODS = [{ detail: 1, ratio: 1 }, { detail: 0.5, ratio: 0.8, error: 0.002 }
 const manifest = { generated: new Date().toISOString(), files: {} };
 
 const COACHES = ['tso2', 'tso2b', 'fo2', 'buffet1'].map((t) => [`coach_${t}`, (m) => buildCoach(m, t)]);
-for (const [name, build] of [['engine', buildEngine], ['tender', buildTender], ...COACHES]) {
+for (const [name, build] of [['engine', buildEngine], ['tender', buildTender], ...COACHES, ['diesel47', buildClass47]]) {
   for (let l = 0; l < LODS.length; l++) {
     setDetail(LODS[l].detail);
     const root = build(blockoutMaterials());
