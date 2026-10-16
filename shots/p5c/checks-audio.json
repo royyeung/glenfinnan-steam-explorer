@@ -1,0 +1,50 @@
+{
+ "state": "running",
+ "levels": [
+  {
+   "view": "site-wide",
+   "rmsDb": -34.7,
+   "peakDb": -23.1
+  },
+  {
+   "view": "front-34-l",
+   "rmsDb": -30.7,
+   "peakDb": -17.8
+  },
+  {
+   "view": "cab-inside",
+   "rmsDb": -30,
+   "peakDb": -19
+  },
+  {
+   "view": "human-scale",
+   "rmsDb": -30.9,
+   "peakDb": -20.2
+  },
+  {
+   "view": "backhead",
+   "rmsDb": -25.8,
+   "peakDb": -15,
+   "note": "blower full, injector on"
+  },
+  {
+   "view": "backhead",
+   "rmsDb": -25.5,
+   "peakDb": -14.3,
+   "note": "whistle"
+  },
+  {
+   "view": "coach-door",
+   "rmsDb": -29,
+   "peakDb": -15,
+   "note": "door opening with beeps, footsteps, slam"
+  }
+ ],
+ "muted": {
+  "view": "front-34-l",
+  "rmsDb": null,
+  "peakDb": null
+ },
+ "pass": true,
+ "errors": []
+}

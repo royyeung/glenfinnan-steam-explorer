@@ -66,10 +66,16 @@ function wireUI() {
     const touch = app.inputs.touch;
     $('joyL').hidden = !(m === 'walk' && touch); $('lookHint').hidden = !(m === 'walk' && touch); $('cross').hidden = m !== 'walk';
     help.innerHTML = m === 'walk'
-      ? (touch ? 'Left thumb: move · right side: look · in the cab, tap a control (wheel, lever, gauge) to work it'
-               : 'Click to look around · WASD / arrows move · Shift runs · Esc frees the mouse · in the cab, aim the dot at a control and click to work it')
-      : (touch ? 'Drag to orbit · pinch to zoom' : 'Drag to orbit · right-drag to pan · wheel to zoom · ` opens tuning');
+      ? (touch ? 'Left thumb: move · right side: look · at a door, tap "Climb into" · in the cab, tap a control (wheel, lever, gauge) to work it'
+               : 'Click to look around · WASD / arrows move · Shift runs · E climbs aboard or steps down at a door · Esc frees the mouse · in the cab, aim the dot at a control and click to work it')
+      : (touch ? 'Drag to orbit · pinch to zoom · double-tap to fly there' : 'Drag to orbit · right-drag to pan · wheel zooms to the cursor · double-click flies there');
   };
+  // climbing aboard: offered beside a cab entrance or coach door, and "step down" from inside one
+  const boardBtn = $('boardBtn');
+  const syncBoard = () => { const o = app.boardingOffer(); boardBtn.hidden = !o; if (o) boardBtn.textContent = app.inputs.touch ? o.label : `${o.label} (E)`; };
+  boardBtn.onclick = () => { app.board(); syncBoard(); };
+  addEventListener('keydown', (e) => { if (e.code === 'KeyE' && app.mode === 'walk' && !(e.target instanceof HTMLInputElement)) { app.board(); syncBoard(); } });
+  setInterval(syncBoard, 200);
   $('mOrbit').onclick = () => setMode('orbit');
   $('mWalk').onclick = () => setMode('walk');
   setMode(app.mode === 'walk' ? 'walk' : 'orbit');

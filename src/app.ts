@@ -295,8 +295,20 @@ export class App {
     this.orbit = new OrbitControls(this.persp, this.canvas);
     this.orbit.enableDamping = true; this.orbit.dampingFactor = 0.08;
     this.orbit.minDistance = 1.5; this.orbit.maxDistance = this.world ? 6000 : 150; this.orbit.maxPolarAngle = 1.53;
+    // the wheel zooms towards whatever is under the cursor, about 15% per notch (the default 5% needed
+    // 70 notches to come from the hillside to the train); double-click flies to the point clicked
+    this.orbit.zoomToCursor = true; this.orbit.zoomSpeed = 3;
+    this.canvas.addEventListener('dblclick', (e) => { if (this.mode !== 'walk') this.focusAt(e.clientX, e.clientY); });
+    let tap = { t: 0, x: 0, y: 0 }, moved = false;  // double-tap on touch screens (no dblclick there)
+    this.canvas.addEventListener('touchstart', (e) => { moved = e.touches.length > 1; }, { passive: true });
+    this.canvas.addEventListener('touchmove', () => { moved = true; }, { passive: true });
+    this.canvas.addEventListener('touchend', (e) => {
+      const t = e.changedTouches[0]; if (this.mode === 'walk' || moved || !t || e.touches.length) return;
+      const now = performance.now();
+      if (now - tap.t < 320 && Math.hypot(t.clientX - tap.x, t.clientY - tap.y) < 30) { this.focusAt(t.clientX, t.clientY); tap.t = 0; } else tap = { t: now, x: t.clientX, y: t.clientY };
+    }, { passive: true });
     if (this.world) this.registerTrackViews();
-    this.setView(this.world ? 'v01-classic' : 'front-34-l');
+    this.setView(this.world ? 'train-glen' : 'front-34-l');
 
     // sound (starts on the first user gesture)
     this.audio.onStart(() => {
@@ -460,6 +472,61 @@ export class App {
     VIEWS['station-air'] = { kind: 'persp', frame: 'world', pos: pa, target: pt, fov: 50 };
   }
 
+  private focus: { t: number; p0: THREE.Vector3; p1: THREE.Vector3; t0: THREE.Vector3; t1: THREE.Vector3 } | null = null;
+  /** Fly the orbit camera towards the surface under a screen point (double-click). */
+  focusAt(x: number, y: number) {
+    const r = this.canvas.getBoundingClientRect(), ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), this.persp);
+    const roots = [this.engine, this.tender, this.train.group, ...(this.dieselOn ? [this.diesel] : []), ...(this.world ? [this.world.group] : []), ...(this.site ? [this.site.group] : [])];
+    const hit = ray.intersectObjects(roots, true).find((h) => h.object.visible && (h.object as THREE.Mesh).isMesh);
+    if (!hit) return;
+    const p0 = this.persp.position.clone(), t0 = this.orbit.target.clone(), t1 = hit.point.clone();
+    const d = Math.max(6, p0.distanceTo(t1) * 0.3), p1 = t1.clone().add(p0.clone().sub(t1).setLength(d));
+    this.focus = { t: 0, p0, p1, t0, t1 };
+  }
+  private stepFocus(dt: number) {
+    const f = this.focus; if (!f) return;
+    f.t = Math.min(1, f.t + dt / 0.6); const k = THREE.MathUtils.smootherstep(f.t, 0, 1);
+    this.persp.position.lerpVectors(f.p0, f.p1, k); this.orbit.target.lerpVectors(f.t0, f.t1, k);
+    if (f.t >= 1) this.focus = null;
+  }
+
+  /** Doorways you climb through: both cab entrances and every coach door, each side. From rail level
+   *  the cab's first step is 0.62 m and Mk2 doors have no steps at all (floor 1.27 m), a climb made
+   *  with the handrails, so it is an action (E, or the button) rather than a walk. */
+  private doorways() {
+    const out: { inside: THREE.Vector3; outside: THREE.Vector3; what: string }[] = [];
+    for (const s of [1, -1]) out.push({ inside: this.trainToWorld(new THREE.Vector3(s * 0.6, B5.footplateH.v + 0.15, -5.6)), outside: this.trainToWorld(new THREE.Vector3(s * 2.15, B5.footplateH.v + 0.15, -5.9)), what: 'the cab' });
+    for (const c of this.train.coaches) {
+      const lay = c.lay;
+      for (const k of Object.keys(lay.doors)) for (const s of [1, -1]) {
+        const z = lay.z(lay.doors[k]);
+        out.push({ inside: c.lod.localToWorld(new THREE.Vector3(s * (lay.halfW - 0.45), 1.3, z)), outside: c.lod.localToWorld(new THREE.Vector3(s * (lay.halfW + 0.6), 1.3, z)), what: `coach ${c.number}` });
+      }
+    }
+    return out;
+  }
+  /** What the walker can do at the nearest doorway: climb in from beside it, or step down from it. */
+  boardingOffer(): { label: string; to: THREE.Vector3; yaw: number } | null {
+    if (this.mode !== 'walk') return null;
+    const f = this.walker.feet, flat = (a: THREE.Vector3) => Math.hypot(a.x - f.x, a.z - f.z);
+    const yawTo = (a: THREE.Vector3, b: THREE.Vector3) => Math.atan2(-(b.x - a.x), -(b.z - a.z));
+    let best: { label: string; to: THREE.Vector3; yaw: number } | null = null, bd = Infinity;
+    for (const d of this.doorways()) {
+      const dIn = flat(d.inside), dOut = flat(d.outside);
+      if (dOut < 1.4 && f.y < d.inside.y - 0.4 && dOut < bd) { bd = dOut; best = { label: `Climb into ${d.what}`, to: d.inside, yaw: yawTo(d.outside, d.inside) }; }
+      if (dIn < 0.9 && Math.abs(f.y - d.inside.y) < 0.45 && dIn < bd) { bd = dIn; best = { label: 'Step down', to: d.outside, yaw: yawTo(d.inside, d.outside) }; }
+    }
+    return best;
+  }
+  /** Climb aboard or step down at the nearest doorway (falls to the ground below when stepping down). */
+  board() {
+    const o = this.boardingOffer(); if (!o) return false;
+    this.walker.teleport(o.to.x, o.to.y, o.to.z, o.yaw); this.walker.pitch = 0;
+    if (this.audio.running) this.sounds.footstep(this.surface(), this.walker.feet.clone());
+    return true;
+  }
+
   rebuildColliders() {
     this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? []), this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels, ...(this.dieselOn ? [this.diesel.levels[0].object] : [])]);
   }
@@ -525,7 +592,7 @@ export class App {
       this.step(n);
     }
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
-    else if (this.orbit.enabled) this.orbit.update();
+    else if (this.orbit.enabled) { this.stepFocus(dt); this.orbit.update(); }
     this.updateGates(params.fixed ? 1 : dt);
     this.train?.update(this.camera, this.mode === 'walk' ? this.walker.feet : null, params.fixed ? 1 : dt);
     // the cab interior is only drawn when the camera is within 9 m of the cab

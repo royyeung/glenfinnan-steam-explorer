@@ -23,6 +23,8 @@ export const VIEWS: Record<string, View> = {
   'front-end': { kind: 'ortho', dir: 'front', centre: [0, 2.0, 0], pxPerM: 160 },
   'plan': { kind: 'ortho', dir: 'top', centre: [0, 0, mid], pxPerM: 60 }, // 1320 x 300 px = 22 m x 5 m
   'front-34-l': { kind: 'persp', pos: [10.5, 2.4, 15.5], target: [0, 1.9, 0.5], fov: 45 },
+  // opening view at Glenfinnan: the engine and the first coaches from close by, so the wheel zooms onto the train
+  'train-glen': { kind: 'persp', pos: [30, 9, 30], target: [0, 2.0, -8], fov: 45 },
   'rear-34-r': { kind: 'persp', pos: [-9.5, 3.4, -26], target: [0, 1.9, -9], fov: 45 },
   'motion-l': { kind: 'persp', pos: [5.2, 1.25, 1.2], target: [0.9, 0.95, 0.6], fov: 50 },
   'site-wide': { kind: 'persp', pos: [32, 11, 34], target: [0, 2.4, -3.5], fov: 50 },

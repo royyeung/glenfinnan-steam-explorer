@@ -56,6 +56,9 @@
     #ctlPanel { position: fixed; left: 12px; top: calc(60px + env(safe-area-inset-top)); width: min(340px, calc(100vw - 24px)); background: var(--panel); border-radius: 12px; padding: 12px 14px; z-index: 6; }
     #ctlPanel h3 { margin: 0 0 6px; } #ctlPanel p { margin: 0 0 8px; font-size: 14px; } #ctlPanel .what { color: var(--dim); }
     #ctlPanel input[type=range] { width: 100%; accent-color: var(--accent); margin-bottom: 8px; }
+    /* drop-down lists: dark rows with light text (Windows draws them white by default) */
+    select option, select optgroup { background: #1d2126; color: var(--ink); }
+    #boardBtn { position: fixed; left: 50%; transform: translateX(-50%); top: 60%; z-index: 6; font-size: 16px; padding: 10px 18px; background: var(--accent); color: #111; border-color: var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
     [hidden] { display: none !important; }
     @media (max-width: 640px) { #help { display: none; } #hud input[type=range] { width: 80px; } }
     @media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
@@ -80,6 +83,7 @@
   <div id="help" hidden></div>
   <div id="perf" hidden></div>
   <div id="cross" hidden></div>
+  <button class="btn" id="boardBtn" hidden></button>
   <div id="joyL" class="joy" hidden><i></i></div>
   <div id="lookHint" hidden>drag right side to look</div>
 
@@ -103,7 +107,7 @@
       </select>
       <button class="btn" id="diesel" aria-pressed="true" title="Class 47 at the rear, as seen on the viaduct on 22 Oct 2025 (whether it runs in 2026 is unconfirmed)">Diesel at rear</button>
       <select class="btn" id="goto" aria-label="Go to a viewpoint">
-        <option value="">Go to…</option><option value="v01-classic">Classic hillside view</option><option value="v01-2026">Hillside, west end (July 2026 photo)</option><option value="viaduct-river">Under the arches</option><option value="viaduct-deck">On the viaduct</option><option value="loch-head">Loch Shiel shore</option><option value="station-platform">Station platform</option><option value="station-p2">Station, platform 2</option><option value="aerial">From the air</option><option value="front-34-l">The engine</option>
+        <option value="">Go to…</option><option value="train-glen">The train</option><option value="v01-classic">Classic hillside view</option><option value="v01-2026">Hillside, west end (July 2026 photo)</option><option value="viaduct-river">Under the arches</option><option value="viaduct-deck">On the viaduct</option><option value="loch-head">Loch Shiel shore</option><option value="station-platform">Station platform</option><option value="station-p2">Station, platform 2</option><option value="aerial">From the air</option><option value="front-34-l">The engine</option>
       </select>
     </div>
     <div class="group">

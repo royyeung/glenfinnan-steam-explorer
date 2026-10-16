@@ -415,6 +415,8 @@ Every phase ends the same way:
 - [x] **Full screen on phones:** a HUD button (Fullscreen API) and a web-app manifest, so "Add to Home screen" opens without the address bar.
 - [x] **Checks and budgets pass** on every tier.
 
+**Fixes from your laptop test (2026-10-16).** Opens on the train (not the hillside); wheel zooms about 15% per notch towards the cursor, double-click or double-tap flies to a point; "Climb into the cab / coach" and "Step down" at every doorway (E or a button); readable drop-down lists. Details in `shots/p5c/NOTES.md`.
+
 ### Phase 6: Motion and effects
 
 - **Movement:** the train runs along the track at realistic speed with correct acceleration. Wheel rotation is tied to distance.
@@ -448,6 +450,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 
 ## 12. Change log
 
+- 2026-10-16: Fixes from your laptop test: opening view on the train, zoom to cursor and double-click focus, climbing aboard at doors, dark drop-down lists.
 - 2026-10-16: Phase 5 follow-up: Class 47 at the rear, Glenfinnan station rebuilt (loop, platform 2, building, signal box), viaduct pylons, classic views fitted to Geograph photos with recorded positions, river boulders and ground cover. 2026 coaches confirmed as Mk2s (S70). LiDAR still not published.
 - 2026-10-12: Phase 5 built and verified (Glenfinnan from OS Terrain 50 and OpenMap Local: terrain, loch, river, trees, line, viaduct, village, station; weather presets; landscape sounds). The V01 match is only partial. Terrain tooling: numpy and pyshp instead of GDAL.
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
