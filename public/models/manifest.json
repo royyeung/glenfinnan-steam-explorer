@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-12T15:49:40.159Z",
+ "generated": "2026-10-16T14:47:39.523Z",
  "files": {
   "engine_lod0.glb": {
    "bytes": 529640,
@@ -91,6 +91,21 @@
    "tris": 12136,
    "hash": "72d54126e69a"
   },
+  "diesel47_lod0.glb": {
+   "bytes": 74424,
+   "tris": 8448,
+   "hash": "ff5d093c7f98"
+  },
+  "diesel47_lod1.glb": {
+   "bytes": 48668,
+   "tris": 4175,
+   "hash": "db231e0d7017"
+  },
+  "diesel47_lod2.glb": {
+   "bytes": 25652,
+   "tris": 2040,
+   "hash": "a397c1d0a99e"
+  },
   "../terrain/cover_far.png": {
    "bytes": 39075,
    "hash": "1fde11037883"
@@ -105,11 +120,11 @@
   },
   "../terrain/near.bin": {
    "bytes": 526338,
-   "hash": "981c7039ead9"
+   "hash": "36183163512c"
   },
   "../terrain/trees.bin": {
    "bytes": 1189080,
-   "hash": "e86203afc947"
+   "hash": "b7bb867deb89"
   },
   "../terrain/world.json": {
    "bytes": 561630,

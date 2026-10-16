@@ -41,6 +41,9 @@ export const VIEWS: Record<string, View> = {
   'train-wide': { kind: 'persp', pos: [-38, 14, -40], target: [0, 1.5, -55], fov: 50 },
   // coaches (centres at z -23.25 - 20.117 i): 5487 Mk2B, 5453 Mk2B, 5419 Mk2A, 99318 Mk1 buffet, 5229/5239 first
   'coach-ext': { kind: 'persp', pos: [-9.0, 2.0, -18], target: [-1.2, 2.0, -26], fov: 50 },
+  // the Class 47 at the rear of the train (centre about z -150.6)
+  'diesel-34': { kind: 'persp', pos: [8.5, 2.8, -169], target: [0, 1.9, -153], fov: 45 },
+  'diesel-end': { kind: 'persp', pos: [-3.2, 2.3, -168.5], target: [0, 2.0, -158], fov: 50 },
   'mk2b-door': { kind: 'persp', pos: [-5.2, 1.9, -9.6], target: [-1.4, 1.9, -15.6], fov: 50 },
   'coach-door': { kind: 'walk', feet: [-2.3, 0.915, -64.08], yaw: -Math.PI / 2, pitch: 0.0 },
   'coach-aisle': { kind: 'walk', feet: [0.0, 1.27, -56.43], yaw: 0, pitch: -0.05 },
@@ -59,7 +62,8 @@ export const VIEWS: Record<string, View> = {
   'cab-entry': { kind: 'walk', feet: [-2.15, 0.915, -6.0], yaw: -Math.PI / 2, pitch: 0.05 },
   // Phase 5 landscape (world frame). V01: the camera position of the 2019 Commons photo "Train on
   // Glenfinnan viaduct" (56.875283 N, 5.436089 W), its 4:3 frame is 51 degrees tall
-  'v01-classic': { kind: 'persp', frame: 'world', pos: [-226, 63, 74], target: [-10, 34, -42], fov: 51 },   // the knoll is missing from the 50 m data: camera held at its estimated height
+  'v01-classic': { kind: 'persp', frame: 'world', pos: [-290, 73.7, 83.8], target: [-94, 59.1, 46.5], fov: 36.2 },   // camera fitted to Geograph 4015260 (2014, NM 9072 8122): 6 points, 3.6 px rms; stands on the knoll
+  'v01-2026': { kind: 'persp', frame: 'world', pos: [-230, 64.3, -13.3], target: [-34.5, 25.1, 2.3], fov: 49.6 },   // camera fitted to Geograph 8359440 (5 Jul 2026, NM 9078 8132): 5 points, 1.5 px rms
   'v01-photo-gps': { kind: 'persp', frame: 'world', pos: [-290, 1.6, 51], agl: true, target: [10, 39, -38], fov: 51 },
   'v01-2014': { kind: 'persp', frame: 'world', pos: [-283, 1.6, 31], agl: true, target: [20, 40, -45], fov: 46 },
   'viaduct-river': { kind: 'persp', frame: 'world', pos: [-52, 1.7, 26], agl: true, target: [10, 26, -40], fov: 70 },

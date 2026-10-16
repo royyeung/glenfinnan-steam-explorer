@@ -366,6 +366,26 @@ export class Soundscape {
   }
 
   /** Keep loco sources attached to the moving engine. */
+  private dieselSrc: SpatialSource | null = null;
+  /** The Class 47 at the rear, idling: the engine's firing beat (a 12-cylinder four-stroke at about
+   *  350 rpm gives about 35 Hz; estimate), a slow throb, cooling fans and exhaust. Off when hidden. */
+  dieselIdle(pos: THREE.Vector3, on: boolean) {
+    const ctx = this.a.ctx; if (!ctx) return;
+    if (!this.dieselSrc) {
+      const s = this.dieselSrc = this.a.spatial('diesel', pos, 6, 1.1); s.gain.gain.value = 0;
+      const beat = new OscillatorNode(ctx, { type: 'sawtooth', frequency: 35 }), throb = ctx.createGain(); throb.gain.value = 0.6;
+      const lfo = new OscillatorNode(ctx, { frequency: 2.9 }), depth = ctx.createGain(); depth.gain.value = 0.35;
+      lfo.connect(depth).connect(throb.gain);
+      beat.connect(filt(ctx, 'lowpass', 170)).connect(throb).connect(s.gain);
+      const fans = ctx.createGain(); fans.gain.value = 0.35;
+      loop(ctx, noiseBuffer(ctx, 'brown', 5, 41)).connect(filt(ctx, 'lowpass', 450)).connect(fans).connect(s.gain);
+      loop(ctx, noiseBuffer(ctx, 'pink', 4, 43)).connect(filt(ctx, 'bandpass', 900, 0.8)).connect(filt(ctx, 'lowpass', 2500)).connect(s.gain);
+      beat.start(); lfo.start();
+    }
+    this.a.moveSource(this.dieselSrc, pos);
+    this.dieselSrc.gain.gain.setTargetAtTime(on ? 0.22 : 0, ctx.currentTime, 0.3);
+  }
+
   moveLoco(p: LocoSoundPoints) {
     const m: [string, THREE.Vector3][] = [['blower', p.chimney], ['safety', p.safetyValves], ['pump', p.airPump], ['fire', p.firehole]];
     for (const [k, v] of m) if (this.loco[k]) this.a.moveSource(this.loco[k], v);

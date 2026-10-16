@@ -88,6 +88,8 @@ function wireUI() {
     w.onchange = () => app.setWeather(w.value as typeof app.weather);
     const pl = $<HTMLSelectElement>('place'); pl.value = app.placeName;
     pl.onchange = () => { app.placeTrain(pl.value as 'viaduct' | 'station'); };
+    const ds = $('diesel'); ds.setAttribute('aria-pressed', String(app.dieselOn));
+    ds.onclick = () => { app.setDiesel(!app.dieselOn); ds.setAttribute('aria-pressed', String(app.dieselOn)); };
     const go = $<HTMLSelectElement>('goto');
     go.onchange = () => { if (go.value) { app.setView(go.value); setMode(app.mode === 'walk' ? 'walk' : 'orbit'); } go.value = ''; };
   }

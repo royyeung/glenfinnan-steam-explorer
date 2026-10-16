@@ -182,6 +182,16 @@ function westCoast() {
   return c;
 }
 
+/** Class 47 bodyside lettering: "WEST COAST" with "RAILWAYS" between two rules beneath (S64). */
+function westCoastLoco() {
+  const { c, g } = canvas(760, 192);
+  g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `600 96px ${FONT}`; g.fillText('WEST COAST', 380, 70);
+  g.font = `600 40px ${FONT}`; g.fillText('RAILWAYS', 380, 152);
+  g.fillRect(70, 148, 180, 6); g.fillRect(510, 148, 180, 6);
+  return c;
+}
+
 function coachNumberCanvas(num: string) {
   const { c, g } = canvas(620, 200);
   g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `700 150px ${FONT}`; g.fillText(num, 310, 104);
@@ -315,7 +325,7 @@ export function paintCoachNumber(root: THREE.Object3D, num: string, anisotropy: 
 const PAINTERS: Record<string, () => HTMLCanvasElement> = {
   decal_seatfabric: seatFabric, decal_westcoast: westCoast, decal_coachnum: () => coachNumberCanvas(''),
   decal_goods: goods, decal_buffetsign: buffetSign, decal_coachletter: () => coachLetterCanvas(''),
-  decal_damask: damask, decal_firstclass: firstClassCover, decal_carpetfc: carpetFirst, decal_seatdir: seatDir, decal_buffetlabel: buffetLabel,
+  decal_damask: damask, decal_firstclass: firstClassCover, decal_carpetfc: carpetFirst, decal_seatdir: seatDir, decal_buffetlabel: buffetLabel, decal_wcr47: westCoastLoco,
   curtain: tartan, lamp_shade: tartan,
   decal_gauge_pressure: () => dial('BOILER', 300, 50, 10, 'LBS PER SQ IN', 225),
   decal_gauge_vacuum: () => dial('VACUUM', 30, 5, 1, 'INS. OF MERCURY'),

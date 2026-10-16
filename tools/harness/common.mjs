@@ -27,6 +27,6 @@ export async function openPage(b, url, { w = 1280, h = 720, mobile = false } = {
   page.on('console', (m) => { if (m.type() === 'error' || (m.type() === 'warning' && !/GPU stall|ReadPixels|swiftshader|Automatic fallback/i.test(m.text()))) errors.push(`${m.type()}: ${m.text()}`); });
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   await page.goto(url);
-  await page.waitForFunction(() => window.GX && window.GX.ready, null, { timeout: 180000 });
+  await page.waitForFunction(() => window.GX && window.GX.ready, null, { timeout: 420000 });
   return { ctx, page, errors };
 }

@@ -9,16 +9,17 @@ import { Trees, type TreeTier } from './trees.ts';
 import { buildTrack } from './track.ts';
 import { buildViaduct } from './viaduct.ts';
 import { buildSettlement } from './settlement.ts';
+import { GroundCover } from './groundcover.ts';
 import type { PbrSet } from './site.ts';
 import { ENGINE_ORIGIN_D } from '../specs/black5.ts';
 
 export interface WorldTextures extends TerrainTextures { ballast: PbrSet; concrete: PbrSet; asphaltSet: PbrSet }
-export interface WorldTier { nearError: number; farError: number; trees: TreeTier }
+export interface WorldTier { nearError: number; farError: number; trees: TreeTier; groundR: number }
 
 export const WORLD_TIERS: Record<'high' | 'medium' | 'low', WorldTier> = {
-  high: { nearError: 0.25, farError: 1.5, trees: { nearR: 750, farR: 5200, nearMax: 18000, farMax: 60000, shadows: true } },
-  medium: { nearError: 0.45, farError: 2.5, trees: { nearR: 450, farR: 3600, nearMax: 8000, farMax: 36000, shadows: true } },
-  low: { nearError: 1.0, farError: 6.0, trees: { nearR: 220, farR: 1800, nearMax: 3000, farMax: 6000, shadows: false } },
+  high: { nearError: 0.25, farError: 1.5, trees: { nearR: 750, farR: 5200, nearMax: 18000, farMax: 60000, shadows: true }, groundR: 110 },
+  medium: { nearError: 0.45, farError: 2.5, trees: { nearR: 450, farR: 3600, nearMax: 8000, farMax: 36000, shadows: true }, groundR: 70 },
+  low: { nearError: 1.0, farError: 6.0, trees: { nearR: 220, farR: 1800, nearMax: 3000, farMax: 6000, shadows: false }, groundR: 0 },
 };
 
 /** A vehicle placed on the track: its object, its position in the straight train frame and its supports. */
@@ -28,6 +29,7 @@ export class World {
   readonly group = new THREE.Group();
   data = new WorldData();
   trees!: Trees;
+  ground!: GroundCover;
   colliders: THREE.Object3D[] = [];
   private waterUpd: (t: number) => void = () => {};
   viaduct!: ReturnType<typeof buildViaduct>;
@@ -42,19 +44,21 @@ export class World {
     this.group.name = 'world';
     const d = this.data, path = d.track;
     this.terrain = buildTerrain(d, tex, tier);
-    const water = buildWater(d); this.waterUpd = water.update;
+    const water = buildWater(d, tier.groundR > 0);   // boulders: Medium and High only this.waterUpd = water.update;
     this.trees = new Trees(d.trees, tier.trees);
     // track from west of the station to well east of the viaduct (the core of the map)
     const s0 = Math.max(0, path.station - 900), s1 = Math.min(path.length - 2, path.viaduct[1] + 1200);
     const track = buildTrack(path, s0, s1, tex.ballast);
     this.viaduct = buildViaduct(d, tex.concrete);
     this.settlement = buildSettlement(d, tex.asphaltSet);
-    this.group.add(this.terrain.group, water.group, this.trees.group, track, this.viaduct.group, this.settlement.group);
+    this.ground = new GroundCover(d, tier.groundR, this.settlement.platform);
+    this.group.add(this.terrain.group, water.group, this.trees.group, this.ground.group, track, this.viaduct.group, this.settlement.group);
     this.colliders = [this.terrain.near, this.viaduct.mesh, ...track.children.filter((c) => c.name === 'ballast_line'), ...this.settlement.colliders];
   }
 
   update(camPos: THREE.Vector3, time: number) {
     this.trees?.update(camPos);
+    this.ground?.update(camPos);
     this.waterUpd(time);
   }
 

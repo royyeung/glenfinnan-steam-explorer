@@ -201,7 +201,7 @@ if (which === 'world' || which === 'all') {
     out.trainOnViaduct = sF > sW && sF < sE;
     // viaduct geometry against the reference
     let maxH = 0; for (let s = sW; s <= sE; s += 2) { const p = path.at(s); maxH = Math.max(maxH, p.y - w.data.height(p.x, p.z)); }
-    out.viaduct = { length_m: +(sE - sW).toFixed(1), spans: 21, pier_m: +w.viaduct.pier.toFixed(2), maxRailAboveGround_m: +maxH.toFixed(1), railW: +path.at(sW).y.toFixed(1), railE: +path.at(sE).y.toFixed(1) };
+    out.viaduct = { length_m: +(sE - sW).toFixed(1), spans: 21, pier_m: +w.viaduct.pier.toFixed(2), pylon_m: +w.viaduct.pylon.toFixed(2), maxRailAboveGround_m: +maxH.toFixed(1), railW: +path.at(sW).y.toFixed(1), railE: +path.at(sE).y.toFixed(1) };
     // walk along the deck beside the train, then try to walk through the parapet
     GX.view('viaduct-deck');
     const d0 = app.walker.feet.clone(), walk = GX.walk(1, 0, 20);
@@ -214,10 +214,14 @@ if (which === 'world' || which === 'all') {
     const g0 = V(-52, 0, 26); g0.y = w.data.height(g0.x, g0.z) + 0.5; GX.teleport(g0.x, g0.y, g0.z, Math.atan2(-(-5 - g0.x), -(-35 - g0.z)));
     const u = GX.walk(1, 0, 40), p3 = app.walker.feet.clone();
     out.underArches = { travelled_m: +Math.hypot(p3.x - g0.x, p3.z - g0.z).toFixed(1), onGround: u.onGround, groundGap_m: +(p3.y - w.data.height(p3.x, p3.z)).toFixed(2) };
-    // the station: train at the platform, board coach 99318 by its platform-side B door
+    // the station: train at the platform (about 100 m long, so the rear overhangs it, as in Geograph
+    // 7829059); board coach 99318 by its platform-side A-end door
     app.placeTrain('station');
     out.atStation = supports();
-    const c = app.train.coaches[3], lay = c.lay, door = c.lod.localToWorld(V(lay.halfW + 1.4, 0.915, lay.z(lay.doors.B)));
+    const pl = w.settlement.platform;
+    out.coachesAtPlatform = app.train.coaches.filter((k) => { const s = path.nearest(...(() => { const q = k.lod.localToWorld(V(0, 0, k.lay.z(k.lay.doors.A))); return [q.x, q.z]; })()); return s > pl.s0 && s < pl.s1; }).map((k) => k.number);
+    out.platformLength_m = +(pl.s1 - pl.s0).toFixed(1);
+    const c = app.train.coaches[3], lay = c.lay, door = c.lod.localToWorld(V(lay.halfW + 1.4, 0.915, lay.z(lay.doors.A)));
     const fwd = c.lod.localToWorld(V(0, 0, 0)), side = c.lod.localToWorld(V(1, 0, 0)).sub(fwd);
     GX.teleport(door.x, door.y + 0.05, door.z, Math.atan2(side.x, side.z));
     for (let i = 0; i < 4; i++) GX.step(30);

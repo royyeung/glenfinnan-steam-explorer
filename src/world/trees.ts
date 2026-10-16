@@ -71,8 +71,8 @@ export class Trees {
   private meshes: { mesh: THREE.InstancedMesh; kind: number; ring: number }[] = [];
   private last = new THREE.Vector3(1e9, 0, 0);
   private data: TreeSet; private tier: TreeTier;
-  /** Cleared ground (x, z, radius): the managed viewpoint west of the viaduct. */
-  clearings: [number, number, number][] = [[-226, 74, 22]];
+  /** Cleared ground (x, z, radius): the top of the viewpoint knoll west of the viaduct. */
+  clearings: [number, number, number][] = [[-290, 84, 16]];
 
   constructor(data: TreeSet, tier: TreeTier) {
     this.data = data; this.tier = tier;

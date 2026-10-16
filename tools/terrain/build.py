@@ -221,6 +221,12 @@ for b in buildings:
     mm = blur(m.astype(np.float32), 2) > 0.01
     near = np.where(mm, b['base'], near)
 
+# the classic viewpoint: a knoll west of the viaduct that the 50 m data smooths away. Fitting a camera
+# to the 2014 Geograph photo 4015260 (taken from NM 9072 8122; six marked points on the viaduct, 3.6 px
+# rms) puts the camera about 10 m above the 50 m ground there: modelled as an 8.7 m rise (estimate)
+KNOLL = (E0 - 290, N0 - 84, 8.7, 32.0)                                  # E, N, height, radius
+near = near + KNOLL[2] * np.exp(-1.6 * (np.hypot(En - KNOLL[0], Nn - KNOLL[1]) / KNOLL[3]) ** 2)
+
 # blend the near grid into the far grid at its edge (60 m) so the two meshes meet
 edge = np.minimum.reduce([np.arange(NEAR['n'])[None, :].repeat(NEAR['n'], 0), np.arange(NEAR['n'])[::-1][None, :].repeat(NEAR['n'], 0),
                           np.arange(NEAR['n'])[:, None].repeat(NEAR['n'], 1), np.arange(NEAR['n'])[::-1][:, None].repeat(NEAR['n'], 1)]) * NEAR['step']

@@ -1,10 +1,11 @@
 // Glenfinnan Viaduct (REFERENCE §7), generated along the OS railway centreline between its abutments:
-// 21 semicircular arches of 50 ft (15.24 m); the pier width follows from the measured length
-// (≈2.8 m); 18 ft (5.49 m) between parapets. Mass concrete with lift (pour) lines, white lime
+// 21 semicircular arches of 50 ft (15.24 m); the pier widths follow from the measured length
+// (≈2.6 m; the two pylons ≈4.4 m); 18 ft (5.49 m) between parapets. Mass concrete with lift (pour) lines, white lime
 // streaks and moss, from the photos (S54, Commons 2018/2025/2026; see REFERENCE §7).
 // Estimated (no drawing): overall width, parapet height and thickness, arch ring and fill depth,
-// pier batter, impost band, pilasters, coping. "Thicker pylons" (S17) are not visible in the photos
-// and are not modelled.
+// pier batter, impost band, pilasters, coping. The "thicker pylons" that "flank the centre portion"
+// (HES listing LB310, S67) are the piers after the 8th and 13th arch from the west, about 1.7x as wide
+// as the others (counted and measured on the 2018 photo S60; estimate), so the centre portion is 5 arches.
 import * as THREE from 'three';
 import type { TrackPath, WorldData } from './data.ts';
 import { ktxNormalChunk } from '../render/antiTile.ts';
@@ -17,6 +18,7 @@ export const VIADUCT = {
   crownToRail: 1.75,              // arch ring + fill + ballast above the arch crown (estimate)
   batter: 0.022,                  // pier faces widen 22 mm per metre below the springing (photos)
   impost: { h: 0.38, proj: 0.1 }, ring: { w: 0.7, proj: 0.05 }, pilaster: { w: 1.5, proj: 0.12, cap: 0.28 },
+  pylons: [7, 12], pylonRatio: 1.7, // pier indices (0 = after the first arch) and width relative to the others
 };
 
 type V3 = THREE.Vector3;
@@ -38,19 +40,23 @@ function surface(ni: number, nj: number, f: (i: number, j: number) => { p: V3; u
 
 export function buildViaduct(data: WorldData, tex: { color: THREE.Texture; normal: THREE.Texture; rough: THREE.Texture }) {
   const path: TrackPath = data.track, [sW, sE] = path.viaduct, L = sE - sW, C = VIADUCT;
-  const pier = (L - C.spans * C.span) / (C.spans - 1);
+  // pier widths: the ordinary piers share what the arches and the two pylons leave of the measured length
+  const nP = C.spans - 1, pier = (L - C.spans * C.span) / (nP - C.pylons.length + C.pylons.length * C.pylonRatio);
+  const pierW = [...Array(nP)].map((_, k) => (C.pylons.includes(k) ? C.pylonRatio : 1) * pier);
+  const west = [0]; for (let k = 1; k < C.spans; k++) west.push(west[k - 1] + C.span + pierW[k - 1]);
   const W = C.overall / 2, Wi = C.betweenParapets / 2;
   // frame at arc length a along the viaduct (a = 0 at the west abutment)
   const P = V(), S = V();
   const at = (a: number, u: number, y: number) => { path.at(sW + a, P); path.side(sW + a, S); return V(P.x + S.x * u, y, P.z + S.z * u); };
   const rail = (a: number) => path.at(sW + a, P).y;
   const ground = (a: number, u: number) => { const p = at(a, u, 0); return data.height(p.x, p.z); };
-  const spanAt = (k: number) => k * (C.span + pier);                  // west edge of span k
+  const spanAt = (k: number) => west[k];                                // west edge of span k
+  /** The span whose arch contains a, else the nearest one. */
+  const spanOf = (a: number) => { let best = 0; for (let k = 0; k < C.spans; k++) if (Math.abs(a - (west[k] + C.span / 2)) < Math.abs(a - (west[best] + C.span / 2))) best = k; return best; };
   const springY = (k: number) => rail(spanAt(k) + C.span / 2) - C.crownToRail - C.span / 2;
   const R = C.span / 2;
   const intrados = (a: number) => {
-    const k = Math.min(C.spans - 1, Math.max(0, Math.floor(a / (C.span + pier))));
-    const a0 = spanAt(k), x = a - a0;
+    const k = spanOf(a), a0 = spanAt(k), x = a - a0;
     if (x < 0 || x > C.span) return null;
     return springY(k) + Math.sqrt(Math.max(0, R * R - (x - R) ** 2));
   };
@@ -63,14 +69,14 @@ export function buildViaduct(data: WorldData, tex: { color: THREE.Texture; norma
   for (let k = 0; k < C.spans; k++) {
     const a0 = spanAt(k);
     for (let t = 1; t <= 24; t++) cols.push(a0 + C.span * (1 - Math.cos((t / 24) * Math.PI)) / 2);
-    if (k < C.spans - 1) { cols.push(a0 + C.span + pier / 2, a0 + C.span + pier); }
+    if (k < C.spans - 1) { cols.push(a0 + C.span + pierW[k] / 2, a0 + C.span + pierW[k]); }
   }
   const nc = cols.length - 1;
 
   for (const f of [1, -1]) {
     // outer face above the springing / arches: spandrel wall and parapet
     parts.push(surface(nc, 1, (i, j) => {
-      const a = cols[i], y0 = intrados(a) ?? springY(Math.min(C.spans - 1, Math.round(a / (C.span + pier)))), y = j ? topY(a) : y0;
+      const a = cols[i], y0 = intrados(a) ?? springY(spanOf(a)), y = j ? topY(a) : y0;
       return { p: at(a, f * W, y), uv: UV(a, y) };
     }, f < 0));
     // parapet: inner face, coping top and lip
@@ -121,7 +127,7 @@ export function buildViaduct(data: WorldData, tex: { color: THREE.Texture; norma
     return out;
   };
   const pierEdges: [number, number][] = [];
-  for (let k = 0; k < C.spans - 1; k++) pierEdges.push([spanAt(k) + C.span, spanAt(k) + C.span + pier]);
+  for (let k = 0; k < C.spans - 1; k++) pierEdges.push([spanAt(k) + C.span, spanAt(k) + C.span + pierW[k]]);
   // the abutments: solid ends from the ground to the deck
   pierEdges.push([-2.5, 0]); pierEdges.push([L, L + 2.5]);
   pierEdges.forEach(([a0, a1], idx) => {
@@ -191,7 +197,7 @@ export function buildViaduct(data: WorldData, tex: { color: THREE.Texture; norma
   mat.customProgramCacheKey = () => 'viaduct-2';
   const mesh = new THREE.Mesh(merged, mat); mesh.name = 'viaduct'; mesh.castShadow = true; mesh.receiveShadow = true;
   const g = new THREE.Group(); g.name = 'viaduct_group'; g.add(mesh);
-  return { group: g, mesh, pier, springY, spanAt };
+  return { group: g, mesh, pier, pylon: pier * C.pylonRatio, springY, spanAt };
 }
 
 function mergeList(parts: THREE.BufferGeometry[]) {

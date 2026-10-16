@@ -1,13 +1,10 @@
 // Glenfinnan's built features from OS OpenMap Local: building footprints (heights and pitched roofs
 // estimated), roads draped as ribbons, the Glenfinnan Monument (1815; an 18 m round tower with a
-// statue, simplified), and the station platform beside the line (the passing loop and the second
-// platform are not modelled).
+// statue, simplified) and Glenfinnan station (station.ts).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { B5 } from '../specs/black5.ts';
-import { SITE } from './site.ts';
 import type { WorldData } from './data.ts';
-import { sweep } from './track.ts';
+import { buildStation, STATION_GEO } from './station.ts';
 import { ktxNormalChunk } from '../render/antiTile.ts';
 
 const nonIdx = (g: THREE.BufferGeometry) => { const n = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(n.attributes)) if (!['position', 'normal', 'uv'].includes(k)) n.deleteAttribute(k); if (!n.getAttribute('uv')) n.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n.getAttribute('position').count * 2), 2)); return n; };
@@ -18,13 +15,14 @@ export function buildSettlement(data: WorldData, asphalt: { color: THREE.Texture
 
   // buildings: walls (white harl or grey stone) and slate roofs
   const walls: THREE.BufferGeometry[] = [], roofs: THREE.BufferGeometry[] = [];
-  const path = data.track;
+  const museum: { ring: THREE.Vector2[]; base: number }[] = [];
   for (const b of data.json.buildings) {
     const ring = b.ring.map(([x, z]) => new THREE.Vector2(x, z));
-    // the station building stands on the platform: anything right beside the line sits at platform level
-    const c = ring.reduce((acc, p) => acc.add(p), new THREE.Vector2()).multiplyScalar(1 / ring.length), sc = path.nearest(c.x, c.y), q = path.at(sc);
-    if (Math.hypot(q.x - c.x, q.z - c.y) < 16 && Math.abs(sc - path.station) < 150) b.base = Math.max(b.base, q.y + 0.915);
+    const c = ring.reduce((acc, p) => acc.add(p), new THREE.Vector2()).multiplyScalar(1 / ring.length);
     if (ring.length < 4) continue;
+    if ([STATION_GEO.building, STATION_GEO.signalBox].some(([x, z]) => Math.hypot(c.x - x, c.y - z) < 12)) continue;   // modelled in station.ts
+    // the museum's two carriages in the south siding (OS maps them as one long footprint; photo S68 3237616)
+    if (Math.hypot(c.x - STATION_GEO.museumCoaches[0], c.y - STATION_GEO.museumCoaches[1]) < 10) { museum.push({ ring, base: b.base }); continue; }
     if (ring[0].equals(ring[ring.length - 1])) ring.pop();
     // walls: extrude the footprint (shape in x, -z so it extrudes up after rotation)
     const shape = new THREE.Shape(ring.map((p) => new THREE.Vector2(p.x, -p.y)));
@@ -53,6 +51,30 @@ export function buildSettlement(data: WorldData, asphalt: { color: THREE.Texture
     w.name = 'buildings'; r.name = 'roofs';
     for (const m of [w, r]) { m.castShadow = m.receiveShadow = true; g.add(m); }
     colliders.push(w);
+  }
+
+  // the museum carriages: two coach bodies along the footprint's long axis (red lower panels, cream above,
+  // black roof; colours from photo 3237616, estimates), on a short length of track
+  for (const { ring, base } of museum) {
+    let best = 0, dir = new THREE.Vector2(1, 0);
+    for (let i = 0; i < ring.length; i++) { const e = ring[(i + 1) % ring.length].clone().sub(ring[i]); if (e.length() > best) { best = e.length(); dir = e.normalize(); } }
+    const nrm = new THREE.Vector2(-dir.y, dir.x); let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
+    for (const p of ring) { a0 = Math.min(a0, p.dot(dir)); a1 = Math.max(a1, p.dot(dir)); b0 = Math.min(b0, p.dot(nrm)); b1 = Math.max(b1, p.dot(nrm)); }
+    const bm = (b0 + b1) / 2, len = Math.min(20, (a1 - a0) / 2 - 0.6), y0 = base + 1.0;
+    const parts: Record<string, THREE.BufferGeometry[]> = { red: [], cream: [], black: [] };
+    for (const k of [0, 1]) {
+      const ac = (a0 + a1) / 2 + (k ? 1 : -1) * (len / 2 + 0.3);
+      const body = (h0: number, h1: number, w: number) => new THREE.BoxGeometry(len, h1 - h0, w).translate(0, (h0 + h1) / 2, 0);
+      parts.red.push(body(0, 1.1, 2.8)); parts.cream.push(body(1.1, 2.6, 2.8)); parts.black.push(body(2.6, 2.9, 2.6), body(-0.9, 0, 2.2));
+      for (const g of [...parts.red.slice(-1), ...parts.cream.slice(-1), ...parts.black.slice(-2)]) {
+        const m = new THREE.Matrix4().makeBasis(new THREE.Vector3(dir.x, 0, dir.y), new THREE.Vector3(0, 1, 0), new THREE.Vector3(nrm.x, 0, nrm.y)).setPosition(dir.x * ac + nrm.x * bm, y0, dir.y * ac + nrm.y * bm);
+        g.applyMatrix4(m);
+      }
+    }
+    const cols: Record<string, number> = { red: 0x8a2a20, cream: 0xe2d6ac, black: 0x1e1e1e };
+    const all: THREE.BufferGeometry[] = [];
+    for (const [k, gs] of Object.entries(parts)) for (const g0 of gs) { const gg = nonIdx(g0), c = new THREE.Color(cols[k]), n = gg.getAttribute('position').count, col = new Float32Array(n * 3); for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3); gg.setAttribute('color', new THREE.BufferAttribute(col, 3)); all.push(gg); }
+    const m = new THREE.Mesh(mergeGeometries(all)!, new THREE.MeshStandardMaterial({ name: 'museum_coaches', vertexColors: true, roughness: 0.6 })); m.name = 'museum_coaches'; m.castShadow = m.receiveShadow = true; g.add(m); colliders.push(m);
   }
 
   // roads: ribbons 4 cm above the levelled road bed
@@ -95,15 +117,8 @@ export function buildSettlement(data: WorldData, asphalt: { color: THREE.Texture
   const mon = new THREE.Mesh(mergeGeometries(parts.map(nonIdx))!, stone); mon.position.set(mx, my - 0.4, mz); mon.name = 'monument'; mon.castShadow = mon.receiveShadow = true;
   g.add(mon); colliders.push(mon);
 
-  // station platform on the south side of the line (the building OS lists as a museum stands there)
-  const half = B5.gauge.v / 2, edge = half + SITE.platformOffset.v, top = SITE.platformHeight.v;
-  const s0 = path.station - 95, s1 = path.station + 70;          // about 165 m (estimate); centred on the museum
-  // u > 0 is left of eastward travel (north-east here); the museum lies on the right, so u < 0
-  const u0 = -edge, u1 = -(edge + 4.5);
-  const sect: [number, number][] = [[u0, top], [u1, top], [u1, -1.5], [u0, -1.5]];
-  const plat = new THREE.Mesh(sweep(path, s0, s1, 2, sect, 2, true), new THREE.MeshStandardMaterial({ name: 'platform', color: 0x6a6660, roughness: 0.9, side: THREE.DoubleSide }));
-  plat.name = 'platform_glenfinnan'; plat.castShadow = plat.receiveShadow = true; g.add(plat); colliders.push(plat);
-  const cope = new THREE.Mesh(sweep(path, s0, s1, 2, [[u0, top + 0.012], [u0 - 0.6, top + 0.012]], 2), new THREE.MeshStandardMaterial({ name: 'platform_edge', color: 0xd8c24a, roughness: 0.7, side: THREE.DoubleSide }));
-  cope.name = 'platform_edge'; g.add(cope);
-  return { group: g, colliders, platform: { s0, s1, u0, u1, top } };
+  // Glenfinnan station: platforms, loop, station building, signal box, shelter (station.ts)
+  const station = buildStation(data);
+  g.add(station.group); colliders.push(...station.colliders);
+  return { group: g, colliders, platform: station.platform, loop: station.loop };
 }

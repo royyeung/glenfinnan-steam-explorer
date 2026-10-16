@@ -83,6 +83,15 @@ Research snapshot **2026-10-04**, updated **2026-10-05** with your decisions (§
 | S60 | Photo: "Glenfinnan Viaduct Scotland 2018-08-25 by Marcok f01", Commons, CC BY-SA 4.0: the whole length; 21 equal arches, uniform piers |
 | S61 | Photo: "Glenfinnan Viaduct at Loch Shiel", 24 Aug 2017, Commons, CC BY-SA 4.0: the glen from the south, conifer plantation on the east slope |
 | S62 | Photo: Flickr (awsnews) "West Coast Railways Mk1 Buffet 1860", 13 Apr 2024, all rights reserved (comparison only): gold "BUFFET" lettering on a WCR Mk1 buffet in the replacement Jacobite set |
+| S63 | Wikipedia, *British Rail Class 47* (read 2026-10-16): length 63 ft 7 in (19.38 m), width 8 ft 10 in (2.69 m), height 12 ft 9½ in (3.90 m), wheels 3 ft 9 in (1.143 m), wheelbase 51 ft 6 in (15.70 m), Co-Co; West Coast Railways' Class 47s listed |
+| S64 | Photo: "3D Class 47s 245 and 851 with Class 37 685", 30 Nov 2018, Commons, CC BY 2.0: WCR maroon side elevation (black roof, gold line, "WEST COAST RAILWAYS" lettering) |
+| S65 | Photos: "47237 and 44932 The Cathedrals Express", 28 Jun 2014, Commons, CC BY-SA 2.0, and "Class 47 WCRC Crewe" (47787), Commons: WCR maroon cab front, small yellow panel, lamps |
+| S66 | Photos: "20260708-7611" and "20260708-7625 - BR No. 45407 - Fort William", **8 Jul 2026**, Commons, CC0: 45407 in 2026 with the blue "THE JACOBITE" headboard, **blue numberplate**, **shed plate "65J / SC"** (legible), early emblem on the tender |
+| S67 | Historic Environment Scotland, listed building **LB310** (Category A, 05/10/1971), read 2026-10-16: "long 21 arched concrete viaduct built on curve. **Thicker pylons flank centre portion** of continuous semi-circular arch rings. 416 yards (380 m) long"; NGR NM 90986 81349 |
+| S68 | Geograph photos of Glenfinnan station, 2011-2024, CC BY-SA 2.0, with camera grid references: 7829044, 7829059 (22 Apr 2024: "The Jacobite overlaps the platform"), 3237623, 3237616, 3237614 (25 Oct 2012), 2484170 (loop, 2011), 4203905, 4203898, 4203915 (2014), 5393579, 5357167 (2017), 5112315, 5112332 (2016), 4560906, 4560921, 4525726 (2015), 3069849, 5627577, 4535056, 4836906 |
+| S69 | Geograph photos of the viaduct with camera grid references: 4015260 (3 Jun 2014, NM 9072 8122, the classic view), 5736751 (12 Apr 2018), **8359440 and 8359441 (5 Jul 2026)**, 8166091 (30 Sep 2025), 8317834-8317847 (19 Apr 2026, river bed), CC BY-SA 2.0 |
+| S70 | West Coast Railways, "The Jacobite: 2026 Season Update" (4 Jun 2026); RailAdvent, 9 Apr 2026; European Rail Timetable *Newslines* 8 Jun 2026: the 2026 season started 1 Jun **with Mk2 coaches**; WCR intends to bring back Mk1s once fitted with central door locking |
+| S71 | Wikipedia, *The Jacobite (steam train)* (read 2026-10-16): the 2024 stop-gap "modern carriages … requiring a diesel locomotive to be attached to the rear of the train to power their air conditioning" |
 
 The 35 reference images downloaded so far are listed with author and licence in `docs/reference-sources.md`. The image files themselves are in the git-ignored `reference/web/`.
 
@@ -154,8 +163,8 @@ The 35 reference images downloaded so far are listed with author and licence in 
 | | Riveted / welded / part-welded tank, and the new tank's shape | none | **UNVERIFIED**: photos L06, L07, L16 |
 | Livery (current) | BR lined black | S1, S28, S30 | High |
 | Tender emblem | **Resolved: BR early emblem** (lion over a wheel, with a "BRITISH RAILWAYS" bar), seen on the tender in the 22 Oct 2025 Jacobite photo. Agrees with S1 and S28; S30's "late crest" dates from 2012–13. | S33 | **High** |
-| Smokebox numberplate | **Blue background with white numerals** "45407" in Apr 2025 and Oct 2025 (S28's "black plate" must be another period) | S34, S35 | High (2025) |
-| Shed plate | Small blue plate below the door handle in 2025 (code not legible) | S34, S35 | Medium. S28 says 26D (Bury); unverified for 2025. |
+| Smokebox numberplate | **Blue background with white numerals** "45407" in Apr 2025 and Oct 2025 (S28's "black plate" must be another period); still blue on **8 Jul 2026** (S66) | S34, S35, S66 | High (2026) |
+| Shed plate | Small blue plate below the door handle; **"65J / SC"** legible on 8 Jul 2026 (S66), as modelled | S34, S35, S66 | High (2026) |
 | Nameplates | "The Lancashire Fusilier", a curved plate with the regimental crest above it, on the boiler side above the running plate, roughly over the middle coupled wheel | S33, S35 | High (position); crest artwork to be simplified |
 | Boiler on 45407 today | Domed boiler with top feed: "top feed near dome" | S38 (2016); dome visible in S33 (2025) | Medium |
 | Lamps | Lamp irons, plus modern lamp units at both ends of the front buffer beam (lit white when running) | S34, S35 | Medium |
@@ -249,6 +258,7 @@ The cutaway's info panel will say which dimensions are estimated.
 | Classes of travel | First class open coaches (FO) and standard class TSOs (Tourist Second Open) | S3 | High |
 | | Compartment coaches only on the morning train when Mk1s are used | S4 | High |
 | Coach generations | "ex-British Railways' 1960s Mark I's or Mark II's", heritage liveries | S3 | High |
+| 2026 season | Started **1 Jun 2026 with Mk2 coaches** (not air-conditioned, S42) plus the Mk1 buffet 99318 fitted with central door locking; WCR plans to bring the Mk1s back once fitted with CDL (S70). The modelled set stands | S42, S70 | High |
 | Before 2024 | Maroon Mk1s; air-braked Mk2s on the afternoon train | S8 | Medium |
 | ORR exemption ended | 11 January 2024; centrally locked doors now required | S9 | Medium |
 | 2024–2025 | Mk2s used; blue/grey ex-InterCity air-conditioned Mk2s seen in 2024 (air-con inoperative behind steam) | S7, S8 | Medium |
@@ -350,13 +360,24 @@ The cutaway's info panel will say which dimensions are estimated.
 | Item | Value | Source | Confidence |
 |---|---|---|---|
 | Plan curve from the OS centreline | Arc between the abutment vertices **376 m** (published 380.4 m); a circle fitted to it has **R = 236 m** (published 241.4 m), worst deviation 1.8 m; it turns **91°** | S56, derived | Medium–High |
-| Pier width | (376 − 21 × 15.24) / 20 = **2.8 m** at the springing | derived | Medium |
+| Pier width | (376 − 21 × 15.24) / 20 = **2.8 m** at the springing. *Revised 2026-10-16:* with the two pylons (below) the ordinary piers are **2.61 m** | derived | Medium |
 | Rail level | Fitted to the 50 m ground along the line (median ±60 m, 100 m smoothing, bridged straight over the gorge, held to 1 in 40): **49.3 m** at the west end, **43.4 m** at the east end (rising west at 1 in 64, as "on the rise to a summit to the west"); 73.6 m at the station | S55, derived | Low (no survey) |
 | Height | Rail up to **32.4 m** above the 50 m ground under the deck (published 100 ft = 30.5 m) | derived | Low |
 | Details | Semicircular arch rings projecting slightly; impost band at the springing; a pilaster block above every pier at the parapet; horizontal lift (pour) lines; white lime streaks; moss on the parapet top | S58, S59, S60 | Medium (qualitative) |
-| Thicker piers ("pylons", S17) | **Not visible** in S58-S61: all piers look alike. Not modelled | S58-S61 | Open |
+| Thicker piers ("pylons", S17) | *2026-10-16:* the HES listing (S67) confirms "thicker pylons flank centre portion". On the 2018 photo (S60) and the 2014 Geograph photo (S69) the wider piers stand **after the 8th and the 13th arch** from the west, so the centre portion is 5 arches; about **1.7×** an ordinary pier (**4.45 m**). Modelled | S67, S60, S69 | Medium (position), Low (width) |
 | Parapet height above rail, overall width, arch ring and fill depth, pier batter | 1.05 m; 6.5 m; 1.75 m crown to rail; 22 mm per metre | estimates | Low |
-| Train on the viaduct in Oct 2025 | A diesel at the rear (S58). Not modelled | S58 | Medium |
+| Train on the viaduct in Oct 2025 | A diesel at the rear (S58). *2026-10-16:* at full size it is a **Class 47** (flat cab front, no nose) in WCR maroon; number not legible. In 2024-25 the rear diesel powered the air-conditioned Mk2s (S71); the 2026 Mk2s are not air-conditioned (S42), so a 2026 rear diesel is **unconfirmed**. Modelled as an option (on by default; `?diesel=0` or the HUD button hides it) | S58, S63-S65, S71 | Medium (2025), Low (2026) |
+
+**Classic viewpoint, fitted (2026-10-16).** Cameras were fitted to two Geograph photos with recorded camera grid references by marking the parapet above counted arches and both ends, then solving position (within the 10 m of the grid reference), height, direction and field of view (`v01-classic`, `v01-2026`):
+
+| Photo | Recorded | Fitted camera | Fit |
+|---|---|---|---|
+| 4015260, 3 Jun 2014 | NM 9072 8122 = (−280, 80) | (−290, 73.7, 84), 10.3 m above the 50 m ground, vertical FOV 36° | 6 points, 3.6 px rms |
+| 8359440, 5 Jul 2026 | NM 9078 8132 = (−220, −20) | (−230, 64.3, −13), 13.1 m above the 50 m ground, FOV 50° | 5 points, 1.5 px rms |
+
+Both fits need the camera **10–13 m higher relative to the viaduct** than the 50 m terrain gives. Either the hillside west of the viaduct is higher than the 50 m data (it smooths knolls away), or the rail is lower than fitted (the 50 m data also fills in the gorge, which raises the fitted rail level), or both. Unresolved until LiDAR. A knoll of +8.7 m is added at the 2014 viewpoint (estimate). The station's published height of "10 m" (search snippet) cannot be right for the station (it stands well above Loch Shiel); no reliable published rail level was found.
+
+**Glenfinnan station, from photos (S68) and OS (S56), 2026-10-16.** Two platforms either side of a passing loop. OS marks "Multi Track" for about 240 m (x −1211 to −1003). Photo camera positions put the platform ends near (−1176, 297) and (−1094, 347): about **100 m**, shorter than the Jacobite (S68: "The Jacobite overlaps the platform"). Platform 1 (south) carries the James Miller chalet building (cream walls, green trim, hipped slate roof with a canopy over the platform, a chimney) and at its east end the two-storey signal box (B-listed, closed 1986, part of the museum) with outside stairs. Platform 2 has a small timber shelter. Barrow crossings at both ends. Sizes are estimates from photos; track centres 3.4 m (estimate). Not modelled: the museum coaches in the south siding, the car park and the switches and crossings.
 
 ## 8. Terrain and setting data
 

@@ -28,6 +28,8 @@ import { CabRig } from './loco/cabRig.ts';
 import { CabUI } from './ui/cabUI.ts';
 import { Train } from './coach/train.ts';
 import { buildCoach } from './coach/mk2.ts';
+import { buildClass47 } from './diesel/class47.ts';
+import { C47, c47BogieCentres } from './specs/class47.ts';
 import { FORMATION, MK2, type CoachType } from './specs/mk2.ts';
 import { paintCoachLetter, paintCoachNumber } from './render/decals.ts';
 
@@ -90,6 +92,9 @@ export class App {
   private soundPointsCache: LocoSoundPoints | null = null;
   engine = new THREE.LOD();
   tender = new THREE.LOD();
+  /** Class 47 at the rear of the train (seen on 22 Oct 2025, S58; in 2026 unconfirmed). */
+  diesel = new THREE.LOD();
+  dieselOn = params.diesel;
   site: ReturnType<typeof buildSite> | null = null;
   world: World | null = null;
   /** Where the train stands (world mode): arc length of the engine's front buffer. */
@@ -209,12 +214,31 @@ export class App {
     // Low tier: coaches drop to the simplest model sooner (phones have the tightest draw-call budget)
     this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110]);
     this.scene.add(this.train.group);
+    // the diesel at the rear: three LOD levels, coupled behind the last coach, No. 1 end towards the train
+    const dLod = this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110];
+    for (let l = 0; l < 3; l++) {
+      let root: THREE.Object3D;
+      if (params.live) { root = buildClass47(blockoutMaterials()); if (l > 0) continue; }
+      else {
+        const file = `diesel47_lod${l}.glb`;
+        const g = await gltf.loadAsync(`${BASE}models/${file}${ver(file)}`, (e) => tick(file, e.loaded));
+        tick(file, manifest.files[file].bytes);
+        root = g.scene.children[0] ?? g.scene;
+      }
+      root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = l === 0 && this.tierName !== 'low'; o.receiveShadow = true; } });
+      this.diesel.addLevel(root, dLod[l]);
+    }
+    this.diesel.name = 'dieselLOD';
+    this.diesel.position.set(0, 0, this.train.coaches.at(-1)!.lod.position.z - MK2.lengthOverBuffers.v / 2 - C47.lengthOverBuffers.v / 2);
+    this.diesel.visible = this.dieselOn;
+    this.scene.add(this.diesel);
     // every vehicle's position in the straight train frame and its two supports (for track placement)
     const ax = engineAxlesD(), tx = tenderAxlesD(), bcz = MK2.bogieCentres.v / 2;
     this.vehicles = [
       { obj: this.engine, z0: 0, supports: [zEngine((ax.bogieFront + ax.bogieRear) / 2), zEngine(ax.drive)] },
       { obj: this.tender, z0: this.tender.position.z, supports: [zTender(tx[0]), zTender(tx[2])] },
       ...this.train.coaches.map((c) => ({ obj: c.lod as THREE.Object3D, z0: c.lod.position.z, supports: [bcz, -bcz] as [number, number] })),
+      { obj: this.diesel, z0: this.diesel.position.z, supports: [c47BogieCentres() / 2, -c47BogieCentres() / 2] },
     ];
     this.trainFrame = this.vehicles.map((v) => ({ ...v, z1: v.z0 }));
     if (this.world) this.world.placeTrain(this.world.places[this.placeName], this.vehicles);
@@ -228,6 +252,10 @@ export class App {
         if (m?.name === 'coach_light') { m.emissive.set(0xfff6e0); m.emissiveIntensity = 6; }
         if (m?.name === 'cdl_light') { m.emissive.set(0xffa020); m.emissiveIntensity = 8; } });
     }
+    // the diesel's lettering; its rear (No. 2 end) marker lights lit red as the train's tail lamps
+    paintDecals(this.diesel, this.tier.anisotropy);
+    this.diesel.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
+      if (m?.name === 'spring_red') { const c = m.clone(); c.emissive.set(0xff2010); c.emissiveIntensity = 12; (o as THREE.Mesh).material = c; } });
     for (let i = 0; i < this.engine.levels.length; i++) this.rigs.push(new LocoRig(this.engine.levels[i].object, this.tender.levels[i].object));
     // livery decals, lit lamps and procedural weathering
     paintDecals(this.engine, this.tier.anisotropy); paintDecals(this.tender, this.tier.anisotropy);
@@ -275,6 +303,7 @@ export class App {
       if (this.world) this.sounds.landscape(this.world.data, () => this.atmosphere.params.hour);
       else this.sounds.ambience(new THREE.Vector3(-60, -0.5, -40));
       this.sounds.locoIdle(this.soundPoints());
+      this.sounds.dieselIdle(this.dieselSoundAt(), this.dieselOn);
     });
 
     addEventListener('resize', () => this.resize());
@@ -404,9 +433,17 @@ export class App {
     this.world.placeTrain(this.world.places[name], this.vehicles);
     this.scene.updateMatrixWorld(true);
     this.soundPointsCache = null;
-    if (this.audio.running) this.sounds.moveLoco(this.soundPoints());
+    if (this.audio.running) { this.sounds.moveLoco(this.soundPoints()); this.sounds.dieselIdle(this.dieselSoundAt(), this.dieselOn); }
     this.rebuildColliders();
   }
+  /** Show or hide the diesel at the rear (and its sound and collision). */
+  setDiesel(on: boolean) {
+    this.dieselOn = on; this.diesel.visible = on;
+    if (this.audio.running) this.sounds.dieselIdle(this.dieselSoundAt(), on);
+    this.rebuildColliders();
+  }
+  /** The diesel's engine room, mid-body, in world space. */
+  dieselSoundAt() { return this.diesel.localToWorld(new THREE.Vector3(0, 2.6, -1.0)); }
   /** Views tied to the line: on the viaduct deck and on the station platform (world mode). */
   private registerTrackViews() {
     const path = this.world!.data.track, [sW] = path.viaduct, pl = this.world!.settlement.platform;
@@ -414,11 +451,17 @@ export class App {
     const on = (s: number, u: number, dy: number): [number, number, number] => { const p = path.at(s), q = path.side(s); return [p.x + q.x * u, p.y + dy, p.z + q.z * u]; };
     VIEWS['viaduct-deck'] = { kind: 'walk', frame: 'world', feet: on(sW + 24, -2.15, -0.36), yaw: look(sW + 24, 1), pitch: -0.05 };
     VIEWS['viaduct-parapet'] = { kind: 'walk', frame: 'world', feet: on(sW + 190, -2.2, -0.36), yaw: look(sW + 190, 1) - 1.35, pitch: -0.32 };
-    VIEWS['station-platform'] = { kind: 'walk', frame: 'world', feet: on(pl.s0 + 120, pl.u0 - 2.2, SITE_PLATFORM_TOP), yaw: look(pl.s0 + 120, -1) + 0.25, pitch: -0.02 };
+    VIEWS['station-platform'] = { kind: 'walk', frame: 'world', feet: on(pl.s1 - 6, pl.u0 - 2.2, SITE_PLATFORM_TOP), yaw: look(pl.s1 - 6, -1) + 0.2, pitch: -0.02 };
+    // the station from the end of platform 2, across the loop (as Geograph 4203905)
+    const st = this.world!.settlement, s2 = pl.s1 - 4;
+    VIEWS['station-p2'] = { kind: 'walk', frame: 'world', feet: on(s2, st.loop.offset(s2) + 4.3, SITE_PLATFORM_TOP), yaw: look(s2, -1) - 0.35, pitch: -0.03 };
+    // from above the line east of the station, looking back along both platforms
+    const sa = pl.s1 + 55, pa = on(sa, -14, 24), pt = on((pl.s0 + pl.s1) / 2, 0, 0);
+    VIEWS['station-air'] = { kind: 'persp', frame: 'world', pos: pa, target: pt, fov: 50 };
   }
 
   rebuildColliders() {
-    this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? []), this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels]);
+    this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? []), this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels, ...(this.dieselOn ? [this.diesel.levels[0].object] : [])]);
   }
   weather: WeatherName = 'fair';
   setWeather(w: WeatherName) {

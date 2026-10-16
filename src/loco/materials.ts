@@ -8,7 +8,7 @@ export type MatKey =
   | 'coach_maroon' | 'roof_black' | 'lining_gold' | 'underframe' | 'spring_red' | 'axle_yellow' | 'wood_panel' | 'ceiling' | 'carpet'
   | 'seat_vinyl' | 'decal_seatfabric' | 'table_top' | 'coach_light' | 'decal_coachnum' | 'decal_westcoast' | 'frosted' | 'cdl_light'
   | 'tablecloth' | 'curtain' | 'lamp_shade' | 'decal_goods' | 'decal_buffetsign' | 'decal_coachletter'
-  | 'decal_damask' | 'decal_firstclass' | 'decal_carpetfc' | 'decal_seatdir' | 'decal_buffetlabel'
+  | 'decal_damask' | 'decal_firstclass' | 'decal_carpetfc' | 'decal_seatdir' | 'decal_buffetlabel' | 'decal_wcr47'
   | 'copper' | 'wood' | 'chequer' | 'water' | 'backhead'
   | 'decal_gauge_pressure' | 'decal_gauge_vacuum' | 'decal_gauge_air' | 'decal_gauge_heat' | 'decal_waterplate' | 'decal_fire' | 'decal_cutoff'
   | 'decal_cabnum' | 'decal_emblem' | 'decal_emblem_l' | 'decal_numberplate' | 'decal_shedplate' | 'decal_headboard' | 'decal_nameplate' | 'decal_crest';
@@ -55,6 +55,7 @@ export function blockoutMaterials(): Record<MatKey, THREE.MeshStandardMaterial> 
     decal_carpetfc: m('decal_carpetfc', 0xffffff, 0.95, 0.0),      // navy patterned first-class carpet
     decal_seatdir: m('decal_seatdir', 0xffffff, 0.6, 0.0),         // F / B seat-direction labels on the window pillars
     decal_buffetlabel: m('decal_buffetlabel', 0xffffff, 0.45, 0.0, { transparent: true }), // "BUFFET" on the bodyside (as on WCR 1860)
+    decal_wcr47: m('decal_wcr47', 0xffffff, 0.4, 0.0, { transparent: true }),    // "WEST COAST RAILWAYS" on the Class 47 sides (S64)
     decal_goods: m('decal_goods', 0xffffff, 0.6, 0.0),
     decal_buffetsign: m('decal_buffetsign', 0xffffff, 0.5, 0.0),
     decal_coachletter: m('decal_coachletter', 0xffffff, 0.6, 0.0),
