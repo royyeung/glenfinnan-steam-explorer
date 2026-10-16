@@ -1,0 +1,49 @@
+{
+ "onViaduct": {
+  "maxLateral_m": 0.0046,
+  "maxVertical_m": 0.0001
+ },
+ "trainOnViaduct": true,
+ "viaduct": {
+  "length_m": 376,
+  "spans": 21,
+  "pier_m": 2.61,
+  "pylon_m": 4.45,
+  "maxRailAboveGround_m": 32.4,
+  "railW": 49.3,
+  "railE": 43.4
+ },
+ "deckWalk": {
+  "travelled_m": 28,
+  "aboveRail_m": -0.36,
+  "onGround": true
+ },
+ "parapet": {
+  "maxOffset_m": 2.42,
+  "inside": true
+ },
+ "underArches": {
+  "travelled_m": 56,
+  "onGround": true,
+  "groundGap_m": -0.05
+ },
+ "atStation": {
+  "maxLateral_m": 0.0049,
+  "maxVertical_m": 0.0001
+ },
+ "coachesAtPlatform": [
+  "5487",
+  "5453",
+  "5419",
+  "99318"
+ ],
+ "platformLength_m": 94,
+ "boardAtStation": {
+  "platformY_local": 0.926,
+  "afterY_local": 1.271,
+  "x_local": -0.27,
+  "boarded": true
+ },
+ "pass": true,
+ "errors": []
+}

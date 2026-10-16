@@ -1,0 +1,195 @@
+{
+ "errorsAtLoad": [],
+ "views": {
+  "v01-classic": {
+   "view": "v01-classic",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 284,
+    "triangles": 2674748,
+    "textures": 49,
+    "geometries": 113,
+    "textureMB": 48.8,
+    "frameMsCPU": 31.1,
+    "frameMsGPU": -1,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 208206,
+   "errors": []
+  },
+  "v01-2026": {
+   "view": "v01-2026",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 292,
+    "triangles": 2695780,
+    "textures": 57,
+    "geometries": 199,
+    "textureMB": 48.8,
+    "frameMsCPU": 19.7,
+    "frameMsGPU": 56959.99,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 176060,
+   "errors": []
+  },
+  "viaduct-river": {
+   "view": "viaduct-river",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 300,
+    "triangles": 2745484,
+    "textures": 55,
+    "geometries": 118,
+    "textureMB": 48.8,
+    "frameMsCPU": 43.8,
+    "frameMsGPU": -1,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 189061,
+   "errors": []
+  },
+  "station-air": {
+   "view": "station-air",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 82,
+    "triangles": 2424562,
+    "textures": 57,
+    "geometries": 133,
+    "textureMB": 48.8,
+    "frameMsCPU": 13.3,
+    "frameMsGPU": 56647.05,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 183889,
+   "errors": []
+  },
+  "station-platform": {
+   "view": "station-platform",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 82,
+    "triangles": 2448410,
+    "textures": 51,
+    "geometries": 127,
+    "textureMB": 48.8,
+    "frameMsCPU": 14.3,
+    "frameMsGPU": 63973.9,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 191334,
+   "errors": []
+  },
+  "station-p2": {
+   "view": "station-p2",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 80,
+    "triangles": 2437474,
+    "textures": 57,
+    "geometries": 133,
+    "textureMB": 48.8,
+    "frameMsCPU": 13.1,
+    "frameMsGPU": 61048.88,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 170352,
+   "errors": []
+  },
+  "aerial": {
+   "view": "aerial",
+   "stats": {
+    "tier": "high",
+    "reason": "chosen",
+    "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "calls": 272,
+    "triangles": 1969888,
+    "textures": 57,
+    "geometries": 201,
+    "textureMB": 48.8,
+    "frameMsCPU": 47.1,
+    "frameMsGPU": 55018.71,
+    "dpr": 1,
+    "px": [
+     1280,
+     720
+    ]
+   },
+   "sun": {
+    "elevation": 37.867656567082015,
+    "azimuth": 138.40390970849506
+   },
+   "ms": 191217,
+   "errors": []
+  }
+ },
+ "groundCoverReshot": [
+  "viaduct-river",
+  "station-air",
+  "station-p2",
+  "v01-2026",
+  "v01-classic",
+  "station-platform"
+ ]
+}

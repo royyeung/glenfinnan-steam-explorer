@@ -4,6 +4,7 @@
 // grid chosen by a hash of the cell, so they stay put as the camera moves; the set is refilled
 // every 12 m. Medium and High only (Low has no triangle budget left).
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { WorldData } from './data.ts';
 
 const CELL = 2.4;
@@ -17,8 +18,10 @@ function clump(seed: number, flat: number) {
     if (!off.has(k)) off.set(k, 1 + rnd() * 0.5);
     const f = off.get(k)!; p.setXYZ(i, p.getX(i) * f, Math.max(-0.15, p.getY(i)) * f * flat, p.getZ(i) * f);
   }
-  g.computeVertexNormals();
-  return g;
+  // shared vertices so the clump shades as a rounded mound, not as flat shards
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  const m = mergeVertices(g); m.computeVertexNormals();
+  return m;
 }
 
 export class GroundCover {
@@ -83,7 +86,9 @@ export class GroundCover {
       m4.compose(new THREE.Vector3(x, y - 0.05, z), q, new THREE.Vector3(w, heather ? 0.7 * w : (0.8 + 0.6 * h(cx, cz, 8)) * w, w * (0.8 + 0.4 * h(cx, cz, 9))));
       mesh.setMatrixAt(counts[heather], m4);
       const t = h(cx, cz, 10);
-      if (heather) col.setRGB(0.36 + 0.1 * t, 0.27 + 0.05 * t, 0.33 + 0.08 * t); else col.setRGB(0.3 + 0.18 * t * t, 0.42 + 0.08 * t, 0.15 + 0.03 * t);
+      // sRGB: heather muted purple, bracken mid green with a few clumps already browning
+      if (heather) col.setRGB(0.36 + 0.08 * t, 0.25 + 0.04 * t, 0.33 + 0.06 * t, THREE.SRGBColorSpace);
+      else col.setRGB(0.27 + 0.16 * t * t, 0.36 + 0.06 * t, 0.13 + 0.03 * t, THREE.SRGBColorSpace);
       mesh.setColorAt(counts[heather], col);
       counts[heather]++;
     }

@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 5 (environment) built on 2026-10-12, live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 6".**
+**Status:** Phase 5 (environment) built on 2026-10-12, with a follow-up on 2026-10-16 (diesel, station, pylons, fitted classic views), live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 6".**
 
 ---
 
@@ -404,6 +404,17 @@ Every phase ends the same way:
 - [x] **Sound**: wind by exposure, river, loch waves, birds by day, owls at night, echo near the viaduct; every earlier check still passes.
 - [ ] **V01 matches**: only partly. From the photographers' GPS positions the hills match roughly, but the viaduct looks smaller and further away, probably because of a knoll missing from the 50 m data and GPS error. V07: no usable panorama with a known position.
 
+**Follow-up (2026-10-16).** You accepted the partial V01 match for now (to improve in Phase 7 or when LiDAR is published), asked for the diesel, kept the viaduct colour, and asked me to research the open items. Details in `shots/p5b/NOTES.md`.
+
+- [x] **Class 47 at the rear** (as seen in Oct 2025; 2026 unconfirmed), with a switch and an idling sound.
+- [x] **The 2026 coaches confirmed:** Mk2s plus the Mk1 buffet (S70); the modelled set stands.
+- [x] **Station rebuilt from photos:** loop, two platforms (about 94 m), the chalet building, signal box, shelter and museum carriages.
+- [x] **Viaduct pylons** after arches 8 and 13 (HES listing S67).
+- [x] **Classic views fitted** to the recorded camera positions of a 2014 and a July 2026 Geograph photo. The fits show the viewpoints stand 10–13 m higher relative to the viaduct than the 50 m data gives (knoll and/or lower rail): unresolved until LiDAR.
+- [x] **River boulders and bracken/heather ground cover** (Medium and High).
+- [x] **Full screen on phones:** a HUD button (Fullscreen API) and a web-app manifest, so "Add to Home screen" opens without the address bar.
+- [x] **Checks and budgets pass** on every tier.
+
 ### Phase 6: Motion and effects
 
 - **Movement:** the train runs along the track at realistic speed with correct acceleration. Wheel rotation is tied to distance.
@@ -437,6 +448,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 
 ## 12. Change log
 
+- 2026-10-16: Phase 5 follow-up: Class 47 at the rear, Glenfinnan station rebuilt (loop, platform 2, building, signal box), viaduct pylons, classic views fitted to Geograph photos with recorded positions, river boulders and ground cover. 2026 coaches confirmed as Mk2s (S70). LiDAR still not published.
 - 2026-10-12: Phase 5 built and verified (Glenfinnan from OS Terrain 50 and OpenMap Local: terrain, loch, river, trees, line, viaduct, village, station; weather presets; landscape sounds). The V01 match is only partial. Terrain tooling: numpy and pyshp instead of GDAL.
 - 2026-10-04: Phase 0 written. Research snapshot in REFERENCE.md.
 - 2026-10-12: Phase 4 addendum: first class (5229, 5239), Mk1 buffet/shop (99318) and Mk2B coaches (5487, 5453), following the 2026 stock list found on railforums (S42).
