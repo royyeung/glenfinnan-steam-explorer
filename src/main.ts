@@ -93,6 +93,18 @@ function wireUI() {
     const go = $<HTMLSelectElement>('goto');
     go.onchange = () => { if (go.value) { app.setView(go.value); setMode(app.mode === 'walk' ? 'walk' : 'orbit'); } go.value = ''; };
   }
+  // full screen: hides the address bar and system bars (Android Chrome, desktop). iPhone Safari has no
+  // full screen for pages, so the button stays hidden there (use "Add to Home Screen" instead).
+  const fs = $('fsBtn'), root = document.documentElement;
+  if (document.fullscreenEnabled && root.requestFullscreen) {
+    fs.hidden = false;
+    const sync = () => { const on = !!document.fullscreenElement; fs.textContent = on ? 'Exit full screen' : 'Full screen'; fs.setAttribute('aria-pressed', String(on)); };
+    fs.onclick = async () => {
+      try { if (document.fullscreenElement) await document.exitFullscreen(); else await root.requestFullscreen({ navigationUI: 'hide' }); } catch { /* refused (e.g. not from a tap) */ }
+    };
+    document.addEventListener('fullscreenchange', () => { sync(); app.resize(); });
+    sync();
+  }
   $('mute').onclick = async () => {
     if (!app.audio.running) await app.audio.unlock(); else app.audio.setMuted(!app.audio.muted);
     syncSound();

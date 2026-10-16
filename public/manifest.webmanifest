@@ -1,0 +1,16 @@
+{
+  "name": "Glenfinnan Steam Explorer (unofficial)",
+  "short_name": "Glenfinnan",
+  "description": "Unofficial, educational 3D recreation of 45407 and its train on the Glenfinnan Viaduct.",
+  "start_url": "/glenfinnan/",
+  "scope": "/glenfinnan/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#14181c",
+  "theme_color": "#14181c",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
   <title>Glenfinnan Steam Explorer (unofficial)</title>
+  <!-- installable as a full-screen web app ("Add to Home screen": no address bar) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#14181c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="icon-192.png" />
   <style>
     :root { --ink: #f2efe6; --dim: #b8b2a3; --panel: rgba(16, 18, 20, 0.78); --accent: #d8b45a; --red: #a3281c; color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -109,6 +114,7 @@
       <select class="btn" id="quality" aria-label="Quality">
         <option value="auto">Auto</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
       </select>
+      <button class="btn" id="fsBtn" aria-pressed="false" title="Full screen (hides the browser address bar)" hidden>Full screen</button>
       <button class="btn" id="aboutBtn">About</button>
     </div>
   </div>
