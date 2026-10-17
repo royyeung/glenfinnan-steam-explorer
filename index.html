@@ -58,6 +58,7 @@
     #ctlPanel input[type=range] { width: 100%; accent-color: var(--accent); margin-bottom: 8px; }
     /* drop-down lists: dark rows with light text (Windows draws them white by default) */
     select option, select optgroup { background: #1d2126; color: var(--ink); }
+    #boardBtn:disabled { background: var(--panel); color: var(--dim); cursor: default; }
     #boardBtn { position: fixed; left: 50%; transform: translateX(-50%); top: 60%; z-index: 6; font-size: 16px; padding: 10px 18px; background: var(--accent); color: #111; border-color: var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
     [hidden] { display: none !important; }
     @media (max-width: 640px) { #help { display: none; } #hud input[type=range] { width: 80px; } }
@@ -97,6 +98,7 @@
       <select class="btn" id="mph" aria-label="Speed over the viaduct">
         <option value="5">Viaduct 5 mph</option><option value="10">Viaduct 10 mph</option><option value="15">Viaduct 15 mph</option><option value="20">Viaduct 20 mph</option><option value="25">Viaduct 25 mph</option>
       </select>
+      <button class="btn" id="pauseBtn" aria-pressed="false" title="Stop for 30 s with the train centred on the viaduct (travel guides say the morning train pauses; unverified)">Pause on viaduct</button>
       <select class="btn" id="driver" aria-label="Who drives">
         <option value="auto">Automatic driver</option><option value="you">You drive (cab controls)</option>
       </select>
@@ -112,7 +114,7 @@
       <select class="btn" id="weather" aria-label="Weather">
         <option value="sunny">Sunny</option><option value="fair">Bright, broken cloud</option><option value="overcast">Overcast</option><option value="mist">Mist and low cloud</option>
       </select>
-      <select class="btn" id="place" aria-label="Where the train stands">
+      <select class="btn" id="place" aria-label="Move the train to">
         <option value="viaduct">Train on the viaduct</option><option value="station">Train at Glenfinnan station</option>
       </select>
       <button class="btn" id="diesel" aria-pressed="true" title="Class 47 at the rear, as seen on the viaduct on 22 Oct 2025 (whether it runs in 2026 is unconfirmed)">Diesel at rear</button>

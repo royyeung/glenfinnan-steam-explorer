@@ -117,7 +117,7 @@ if (want('ride')) {
     const e1 = app.engine.worldToLocal(app.walker.feet.clone());
     res.cab = { onFootplate: e0.y > 1.5, drift_m: +e1.distanceTo(e0).toFixed(4) };
     // doors are locked while moving: no "step down" offered
-    res.doorsLockedWhileMoving = app.boardingOffer() === null;
+    const off = app.boardingOffer(); res.doorsLockedWhileMoving = (off === null || off.locked === true) && app.board() === false; res.offerWhileMoving = off?.label ?? null;
     return res;
   });
   r.pass = r.coachStand.worldMoved_m > 40 && r.coachStand.driftInCoach_m < 0.02 && Math.abs(r.coachStand.yLocal - 1.27) < 0.02 && r.coachWalk.walkedAlong_m > 3.5 && Math.abs(r.coachWalk.yLocal - 1.27) < 0.02 && r.cab.onFootplate && r.cab.drift_m < 0.02 && r.doorsLockedWhileMoving;
@@ -173,6 +173,31 @@ if (want('shots')) {
   await shot('run_coach', () => { GX.run({ hold: 0 }); GX.view('coach-aisle'); GX.run({ hold: 8 }); for (let i = 0; i < 10; i++) GX.tick(60); });
   await shot('run_station', () => { GX.app.followTrain = false; GX.run({ hold: null, auto: true, s: GX.app.run.route.stop + 140, v: 6 }); GX.view('station-air'); for (let i = 0; i < 40; i++) GX.tick(60); });
   save(`shots_${q}`, { stats, errors }); await ctx.close();
+}
+
+if (want('perf')) {
+  // worst views while running, each tier, desktop and phone sizes: calls and triangles include the
+  // shadow pass (redrawn every frame while the train moves) and the steam
+  const rows = [], budget = { low: [150, 400e3], medium: [300, 1.2e6], high: [600, 3e6] };
+  for (const q of ['low', 'medium', 'high']) for (const [w, h] of [[1280, 720], [844, 390]]) {
+    const { ctx, page, errors } = await openPage(b, `${url}?fixed=1&q=${q}&run=1&hour=11.25`, { w, h });
+    for (const [name, setup] of [
+      ['train', () => { GX.app.followTrain = true; GX.run({ on: true, auto: true, mph: 10, place: 'viaduct' }); GX.view('train-glen'); }],
+      ['classic', () => { GX.app.followTrain = false; GX.run({ s: GX.runState().viaduct[1] - 60, v: 4.47 }); GX.view('v01-classic'); }],
+      ['cab', () => { GX.run({ hold: 0, place: 'viaduct' }); GX.view('cab-inside'); GX.run({ hold: 8 }); }],
+      ['coach', () => { GX.run({ hold: 0 }); GX.view('coach-aisle'); GX.run({ hold: 8 }); }],
+      ['station', () => { GX.run({ hold: null, auto: true, s: GX.app.run.route.stop + 140, v: 6 }); GX.view('station-air'); }],
+    ]) {
+      await page.evaluate(setup);
+      const st = await page.evaluate(() => { for (let i = 0; i < 12; i++) GX.tick(30); const s = GX.stats(); const s2 = GX.stats(); return { calls: Math.max(s.calls, s2.calls), tris: Math.max(s.triangles, s2.triangles), puffs: GX.app.exhaust.count }; });
+      const [bc, bt] = budget[q];
+      rows.push({ tier: q, size: `${w}x${h}`, view: name, ...st, pass: st.calls <= bc && st.tris <= bt });
+      console.log(JSON.stringify(rows.at(-1)));
+    }
+    rows.push({ tier: q, size: `${w}x${h}`, errors });
+    await ctx.close();
+  }
+  save('perf', { rows, pass: rows.every((r) => r.pass !== false && !(r.errors && r.errors.length)) });
 }
 
 await b.close(); server.close();

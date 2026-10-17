@@ -62,6 +62,9 @@ export class TrainRun {
   private timer = 0;
   private stall = 0;
   private stopDone = false;
+  /** Q13: an optional pause with the train centred on the viaduct (30 s) */
+  pauseOnViaduct = false;
+  private pauseDone = false;
   private whistledViaduct = false;
   /** jumps back to the east end (for the follow camera and sounds) */
   onRestart: () => void = () => {};
@@ -75,6 +78,7 @@ export class TrainRun {
     this.v = standing ? 0 : this.viaductSpeed;
     this.state = standing ? 'standing' : 'running'; this.timer = standing ? 20 : 0;
     this.stopDone = s <= this.route.stop + 2;
+    this.pauseDone = s <= this.pausePoint + 2;
     this.whistledViaduct = s < this.route.viaduct[1] + 300;
   }
 
@@ -91,8 +95,11 @@ export class TrainRun {
     let v = this.limitAt(s);
     if (s > vE + 20) v = Math.min(v, Math.sqrt(this.viaductSpeed ** 2 + 2 * b * (s - vE - 20)));
     if (!this.stopDone && s > this.route.stop) v = Math.min(v, Math.sqrt(2 * b * (s - this.route.stop)));
+    if (this.pauseOnViaduct && !this.pauseDone && s > this.pausePoint) v = Math.min(v, Math.sqrt(2 * b * (s - this.pausePoint)));
     return v;
   }
+  /** front-buffer position that centres the train on the viaduct */
+  get pausePoint() { return (this.route.viaduct[0] + this.route.viaduct[1]) / 2 - this.length / 2; }
 
   /** Grade force (N): sum over the train of m g sin(slope), sampled at five points along it. The
    *  fitted rail levels reach 1 in 40 (the fit's own limit, from 50 m terrain); the slope used here is
@@ -135,7 +142,7 @@ export class TrainRun {
     this.s -= this.v * dt;
     // the ends of the modelled track
     if (this.auto && this.running && this.s < this.route.west) {
-      this.s = this.route.east; this.v = this.lineSpeed; this.stopDone = false; this.whistledViaduct = false; this.state = 'running'; this.brake = 0;
+      this.s = this.route.east; this.v = this.lineSpeed; this.stopDone = false; this.pauseDone = false; this.whistledViaduct = false; this.state = 'running'; this.brake = 0;
       this.onRestart();
     }
     const lo = this.route.west - 40, hi = this.route.east + 60;
@@ -169,7 +176,8 @@ export class TrainRun {
       const atStation = this.s <= this.route.stop + 3 && this.s > this.route.stop - 3;
       // a heavy train on the bank: wait for a full head of steam before starting
       const ready = fp.pressure >= 215;
-      this.status = this.timer > 0 ? (atStation ? `At Glenfinnan station, leaving in ${Math.ceil(this.timer)} s` : `Standing, leaving in ${Math.ceil(this.timer)} s`) : 'Waiting for steam';
+      const onViaduct = this.s <= this.route.viaduct[1] && this.s + this.length >= this.route.viaduct[0];
+      this.status = this.timer > 0 ? (onViaduct ? `Paused on the viaduct, leaving in ${Math.ceil(this.timer)} s` : atStation ? `At Glenfinnan station, leaving in ${Math.ceil(this.timer)} s` : `Standing, leaving in ${Math.ceil(this.timer)} s`) : 'Waiting for steam';
       if (this.timer <= 0 && ready) { this.state = 'departing'; this.timer = 7; }
       c.brake = this.brake; return;
     }
@@ -222,6 +230,9 @@ export class TrainRun {
     this.stall = this.v < 0.1 && c.regulator > 0.9 ? this.stall + dt : 0;
     if (this.v < -0.01 || this.stall > 4) { this.brake = 1; c.regulator = 0; this.v = Math.max(0, this.v); this.state = 'standing'; this.timer = 0; this.stall = 0; return; }
     // the station stop
+    if (this.pauseOnViaduct && !this.pauseDone && this.s - this.pausePoint < 1.5 && this.v < 0.4) {
+      this.v = 0; this.pauseDone = true; this.state = 'standing'; this.timer = 30; this.brake = 1;
+    }
     if (!this.stopDone && this.s - this.route.stop < 1.5 && this.v < 0.4) {
       this.v = 0; this.stopDone = true; this.state = 'standing'; this.timer = 60; this.brake = 1;
     }

@@ -125,7 +125,7 @@ export class Exhaust {
       if (this.life[i] <= 0) continue;
       const age = (this.age[i] += dt);
       if (age >= this.life[i]) { this.life[i] = 0; continue; }
-      const drag = 1 - Math.exp(-dt * 1.6), o = i * 3;
+      const drag = 1 - Math.exp(-dt * 1.2), o = i * 3;
       this.vel[o] += (w.x - this.vel[o]) * drag;
       this.vel[o + 1] += (this.rise[i] - this.vel[o + 1]) * drag;
       this.vel[o + 2] += (w.z - this.vel[o + 2]) * drag;
@@ -133,7 +133,7 @@ export class Exhaust {
       const t = age / this.life[i];
       const size = this.size[i] + this.grow[i] * Math.sqrt(age);
       // quick fade-in, long fade-out; thinner as it spreads
-      const a = this.alpha[i] * Math.min(1, t * 12) * (1 - t) ** 1.5;
+      const a = this.alpha[i] * Math.min(1, 0.4 + t * 60) * (1 - t) ** 1.6;
       p[k * 4] = this.pos[o]; p[k * 4 + 1] = this.pos[o + 1]; p[k * 4 + 2] = this.pos[o + 2]; p[k * 4 + 3] = size;
       l[k * 4] = a; l[k * 4 + 1] = this.smoke[i]; l[k * 4 + 2] = this.spin[i] + age * 0.15; l[k * 4 + 3] = 0;
       k++;

@@ -62,6 +62,14 @@ describe('the automatic run', () => {
     expect(stopped).not.toBeNull();
     expect(Math.abs(stopped! - route.stop)).toBeLessThan(2);
   });
+  it('pauses with the train centred on the viaduct when asked, then carries on', () => {
+    const fp = new Footplate(), r = new TrainRun(route, route.east - 200, 440, 160);
+    r.pauseOnViaduct = true; r.v = r.lineSpeed;
+    let paused: number | null = null, stoppedAtStation = false;
+    run(r, fp, 900, () => { if (paused === null && r.state === 'standing') paused = r.s; if (paused !== null && r.state === 'standing' && Math.abs(r.s - route.stop) < 2) stoppedAtStation = true; });
+    expect(Math.abs(paused! - r.pausePoint)).toBeLessThan(2);
+    expect(stoppedAtStation).toBe(true);
+  });
   it('restarts east of the viaduct after leaving westwards', () => {
     const fp = new Footplate(), r = new TrainRun(route, route.stop + 50, 440, 160);
     let restarts = 0; r.onRestart = () => restarts++;

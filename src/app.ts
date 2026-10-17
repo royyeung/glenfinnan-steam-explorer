@@ -566,8 +566,8 @@ export class App {
     return out;
   }
   /** What the walker can do at the nearest doorway: climb in from beside it, or step down from it. */
-  boardingOffer(): { label: string; to: THREE.Vector3; yaw: number } | null {
-    if (this.mode !== 'walk' || Math.abs(this.speed) > 0.2) return null; // doors locked while moving
+  boardingOffer(): { label: string; to: THREE.Vector3; yaw: number; locked?: boolean } | null {
+    if (this.mode !== 'walk') return null;
     const f = this.walker.feet, flat = (a: THREE.Vector3) => Math.hypot(a.x - f.x, a.z - f.z);
     const yawTo = (a: THREE.Vector3, b: THREE.Vector3) => Math.atan2(-(b.x - a.x), -(b.z - a.z));
     let best: { label: string; to: THREE.Vector3; yaw: number } | null = null, bd = Infinity;
@@ -576,11 +576,13 @@ export class App {
       if (dOut < 1.4 && f.y < d.inside.y - 0.4 && dOut < bd) { bd = dOut; best = { label: `Climb into ${d.what}`, to: d.inside, yaw: yawTo(d.outside, d.inside) }; }
       if (dIn < 0.9 && Math.abs(f.y - d.inside.y) < 0.45 && dIn < bd) { bd = dIn; best = { label: 'Step down', to: d.outside, yaw: yawTo(d.inside, d.outside) }; }
     }
+    // central door locking (and common sense on the footplate): no getting on or off while moving
+    if (best && Math.abs(this.speed) > 0.2) return { ...best, label: 'Doors locked while moving', locked: true };
     return best;
   }
   /** Climb aboard or step down at the nearest doorway (falls to the ground below when stepping down). */
   board() {
-    const o = this.boardingOffer(); if (!o) return false;
+    const o = this.boardingOffer(); if (!o || o.locked) return false;
     this.walker.teleport(o.to.x, o.to.y, o.to.z, o.yaw); this.walker.pitch = 0;
     if (this.audio.running) this.sounds.footstep(this.surface(), this.walker.feet.clone());
     return true;
@@ -717,7 +719,7 @@ export class App {
       for (const j of this.jointsPending) this.runSounds.joint(j.vi, at(j.simT), this.speed);
     }
     // a puff from the chimney for every beat (the last few if many steps ran at once)
-    for (const b of this.beatsPending.slice(-8)) this.puff(b.level);
+    for (const b of this.beatsPending.slice(-6)) this.puff(b.level);
     this.beatsPending.length = 0; this.jointsPending.length = 0;
   }
 
@@ -728,13 +730,16 @@ export class App {
     return out.set(e[8], e[9], e[10]).normalize().multiplyScalar(this.run.v);
   }
 
-  /** One exhaust beat seen at the chimney top: thrown up, carried back by the train's own speed. */
+  /** One exhaust beat seen at the chimney top: a dense white-grey puff thrown up a few metres, then
+   *  left behind by the train (it keeps the train's speed only briefly) and carried off by the wind. */
   private puff(level: number) {
-    const top = this.engine.localToWorld(new THREE.Vector3(0, B5.height.v + 0.05, zEngine(B5.chimneyD.v)));
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.engine.quaternion);
-    const vel = this.trainVelocity().addScaledVector(up, 3 + 9 * level).add(new THREE.Vector3((Math.random() - 0.5) * 0.8, 0, (Math.random() - 0.5) * 0.8));
-    const fire = this.footplate.fire;
-    this.exhaust.emit({ pos: top, vel, size: 0.55, grow: 1.5, life: 5 + 3 * level, smoke: 0.25 + 0.35 * Math.max(0, fire - 0.5), alpha: 0.35 + 0.5 * level, rise: 0.8 });
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.engine.quaternion), tv = this.trainVelocity();
+    const smoke = 0.12 + 0.3 * Math.max(0, this.footplate.fire - 0.6);
+    for (let k = 0; k < 2; k++) {
+      const top = this.engine.localToWorld(new THREE.Vector3((Math.random() - 0.5) * 0.3, B5.height.v + 0.1 + 0.3 * k, zEngine(B5.chimneyD.v) + (Math.random() - 0.5) * 0.3));
+      const vel = tv.clone().addScaledVector(up, 1.4 + 2.8 * level + 0.8 * k).add(new THREE.Vector3((Math.random() - 0.5) * 0.9, 0, (Math.random() - 0.5) * 0.9));
+      this.exhaust.emit({ pos: top, vel, size: 0.6 + 0.2 * k, grow: 1.7, life: 6 + 3 * level, smoke, alpha: 0.6 + 0.35 * level, rise: 0.5 });
+    }
   }
 
   /** Steam that is not beats: the blower's haze at the chimney, the safety valves, the drain cocks and
@@ -745,6 +750,8 @@ export class App {
     const W = (x: number, y: number, d: number) => this.engine.localToWorld(new THREE.Vector3(x, y, zEngine(d)));
     const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
     const chance = (rate: number) => Math.random() < rate * dt;
+    // working: between the beats the exhaust merges into a steady plume (more so the faster it runs)
+    if (fp.steamUse >= 0.02 && chance(3 + 0.8 * Math.abs(this.speed))) this.exhaust.emit({ pos: W(rnd() * 0.3, B5.height.v + 0.15, B5.chimneyD.v), vel: tv.clone().addScaledVector(up, 2 + 3 * fp.steamUse), size: 0.7, grow: 1.5, life: 5, smoke: 0.15, alpha: 0.35, rise: 0.5 });
     // blower haze when standing or drifting (no beats)
     if (fp.steamUse < 0.02 && chance(1.5 + 4 * c.blower)) this.exhaust.emit({ pos: W(rnd() * 0.2, B5.height.v + 0.05, B5.chimneyD.v), vel: tv.clone().addScaledVector(up, 1.5 + 2.5 * c.blower), size: 0.4, grow: 0.9, life: 4, smoke: 0.4, alpha: 0.12 + 0.15 * c.blower, rise: 0.6 });
     // safety valves: a roaring white plume
