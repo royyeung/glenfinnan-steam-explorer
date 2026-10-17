@@ -49,7 +49,12 @@ export class World {
     const water = buildWater(d, tier.groundR > 0);   // boulders: Medium and High only this.waterUpd = water.update;
     this.trees = new Trees(d.trees, tier.trees);
     // track from west of the station to well east of the viaduct (the core of the map)
-    const s0 = Math.max(0, path.station - 900), s1 = Math.min(path.length - 2, path.viaduct[1] + 1200);
+    // and only where the shaped 5 m grid lies under it (the 25 m surround has no cutting): 70 m in from
+    // its edge, where the 25 m grid is left out
+    let s0 = Math.max(0, path.station - 900), s1 = Math.min(path.length - 2, path.viaduct[1] + 1200);
+    const inside = (s: number) => { const p = path.at(s); return d.inNear(p.x, p.z, 70); };
+    while (s0 < path.station && !inside(s0)) s0 += 5;
+    while (s1 > path.viaduct[1] && !inside(s1)) s1 -= 5;
     this.trackEnds = [s0, s1];
     const track = buildTrack(path, s0, s1, tex.ballast, tier.railDetail);
     this.viaduct = buildViaduct(d, tex.concrete);

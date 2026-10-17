@@ -444,6 +444,7 @@ Every phase ends the same way:
 - [x] **Budgets:** Medium and High pass while running.
 - [ ] **Budgets on Low** while running: three views 3–8 % over (cab, engine close-up, standing at a gangway). Settle in the Phase 7 pass on your phone.
 - [x] **Earlier checks** all pass. **Unit tests:** 48.
+- [x] **The running train sinking into the ground (your report, seen from above):** the knoll at the viewpoint, a road bench where a road crosses the line west of the station, and the 25 m surround at the west end covered the line by up to 4.2 m. The app now cuts the formation into the 5 m ground after loading (only ever lowering it), and the track and the run end where the 5 m ground ends. Nothing covers the rails anywhere along the line (automated); the classic viewpoint is unchanged.
 - Your answers (2026-10-17): the diesel stays on by default; full screen confirmed working on the S26.
 
 ### Phase 7: Polish
@@ -468,6 +469,7 @@ Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still o
 ## 12. Change log
 
 - 2026-10-17: Phase 6 built and verified: the train runs (automatic driver or you), exhaust beats from the valve gear, steam and smoke, running sounds, riding the moving train. Your gangway report fixed. The fitted 1 in 40 gradient capped at 1 in 50 for the train model; masses and line speed unverified (REFERENCE §9).
+- 2026-10-17: Your report: the moving train looked broken from above. The ground covered the line in four places (up to 4.2 m at the viewpoint knoll); the formation is now cut in after loading, and the line shortened to the shaped ground (west end 200 m, east end 85 m).
 
 - 2026-10-16: Fixes from your laptop test: opening view on the train, zoom to cursor and double-click focus, climbing aboard at doors, dark drop-down lists.
 - 2026-10-16: Phase 5 follow-up: Class 47 at the rear, Glenfinnan station rebuilt (loop, platform 2, building, signal box), viaduct pylons, classic views fitted to Geograph photos with recorded positions, river boulders and ground cover. 2026 coaches confirmed as Mk2s (S70). LiDAR still not published.

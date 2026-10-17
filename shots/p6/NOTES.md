@@ -46,6 +46,8 @@ The train now runs at Glenfinnan. Captures at 11:15 BST, 24 Aug 2026, Low and Hi
 - **HUD:** run/stop, viaduct speed, pause on the viaduct, automatic driver or you, follow train. The title bar shows the speed and what the train is doing.
 - **Your report:** the coaches either side of the one you are in are always drawn in full with their interiors, so the view down the gangways no longer shows hollow far models. The gangway door beyond them is drawn closed.
 
+- **Your second report (the train breaking up when seen from above):** not the models. The ground covered the line in four places: up to 4.2 m where the knoll at the classic viewpoint (added after the formation was cut, in `tools/terrain/build.py`) spreads over the cutting west of the viaduct; up to 2.2 m where a road bench crosses the line about 530 m west of the station; and at the west end, where the line ran out over the 25 m surround, which has no cutting. The coaches were partly buried, so only roofs showed. The app now cuts the formation into the 5 m ground after loading (0.75 m below rail top, 3.4 m each side, 1:1.5 slopes, as `build.py` does; only ever lowering), trees there sit on the lowered ground, and the track and the run stop 70 m inside the 5 m ground (the line is 200 m shorter at the west end and 85 m at the east end, still 670 m past the station). Checked: nothing covers the rails anywhere (`tools/harness/burprobe.mjs`), no tree within 3 m of the line, the viewpoint view unchanged; shots in `fix/`.
+
 ## Checks
 
 | Check | Result |

@@ -36,6 +36,34 @@ export class WorldData {
     const tex = async (f: string) => { const t = await tl.loadAsync(`${base}terrain/${f}${ver(`../terrain/${f}`)}`); tick(f, 1); t.colorSpace = THREE.NoColorSpace; t.flipY = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; };
     [this.coverNear, this.coverFar] = await Promise.all([tex('cover_near.png'), tex('cover_far.png')]);
     this.track = new TrackPath(this.json.track);
+    this.carveFormation();
+  }
+
+  /** Keep the railway clear of the ground. build.py cuts the formation into the 5 m grid, but the steps
+   *  after it (the knoll at the viewpoint, road benches, the blend into the 25 m grid at the edge) raise
+   *  the ground over the line again in places, up to 4 m. Lower the near grid to the formation (0.75 m
+   *  below rail top, 3.4 m either side, then 1:1.5 slopes, as in build.py); only ever cut, never fill.
+   *  Trees then sit on the lowered ground. */
+  private carveFormation() {
+    const g = this.near, p = this.track, R = 45, step = 2, size = (g.n - 1) * g.step, pt = new THREE.Vector3();
+    for (let s = 0; s <= p.length; s += step) {
+      p.at(s, pt);
+      if (pt.x < g.x0 - R || pt.z < g.z0 - R || pt.x > g.x0 + size + R || pt.z > g.z0 + size + R) continue;
+      const form = pt.y - 0.75;
+      const j0 = Math.max(0, Math.floor((pt.x - R - g.x0) / g.step)), j1 = Math.min(g.n - 1, Math.ceil((pt.x + R - g.x0) / g.step));
+      const i0 = Math.max(0, Math.floor((pt.z - R - g.z0) / g.step)), i1 = Math.min(g.n - 1, Math.ceil((pt.z + R - g.z0) / g.step));
+      for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+        const d = Math.hypot(g.x0 + j * g.step - pt.x, g.z0 + i * g.step - pt.z);
+        if (d > R) continue;
+        const k = i * g.n + j, lim = form + Math.max(0, (d - 3.4) / 1.5);
+        if (g.h[k] > lim) g.h[k] = lim;
+      }
+    }
+    const t = this.trees.data;
+    for (let i = 0; i < this.trees.count; i++) {
+      const x = t[i * 7], z = t[i * 7 + 2], h = sampleGrid(g, x, z, 1);
+      if (h !== null && t[i * 7 + 1] > h) t[i * 7 + 1] = h;
+    }
   }
 
   /** Ground height at (x, z): the shaped 5 m grid inside the core, the 25 m grid elsewhere. */
