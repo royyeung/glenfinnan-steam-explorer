@@ -21,8 +21,10 @@ for (const q of ['low', 'medium', 'high']) {
         return { calls: s.calls, tris: s.triangles, levels: lv.join(' ') };
       }, [a, dir]);
       R[`${q}_${name}_${dir < 0 ? 'toB' : 'toA'}`] = r;
-      const nb = 2 + (dir < 0 ? 1 : -1), lv = r.levels.split(' ');
-      if (!lv[2].startsWith('0+int') || !lv[nb].startsWith('0+int')) R.pass = false;
+      // the neighbour must be drawn in full: always on Medium/High; on Low when you are within 4 m of
+      // that end (a is metres from the A end; the coach body is 19.66 m)
+      const nb = 2 + (dir < 0 ? 1 : -1), lv = r.levels.split(' '), nearThatEnd = dir > 0 ? a < 4 : a > 19.66 - 4;
+      if (!lv[2].startsWith('0+int') || ((q !== 'low' || nearThatEnd) && !lv[nb].startsWith('0+int'))) R.pass = false;
       if (q === 'low' && r.calls > 150) R.pass = false;
       if (q === 'medium' && r.calls > 300) R.pass = false;
       if (q === 'high' && r.calls > 600) R.pass = false;

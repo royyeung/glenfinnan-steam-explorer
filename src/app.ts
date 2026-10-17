@@ -36,6 +36,7 @@ import { paintCoachLetter, paintCoachNumber } from './render/decals.ts';
 import { TrainRun, MASS, MPH } from './sim/run.ts';
 import { BeatClock } from './sim/beats.ts';
 import { Exhaust } from './render/exhaust.ts';
+import { mergeStatic } from './render/mergeStatic.ts';
 import { RunningSounds, RAIL_LENGTH } from './audio/running.ts';
 import type { Mover } from './controls/walk.ts';
 
@@ -244,6 +245,7 @@ export class App {
     // Low tier: coaches drop to the simplest model sooner (phones have the tightest draw-call budget)
     this.train = new Train(coachLevels, ENGINE_ORIGIN_D - B5.lengthOverBuffers.v, this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110]);
     this.scene.add(this.train.group);
+    if (this.tierName === 'low') this.train.reach = 0; // phones: the next coach drawn as you reach the gangway
     // the diesel at the rear: three LOD levels, coupled behind the last coach, No. 1 end towards the train
     const dLod = this.tierName === 'low' ? [0, 25, 38] : [0, 30, 110];
     for (let l = 0; l < 3; l++) {
@@ -314,6 +316,15 @@ export class App {
     Weathering.occlusion.set('tender', { min: new THREE.Vector3(-1.3, 1.55, zTender(12.85)), max: new THREE.Vector3(1.3, 2.95, zTender(12.3)), f: 0.5, rampZ: 0.15 });
     for (const l of this.engine.levels) this.weathering.apply(l.object, this.engine, 'engine');
     for (const l of this.tender.levels) this.weathering.apply(l.object, this.tender, 'tender');
+    // the simplest level: parts that never move merged into one mesh per material (fewer draw calls
+    // far away, and on Low from inside a coach); rods, valve gear, wheelsets and controls stay separate
+    // valve gear, crossheads and piston rods are a pixel or two at those distances: not drawn there
+    // (the rig still moves them); the wheels and the coupling and connecting rods stay
+    for (const lod of [this.engine, this.tender]) {
+      const far = lod.levels[lod.levels.length - 1].object;
+      far.traverse((o) => { if (/^(vg_|xh_|pr_)/.test(o.name)) o.visible = false; });
+      mergeStatic(far, /^(rod_|xh_|pr_|vg_|ws_|cab_gate|ctl_|needle_|wg_|ind_|cab_interior)/);
+    }
     const hw = MK2.bodyWidth.v / 2 - 0.02, hl = MK2.bodyLength.v / 2 - 0.02;
     Weathering.occlusion.set('coach', { min: new THREE.Vector3(-hw, MK2.floorH.v - 0.05, -hl), max: new THREE.Vector3(hw, MK2.height.v - 0.05, hl), f: 0.45, rampZ: 0.05 });
     for (const c of this.train.coaches) for (const l of c.lod.levels) this.weathering.apply(l.object, c.lod, 'coach');
@@ -824,6 +835,15 @@ export class App {
     else if (this.orbit.enabled) { this.stepFocus(dt); this.orbit.update(); }
     this.updateGates(params.fixed ? 1 : dt);
     this.train?.update(this.camera, this.mode === 'walk' ? this.walker.feet : null, params.fixed ? 1 : dt, moving);
+    // Low, from inside a coach: the engine and tender are only glimpsed through the windows (25 m or
+    // more away), so they use their simplest model (saves ~60 draw calls in the forward view)
+    if (this.tierName === 'low' && this.camera !== this.ortho) {
+      const far = this.train.insideIndex >= 0;
+      for (const lod of [this.engine, this.tender]) {
+        lod.autoUpdate = !far;
+        if (far) lod.levels.forEach((l, i) => { l.object.visible = i === lod.levels.length - 1; });
+      }
+    }
     // the cab interior is only drawn when the camera is within 9 m of the cab
     if (this.cabGroups.length) {
       const near = this.camera.getWorldPosition(new THREE.Vector3()).distanceTo(this.engine.localToWorld(new THREE.Vector3(0, 2.6, zEngine(11.3)))) < 9;

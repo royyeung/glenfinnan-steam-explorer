@@ -10,11 +10,13 @@ import { coachLayout, type CoachLayout } from './mk2.ts';
 
 export interface Coach { lod: THREE.LOD; number: string; index: number; vehicle: Vehicle; lay: CoachLayout; doors: THREE.Object3D[][]; interiors: THREE.Object3D[]; gangway: { A: THREE.Object3D[]; B: THREE.Object3D[] }; open: Map<THREE.Object3D, number> }
 
-/** Coaches either side of the one you are in that are drawn in full (beyond them a gangway door is closed). */
+/** Coaches either side of the one you are in that are drawn in full (beyond them a gangway door is
+ *  closed). 0 (Low): only your own coach, with the next one drawn when you come within 4 m of its end. */
 export const GANGWAY_REACH = 1;
 
 export class Train {
   readonly coaches: Coach[] = [];
+  reach = GANGWAY_REACH;
   readonly group = new THREE.Group();
   onDoor: (pos: THREE.Vector3, opening: boolean) => void = () => {};
 
@@ -64,17 +66,25 @@ export class Train {
     const inside = this.coaches.findIndex((c, i) => Math.abs(locals[i].x) < c.lay.halfW && Math.abs(locals[i].z) < c.lay.L / 2 + 0.5 && locals[i].y > 0.8 && locals[i].y < 4.2);
     const last = this.coaches.length - 1;
     this.insideIndex = inside;
+    // the run of coaches drawn in full: yours, the reach either side, and (reach 0) the next one
+    // when you are within 4 m of that end
+    let lo = inside, hi = inside;
+    if (inside >= 0) {
+      const l = locals[inside], half = this.coaches[inside].lay.L / 2;
+      lo = Math.max(0, inside - this.reach - (this.reach === 0 && l.z > half - 4 ? 1 : 0));
+      hi = Math.min(last, inside + this.reach + (this.reach === 0 && l.z < -(half - 4) ? 1 : 0));
+    }
     for (const c of this.coaches) {
       const lay = c.lay, local = locals[c.index];
       const near = Math.abs(local.x) < 5 && Math.abs(local.z) < lay.L / 2 + 4 && local.y > -1 && local.y < 7;
-      const full = inside >= 0 && Math.abs(c.index - inside) <= GANGWAY_REACH;
+      const full = inside >= 0 && c.index >= lo && c.index <= hi;
       // full detail while seen down the gangways (the renderer's distance switch would pick the hollow far models)
       c.lod.autoUpdate = !full;
       if (full) c.lod.levels.forEach((l, k) => { l.object.visible = k === 0; });
       for (const it of c.interiors) it.visible = near || full;
       // gangway doors: closed at the ends of the train, and beyond the coaches drawn in full
-      for (const g of c.gangway.A) g.visible = c.index === 0 || (full && c.index === inside - GANGWAY_REACH);
-      for (const g of c.gangway.B) g.visible = c.index === last || (full && c.index === inside + GANGWAY_REACH);
+      for (const g of c.gangway.A) g.visible = c.index === 0 || (full && c.index === lo);
+      for (const g of c.gangway.B) g.visible = c.index === last || (full && c.index === hi);
       // doors open when the walker is within 1.6 m of them (both sides), close when they leave
       const feet = walkerFeet ? c.lod.worldToLocal(walkerFeet.clone()) : null;
       for (const doors of c.doors) for (const d of doors) {
