@@ -1,0 +1,305 @@
+{
+ "rows": [
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "view": "train",
+   "calls": 126,
+   "tris": 387089,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "view": "classic",
+   "calls": 134,
+   "tris": 381655,
+   "puffs": 23,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "view": "cab",
+   "calls": 153,
+   "tris": 355218,
+   "puffs": 44,
+   "pass": false
+  },
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "view": "coach",
+   "calls": 129,
+   "tris": 412458,
+   "puffs": 86,
+   "pass": false
+  },
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "view": "station",
+   "calls": 33,
+   "tris": 229556,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "1280x720",
+   "errors": []
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "view": "train",
+   "calls": 132,
+   "tris": 389357,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "view": "classic",
+   "calls": 134,
+   "tris": 381659,
+   "puffs": 25,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "view": "cab",
+   "calls": 153,
+   "tris": 355218,
+   "puffs": 44,
+   "pass": false
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "view": "coach",
+   "calls": 134,
+   "tris": 413958,
+   "puffs": 86,
+   "pass": false
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "view": "station",
+   "calls": 33,
+   "tris": 229556,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "low",
+   "size": "844x390",
+   "errors": []
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "view": "train",
+   "calls": 235,
+   "tris": 976963,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "view": "classic",
+   "calls": 158,
+   "tris": 909762,
+   "puffs": 25,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "view": "cab",
+   "calls": 291,
+   "tris": 974631,
+   "puffs": 44,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "view": "coach",
+   "calls": 282,
+   "tris": 1038239,
+   "puffs": 86,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "view": "station",
+   "calls": 59,
+   "tris": 735891,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "1280x720",
+   "errors": []
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "view": "train",
+   "calls": 241,
+   "tris": 979231,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "view": "classic",
+   "calls": 158,
+   "tris": 909760,
+   "puffs": 24,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "view": "cab",
+   "calls": 291,
+   "tris": 974631,
+   "puffs": 44,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "view": "coach",
+   "calls": 286,
+   "tris": 1039567,
+   "puffs": 86,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "view": "station",
+   "calls": 59,
+   "tris": 735891,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "medium",
+   "size": "844x390",
+   "errors": []
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "view": "train",
+   "calls": 371,
+   "tris": 2788731,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "view": "classic",
+   "calls": 296,
+   "tris": 2714146,
+   "puffs": 25,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "view": "cab",
+   "calls": 444,
+   "tris": 2730426,
+   "puffs": 44,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "view": "coach",
+   "calls": 443,
+   "tris": 2894041,
+   "puffs": 86,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "view": "station",
+   "calls": 104,
+   "tris": 2460554,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "1280x720",
+   "errors": []
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "view": "train",
+   "calls": 383,
+   "tris": 2793267,
+   "puffs": 30,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "view": "classic",
+   "calls": 296,
+   "tris": 2714138,
+   "puffs": 23,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "view": "cab",
+   "calls": 444,
+   "tris": 2730426,
+   "puffs": 44,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "view": "coach",
+   "calls": 451,
+   "tris": 2896697,
+   "puffs": 86,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "view": "station",
+   "calls": 104,
+   "tris": 2460554,
+   "puffs": 36,
+   "pass": true
+  },
+  {
+   "tier": "high",
+   "size": "844x390",
+   "errors": []
+  }
+ ],
+ "pass": false
+}

@@ -1,0 +1,111 @@
+{
+ "pass": false,
+ "low_saloonB_toB": {
+  "calls": 85,
+  "tris": 357370,
+  "levels": "1 0+int 0+int 1 2 2"
+ },
+ "low_saloonB_toA": {
+  "calls": 161,
+  "tris": 416895,
+  "levels": "1 0+int 0+int 1 2 2"
+ },
+ "low_saloonA_toB": {
+  "calls": 124,
+  "tris": 398266,
+  "levels": "2 1 0+int 0+int 1 2"
+ },
+ "low_saloonA_toA": {
+  "calls": 134,
+  "tris": 371179,
+  "levels": "2 1 0+int 0+int 1 2"
+ },
+ "low_gangway_toB": {
+  "calls": 105,
+  "tris": 359458,
+  "levels": "2 1 0+int 0+int 1 2"
+ },
+ "low_gangway_toA": {
+  "calls": 140,
+  "tris": 371405,
+  "levels": "2 1 0+int 0+int 1 2"
+ },
+ "low_walkThrough": {
+  "inCoach": "99318",
+  "z_local": -1.14,
+  "y_local": 1.27
+ },
+ "low_errors": [],
+ "medium_saloonB_toB": {
+  "calls": 160,
+  "tris": 895270,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_saloonB_toA": {
+  "calls": 208,
+  "tris": 923394,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_saloonA_toB": {
+  "calls": 152,
+  "tris": 893294,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_saloonA_toA": {
+  "calls": 216,
+  "tris": 924042,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_gangway_toB": {
+  "calls": 133,
+  "tris": 850170,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_gangway_toA": {
+  "calls": 221,
+  "tris": 919774,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "medium_walkThrough": {
+  "inCoach": "99318",
+  "z_local": -1.14,
+  "y_local": 1.27
+ },
+ "medium_errors": [],
+ "high_saloonB_toB": {
+  "calls": 304,
+  "tris": 2734784,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_saloonB_toA": {
+  "calls": 400,
+  "tris": 2791032,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_saloonA_toB": {
+  "calls": 288,
+  "tris": 2731472,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_saloonA_toA": {
+  "calls": 416,
+  "tris": 2792968,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_gangway_toB": {
+  "calls": 250,
+  "tris": 2650104,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_gangway_toA": {
+  "calls": 426,
+  "tris": 2789312,
+  "levels": "1 0+int 0+int 0+int 1 1"
+ },
+ "high_walkThrough": {
+  "inCoach": "99318",
+  "z_local": -1.14,
+  "y_local": 1.27
+ },
+ "high_errors": []
+}

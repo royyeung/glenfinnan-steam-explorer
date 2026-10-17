@@ -1,0 +1,61 @@
+{
+ "stats": [
+  {
+   "name": "run_open",
+   "calls": 132,
+   "tris": 404915,
+   "puffs": 51,
+   "v_mph": 9.7,
+   "status": "Crossing the viaduct"
+  },
+  {
+   "name": "run_classic",
+   "calls": 110,
+   "tris": 379101,
+   "puffs": 10,
+   "v_mph": 10,
+   "status": "Crossing the viaduct"
+  },
+  {
+   "name": "run_arches",
+   "calls": 94,
+   "tris": 343819,
+   "puffs": 9,
+   "v_mph": 10,
+   "status": "Crossing the viaduct"
+  },
+  {
+   "name": "run_close",
+   "calls": 135,
+   "tris": 431842,
+   "puffs": 58,
+   "v_mph": 25.1,
+   "status": "Test run at constant speed"
+  },
+  {
+   "name": "run_cab",
+   "calls": 155,
+   "tris": 380546,
+   "puffs": 108,
+   "v_mph": 17.9,
+   "status": "Test run at constant speed"
+  },
+  {
+   "name": "run_coach",
+   "calls": 84,
+   "tris": 392564,
+   "puffs": 94,
+   "v_mph": 17.9,
+   "status": "Test run at constant speed"
+  },
+  {
+   "name": "run_station",
+   "calls": 130,
+   "tris": 325113,
+   "puffs": 8,
+   "v_mph": 8.6,
+   "status": "Running to Glenfinnan station"
+  }
+ ],
+ "errors": []
+}

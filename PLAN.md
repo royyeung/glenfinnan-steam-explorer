@@ -9,7 +9,7 @@ A private, educational WebGL recreation of the Jacobite train as it runs in 2026
 
 Verified facts live in [REFERENCE.md](REFERENCE.md). This file covers how the project will be built and checked.
 
-**Status:** Phase 5 (environment) built on 2026-10-12, with a follow-up on 2026-10-16 (diesel, station, pylons, fitted classic views), live at https://royyeung.dev/glenfinnan/. **Awaiting "approved, continue to Phase 6".**
+**Status:** Phase 6 (motion and effects) built on 2026-10-17, live at https://royyeung.dev/glenfinnan/: the train runs across the viaduct, stops at the station and goes round again. **Awaiting "approved, continue to Phase 7"** (the final phase).
 
 ---
 
@@ -429,6 +429,23 @@ Every phase ends the same way:
 - the crossing time matches the chosen speed;
 - audio levels stay without clipping.
 
+**Result (2026-10-17).** Details, checks and screenshots are in `shots/p6/NOTES.md`.
+
+- [x] **Gangway view (your report first):** the coaches either side are always drawn in full from inside the train (Low: the next one as you reach the gangway), with the door beyond drawn closed.
+- [x] **Movement:**
+  - one model for the whole train (pull from regulator, cut-off and pressure; resistance; gradient; brakes), with an automatic driver and fireman working the cab controls;
+  - across the viaduct at your chosen speed (5–25 mph, 10 by default), an optional 30 s pause on it (Q13), a stop at the station, round again;
+  - or drive it yourself from the cab;
+  - every wheel turns with the distance run.
+- [x] **Exhaust:** 4 beats per turn at the release angles solved from the valve gear; steam and smoke puffs that stream back and drift with the wind; safety valves, whistle, drain cocks.
+- [x] **Sound:** beats locked to the wheels, rolling, rail joints, flange squeal on the curve, wind on the footplate, muffled coach interior, Doppler.
+- [x] **Riding:** stand or walk in a moving coach or on the footplate; doors lock while moving.
+- [x] **Beats in phase** at 1–70 mph and in back gear (automated). **Crossing time** within 0.3 % at 10 mph (120 s), 2.7 % at 20 mph. **No clipping** anywhere while running.
+- [x] **Budgets:** Medium and High pass while running.
+- [ ] **Budgets on Low** while running: three views 3–8 % over (cab, engine close-up, standing at a gangway). Settle in the Phase 7 pass on your phone.
+- [x] **Earlier checks** all pass. **Unit tests:** 48.
+- Your answers (2026-10-17): the diesel stays on by default; full screen confirmed working on the S26.
+
 ### Phase 7: Polish
 
 - **Performance and mobile:** a performance pass on real devices; full mobile controls.
@@ -449,6 +466,8 @@ Every phase ends the same way:
 Decided or defaulted: see REFERENCE.md §11. **Nothing blocks Phase 1.** Still open, but not blocking: the exact 2026 coach set, and photos of 45407's own cab.
 
 ## 12. Change log
+
+- 2026-10-17: Phase 6 built and verified: the train runs (automatic driver or you), exhaust beats from the valve gear, steam and smoke, running sounds, riding the moving train. Your gangway report fixed. The fitted 1 in 40 gradient capped at 1 in 50 for the train model; masses and line speed unverified (REFERENCE §9).
 
 - 2026-10-16: Fixes from your laptop test: opening view on the train, zoom to cursor and double-click focus, climbing aboard at doors, dark drop-down lists.
 - 2026-10-16: Phase 5 follow-up: Class 47 at the rear, Glenfinnan station rebuilt (loop, platform 2, building, signal box), viaduct pylons, classic views fitted to Geograph photos with recorded positions, river boulders and ground cover. 2026 coaches confirmed as Mk2s (S70). LiDAR still not published.

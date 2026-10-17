@@ -1,0 +1,20 @@
+{
+ "coachStand": {
+  "worldMoved_m": 47.94,
+  "driftInCoach_m": 0.0001,
+  "yLocal": 1.273
+ },
+ "coachWalk": {
+  "walkedAlong_m": 4.2,
+  "yLocal": 1.273,
+  "xLocal": 0
+ },
+ "cab": {
+  "onFootplate": true,
+  "drift_m": 0
+ },
+ "doorsLockedWhileMoving": true,
+ "offerWhileMoving": "Doors locked while moving",
+ "pass": true,
+ "errors": []
+}

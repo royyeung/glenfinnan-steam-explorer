@@ -1,0 +1,58 @@
+{
+ "rows": [
+  {
+   "mph": 5,
+   "viaduct_m": 376,
+   "train_m": 159.5,
+   "crossing_s": 239.5,
+   "expected_s": 239.6,
+   "ratio": 0.9997,
+   "vMin_mph": 5,
+   "vMax_mph": 5,
+   "pass": true
+  },
+  {
+   "mph": 10,
+   "viaduct_m": 376,
+   "train_m": 159.5,
+   "crossing_s": 120.1,
+   "expected_s": 119.8,
+   "ratio": 1.0026,
+   "vMin_mph": 9.86,
+   "vMax_mph": 10.04,
+   "pass": true
+  },
+  {
+   "mph": 15,
+   "viaduct_m": 376,
+   "train_m": 159.5,
+   "crossing_s": 80.8,
+   "expected_s": 79.9,
+   "ratio": 1.0118,
+   "vMin_mph": 13.85,
+   "vMax_mph": 15.08,
+   "pass": true
+  },
+  {
+   "mph": 20,
+   "viaduct_m": 376,
+   "train_m": 159.5,
+   "crossing_s": 61.5,
+   "expected_s": 59.9,
+   "ratio": 1.0269,
+   "vMin_mph": 17.73,
+   "vMax_mph": 20.11,
+   "pass": true
+  }
+ ],
+ "loop": {
+  "stopError_m": 1.01,
+  "dwell_s": 60,
+  "restartedEast": true,
+  "maxAccel_ms2": 0.282,
+  "simTime": 1214,
+  "pass": true
+ },
+ "pass": true,
+ "errors": []
+}

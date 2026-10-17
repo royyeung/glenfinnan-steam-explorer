@@ -1,0 +1,62 @@
+{
+ "levels": [
+  {
+   "label": "under the arches, train crossing at 10 mph",
+   "status": "Test run at constant speed",
+   "v": 4.47,
+   "where": "out",
+   "rmsDb": -31.9,
+   "peakDb": -19.7
+  },
+  {
+   "label": "on the viaduct deck as the train passes",
+   "status": "Test run at constant speed",
+   "v": 4.47,
+   "where": "out",
+   "rmsDb": -28.7,
+   "peakDb": -15.9
+  },
+  {
+   "label": "in the cab at 25 mph",
+   "status": "Test run at constant speed",
+   "v": 11.2,
+   "where": "cab",
+   "rmsDb": -18.8,
+   "peakDb": -6.4
+  },
+  {
+   "label": "in coach 5419 at 25 mph",
+   "status": "Test run at constant speed",
+   "v": 11.2,
+   "where": "coach",
+   "rmsDb": -25.5,
+   "peakDb": -13.7
+  },
+  {
+   "label": "accelerating hard from the station (automatic)",
+   "status": "Departing",
+   "v": 0,
+   "where": "out",
+   "rmsDb": -30.1,
+   "peakDb": -16.4
+  },
+  {
+   "label": "on the footplate, whistle",
+   "status": "Test run at constant speed",
+   "v": 4.47,
+   "where": "cab",
+   "rmsDb": -21.2,
+   "peakDb": -9.1
+  }
+ ],
+ "muted": {
+  "label": "muted, in the cab",
+  "status": "Test run at constant speed",
+  "v": 4.47,
+  "where": "cab",
+  "rmsDb": null,
+  "peakDb": null
+ },
+ "pass": true,
+ "errors": []
+}
