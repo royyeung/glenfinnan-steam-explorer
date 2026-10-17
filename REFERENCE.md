@@ -435,7 +435,11 @@ The app will compute sun position with a standard solar-position algorithm (NOAA
 | 2026 timetable | Morning train 1 Jun – 23 Oct 2026; afternoon train 10 Jun – 25 Sep 2026 | search summaries of 2026 guides | Low |
 | | Morning departure 10:15 from Fort William | S8 | Low (year unknown) |
 | Speed crossing the viaduct | **UNVERIFIED.** Travel guides say the train slows and pauses on the viaduct on the outbound morning trip (S32); one guide says the crossing takes "almost 2 minutes", about 11 km/h average | S32 | Low |
-| Line speed limit | **UNVERIFIED** | none | Q13 |
+| Line speed limit | **UNVERIFIED.** The model uses 25 mph between the viaduct and the station (estimate) | none | Q13 |
+| Gradient, viaduct to station | **UNVERIFIED.** The rail levels fitted to 50 m terrain climb westwards at up to 1 in 40 (the fit's limit); the train model caps the slope at 1 in 50 | fit (Phase 5) | Low |
+| Masses used for the run (Phase 6) | Engine 72.1 t, tender 53.7 t, Mk2 coach 33 t, Mk1 buffet 37 t, Class 47 117 t: rounded class figures quoted from memory, **not checked against a source** | none | Low |
+| Tractive effort | 25,455 lbf (113 kN) at 85 % boiler pressure, the usual figure for the class; the speed-power limit (about 900 kW at the cylinders, about 700 kW sustained) is an estimate | class figure (unsourced here) | Medium |
+| Rail joints | The run assumes jointed rail in 60 ft (18.3 m) lengths; whether this stretch is jointed or welded was **not found** | none | Low |
 | Locomotive orientation | Every viaduct photo found shows the loco **chimney-first** (2021, Aug 2025, Oct 2025). A Sep 2025 photo near Banavie shows it **tender-first** with the headboard on the tender back. So it runs chimney-first one way and tender-first the other, probably chimney-first to Mallaig. | S33, S34, S36, S37 | Medium |
 | Best side for the viaduct view | Travel guides recommend the left side going to Mallaig | S32 | Low |
 

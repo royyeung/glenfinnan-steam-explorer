@@ -2,6 +2,7 @@
 // sound, quality tier and the hooks used by the verification harness.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
@@ -333,6 +334,28 @@ export class App {
     };
     // Low tier: small moving parts do not cast shadows (saves ~40 shadow-pass draw calls on phones)
     if (this.tierName === 'low') for (const lod of [this.engine, this.tender]) lod.traverse((o) => { if ((o as THREE.Mesh).isMesh && /^(rod_|vg_|xh_|pr_|cab_gate)/.test(o.name)) o.castShadow = false; });
+    // Low on the line: the shadow map is redrawn every frame while the train runs, so the engine and
+    // tender cast through simple stand-in shapes (one draw call each) instead of their ~125 parts.
+    // The stand-ins draw nothing in the view (no colour, no depth): two near-empty draw calls.
+    if (this.tierName === 'low' && this.world) {
+      for (const lod of [this.engine, this.tender]) lod.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = false; });
+      const box = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => new THREE.BoxGeometry(x1 - x0, y1 - y0, Math.abs(z1 - z0)).translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+      const cyl = (r: number, y: number, za: number, zb: number) => new THREE.CylinderGeometry(r, r, Math.abs(zb - za), 10).rotateX(Math.PI / 2).translate(0, y, (za + zb) / 2);
+      const b = (k: keyof typeof B5) => B5[k].v, zE = zEngine, hw = b('runningPlateWidth') / 2;
+      const eng = mergeGeometries([
+        box(-hw, 0.25, zE(0.3), hw, b('runningPlateH'), zE(b('engineRearD') - 0.2)),                         // frames, wheels, splashers
+        cyl(b('smokeboxDia') / 2, b('smokeboxTopH') - b('smokeboxDia') / 2, zE(b('smokeboxFrontD')), zE(b('cabFrontD'))), // smokebox and boiler
+        box(-0.3, b('smokeboxTopH') - 0.2, zE(b('chimneyD') - 0.3), 0.3, b('height'), zE(b('chimneyD') + 0.3)),   // chimney
+        box(-b('cabWidth') / 2, b('runningPlateH'), zE(b('cabFrontD')), b('cabWidth') / 2, b('cabRoofH'), zE(b('cabRoofRearD'))), // cab
+      ])!;
+      // the tender's box joins the engine's stand-in (one draw call; on the 236 m curve the tender's
+      // true position differs by a few centimetres, nothing a phone-sized shadow shows)
+      const tz = (d: number) => zE(d);
+      const one = mergeGeometries([eng, box(-b('tenderWidth') / 2, 0.3, tz(b('tenderFrontD') + 0.2), b('tenderWidth') / 2, b('tenderSideTopH'), tz(b('tenderBodyRearD')))])!;
+      const m = new THREE.Mesh(one, new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+      m.name = 'shadow_proxy'; m.castShadow = true; m.receiveShadow = false;
+      this.engine.add(m);
+    }
 
     // walking colliders: ground, ballast, platform + the full-detail engine and tender
     this.scene.updateMatrixWorld(true);

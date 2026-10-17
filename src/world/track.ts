@@ -31,7 +31,7 @@ export function sweep(path: TrackPath, s0: number, s1: number, step: number, sec
   return g;
 }
 
-export function buildTrack(path: TrackPath, s0: number, s1: number, ballastTex: PbrSet) {
+export function buildTrack(path: TrackPath, s0: number, s1: number, ballastTex: PbrSet, detail = true) {
   const g = new THREE.Group(); g.name = 'track';
   const half = B5.gauge.v / 2, rh = SITE.railHeight.v;
   const [vW, vE] = path.viaduct;
@@ -60,7 +60,7 @@ export function buildTrack(path: TrackPath, s0: number, s1: number, ballastTex: 
   for (let c = 0; c < pieces; c++) {
     const a = s0 + c * L, b = Math.min(s1, a + L), mid = path.at((a + b) / 2);
     const close = new THREE.Group(), far = new THREE.Group();
-    const rail = new THREE.Mesh(both(a, b, 1.5, prof, true), railMat); rail.name = 'rail'; rail.castShadow = rail.receiveShadow = true;
+    const rail = new THREE.Mesh(both(a, b, 1.5, prof, true), railMat); rail.name = 'rail'; rail.castShadow = detail; rail.receiveShadow = true;
     const band = new THREE.Mesh(both(a, b, 1.5, [[0.0225, 0.0015], [-0.0225, 0.0015]], false), bandMat); band.name = 'rail_band';
     // sleepers every 0.65 m along the whole line, square to the track
     const i0 = Math.ceil((a - s0 - 0.3) / SITE.sleeperSpacing.v), i1 = Math.ceil((b - s0 - 0.3) / SITE.sleeperSpacing.v);
@@ -74,7 +74,8 @@ export function buildTrack(path: TrackPath, s0: number, s1: number, ballastTex: 
     sleepers.computeBoundingSphere(); sleepers.name = 'sleepers'; sleepers.receiveShadow = true;
     const farRail = new THREE.Mesh(both(a, b, 6, plain, false), railMat); farRail.name = 'rail_far';
     for (const m of [rail, band, farRail]) m.geometry.translate(-mid.x, -mid.y, -mid.z);
-    close.add(rail, band, sleepers); far.add(farRail);
+    // Low: no rail-head strip (one draw call per piece)
+    close.add(rail, sleepers); if (detail) close.add(band); far.add(farRail);
     const lod = new THREE.LOD(); lod.name = 'track_piece'; lod.position.copy(mid);
     lod.addLevel(close, 0); lod.addLevel(far, 175); lod.addLevel(new THREE.Group(), 1200);
     g.add(lod);

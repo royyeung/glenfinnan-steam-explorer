@@ -72,9 +72,17 @@ function wireUI() {
   };
   // climbing aboard: offered beside a cab entrance or coach door, and "step down" from inside one
   const boardBtn = $('boardBtn');
-  const syncBoard = () => { const o = app.boardingOffer(); boardBtn.hidden = !o; if (o) { boardBtn.textContent = app.inputs.touch || o.locked ? o.label : `${o.label} (E)`; (boardBtn as HTMLButtonElement).disabled = !!o.locked; } };
-  boardBtn.onclick = () => { app.board(); syncBoard(); };
-  addEventListener('keydown', (e) => { if (e.code === 'KeyE' && app.mode === 'walk' && !(e.target instanceof HTMLInputElement)) { app.board(); syncBoard(); } });
+  // while the train moves the doors are locked: the button stays hidden, and pressing E (or tapping
+  // where it was) says why for a moment
+  let lockedUntil = 0;
+  const syncBoard = () => {
+    const o = app.boardingOffer(), showLocked = !!o?.locked && performance.now() < lockedUntil;
+    boardBtn.hidden = !o || (!!o.locked && !showLocked);
+    if (o) { boardBtn.textContent = app.inputs.touch || o.locked ? o.label : `${o.label} (E)`; (boardBtn as HTMLButtonElement).disabled = !!o.locked; }
+  };
+  const tryBoard = () => { if (app.boardingOffer()?.locked) lockedUntil = performance.now() + 2500; else app.board(); syncBoard(); };
+  boardBtn.onclick = tryBoard;
+  addEventListener('keydown', (e) => { if (e.code === 'KeyE' && app.mode === 'walk' && !(e.target instanceof HTMLInputElement)) tryBoard(); });
   setInterval(syncBoard, 200);
   $('mOrbit').onclick = () => setMode('orbit');
   $('mWalk').onclick = () => setMode('walk');

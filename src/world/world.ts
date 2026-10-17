@@ -14,12 +14,12 @@ import type { PbrSet } from './site.ts';
 import { ENGINE_ORIGIN_D } from '../specs/black5.ts';
 
 export interface WorldTextures extends TerrainTextures { ballast: PbrSet; concrete: PbrSet; asphaltSet: PbrSet }
-export interface WorldTier { nearError: number; farError: number; trees: TreeTier; groundR: number }
+export interface WorldTier { nearError: number; farError: number; trees: TreeTier; groundR: number; /** rail-head strip and rail shadows */ railDetail: boolean }
 
 export const WORLD_TIERS: Record<'high' | 'medium' | 'low', WorldTier> = {
-  high: { nearError: 0.25, farError: 1.5, trees: { nearR: 750, farR: 5200, nearMax: 18000, farMax: 60000, shadows: true }, groundR: 110 },
-  medium: { nearError: 0.45, farError: 2.5, trees: { nearR: 450, farR: 3600, nearMax: 8000, farMax: 36000, shadows: true }, groundR: 70 },
-  low: { nearError: 1.0, farError: 6.0, trees: { nearR: 220, farR: 1800, nearMax: 3000, farMax: 6000, shadows: false }, groundR: 0 },
+  high: { nearError: 0.25, farError: 1.5, trees: { nearR: 750, farR: 5200, nearMax: 18000, farMax: 60000, shadows: true }, groundR: 110, railDetail: true },
+  medium: { nearError: 0.45, farError: 2.5, trees: { nearR: 450, farR: 3600, nearMax: 8000, farMax: 36000, shadows: true }, groundR: 70, railDetail: true },
+  low: { nearError: 1.0, farError: 6.0, trees: { nearR: 220, farR: 1800, nearMax: 3000, farMax: 6000, shadows: false }, groundR: 0, railDetail: false },
 };
 
 /** A vehicle placed on the track: its object, its position in the straight train frame and its supports. */
@@ -51,7 +51,7 @@ export class World {
     // track from west of the station to well east of the viaduct (the core of the map)
     const s0 = Math.max(0, path.station - 900), s1 = Math.min(path.length - 2, path.viaduct[1] + 1200);
     this.trackEnds = [s0, s1];
-    const track = buildTrack(path, s0, s1, tex.ballast);
+    const track = buildTrack(path, s0, s1, tex.ballast, tier.railDetail);
     this.viaduct = buildViaduct(d, tex.concrete);
     this.settlement = buildSettlement(d, tex.asphaltSet);
     this.ground = new GroundCover(d, tier.groundR, this.settlement.platform);

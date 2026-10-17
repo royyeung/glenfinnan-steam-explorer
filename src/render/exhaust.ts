@@ -100,7 +100,8 @@ export class Exhaust {
     });
     this.geo = geo; geo.instanceCount = 0;
     this.mesh = new THREE.Mesh(geo, this.mat);
-    this.mesh.name = 'exhaust'; this.mesh.frustumCulled = false; this.mesh.renderOrder = 2;
+    this.mesh.name = 'exhaust'; this.mesh.renderOrder = 2;
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1); // refitted around the live puffs every update (no draw call when out of view)
     this.mesh.castShadow = false; this.mesh.receiveShadow = false;
   }
 
@@ -139,6 +140,11 @@ export class Exhaust {
       k++;
     }
     this.live = k;
+    if (k) {
+      let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, r = 0;
+      for (let j = 0; j < k; j++) { const x = p[j * 4], y = p[j * 4 + 1], z = p[j * 4 + 2]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); z0 = Math.min(z0, z); z1 = Math.max(z1, z); r = Math.max(r, p[j * 4 + 3]); }
+      const bs = this.geo.boundingSphere!; bs.center.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); bs.radius = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 + r;
+    }
     this.geo.instanceCount = k; this.mesh.visible = k > 0;
     this.iPos.needsUpdate = true; this.iLook.needsUpdate = true;
     this.iPos.addUpdateRange(0, k * 4); this.iLook.addUpdateRange(0, k * 4);
