@@ -57,7 +57,7 @@ The train now runs at Glenfinnan. Captures at 11:15 BST, 24 Aug 2026, Low and Hi
 | Sound while running | **Pass.** Under the arches -31.9 dB RMS (peak -19.7); on the deck as it passes -28.7 (-15.9); cab at 25 mph -18.8 (-6.4); coach at 25 mph -25.5 (-13.7); departing -30.1 (-16.4); whistle on the footplate -21.2 (-9.1); muted silent. Limits: peak under -1, RMS between -60 and -8. `checks-audio.json` |
 | Performance while running (worst view, desktop and phone sizes) | **Medium and High pass:** Medium 291 draw calls, 1.04 M triangles (budget 300, 1.2 M); High 451, 2.90 M (600, 3 M). **Low slightly over in three views:** cab 153–155 calls (150); engine close-up at 25 mph 432k triangles (400k); standing at a gangway 161 calls and 417k. Everything else on Low is within budget. `checks-perf.json` |
 | Gangway view (your report) | **Fixed.** Medium and High: the coaches either side are always drawn in full. Low: your coach in full, the next one in full when you are within 4 m of the gangway; the door beyond is drawn closed, never a hollow coach. Walking through to the next coach works on every tier. `checks-gangway.json` |
-| Earlier phases | **Pass:** kinematics, human scale, test-site sound, cab, coaches, world, the walking flows from your laptop test. Landscape sound: see below. |
+| Earlier phases | **Pass:** kinematics, human scale, test-site sound, cab, coaches, world, the walking flows from your laptop test, landscape sound (-34 to -28 dB RMS, echo 0.073 under the arches, muted silent). `regress/` |
 | Unit tests | **Pass** (48, including 12 new for the beats and the run) |
 
 ## What it costs while running

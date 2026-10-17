@@ -1,0 +1,58 @@
+{
+ "levels": [
+  {
+   "view": "v01-classic",
+   "rmsDb": -33.8,
+   "peakDb": -22.5
+  },
+  {
+   "view": "viaduct-river",
+   "rmsDb": -28.5,
+   "peakDb": -15.1
+  },
+  {
+   "view": "viaduct-deck",
+   "rmsDb": -28.3,
+   "peakDb": -16.4
+  },
+  {
+   "view": "loch-head",
+   "rmsDb": -29.4,
+   "peakDb": -16.8
+  },
+  {
+   "view": "aerial",
+   "rmsDb": -29.4,
+   "peakDb": -18.2
+  },
+  {
+   "view": "viaduct-river",
+   "hour": 23,
+   "rmsDb": -29.7,
+   "peakDb": -17.5,
+   "note": "night (owls)"
+  }
+ ],
+ "echo": [
+  {
+   "view": "viaduct-river",
+   "gain": 0.073
+  },
+  {
+   "view": "v01-classic",
+   "gain": 0
+  },
+  {
+   "view": "viaduct-deck",
+   "gain": 0
+  }
+ ],
+ "muted": {
+  "view": "v01-classic",
+  "hour": 11.25,
+  "rmsDb": null,
+  "peakDb": null
+ },
+ "pass": true,
+ "errors": []
+}
