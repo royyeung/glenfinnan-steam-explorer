@@ -839,7 +839,8 @@ export class App {
     // near plane: close for walking (cab, coaches), pushed out for orbit views over the landscape
     const near = this.mode === 'walk' ? 0.06 : THREE.MathUtils.clamp(this.persp.position.distanceTo(this.orbit.target) * 0.004, 0.05, 2);
     if (Math.abs(near - this.persp.near) > 1e-3) { this.persp.near = near; this.persp.updateProjectionMatrix(); }
-    this.world?.update(this.camera.getWorldPosition(new THREE.Vector3()), this.simTime);
+    const shadowFocus = this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target;
+    this.world?.update(this.camera.getWorldPosition(new THREE.Vector3()), this.simTime, shadowFocus);
     if (this.world && this.audio.running) this.sounds.landscapeUpdate(this.camera.getWorldPosition(new THREE.Vector3()), this.world);
     // steam and smoke: wind by weather, light from the sun and sky
     if (this.exhaust) {
@@ -869,7 +870,7 @@ export class App {
         this.runSounds.update(veh, tv, this.speed, where);
       }
     }
-    this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
+    this.atmosphere.setFocus(shadowFocus);
     // moving rods cast shadows on High/Medium (not on Low): keep shadows live while the wheels turn
     this.atmosphere.dynamicShadows = moving || (this.tierName !== 'low' && (this.motionOn || this.footplate.wheelOmega !== 0));
     this.atmosphere.update(this.simTime);

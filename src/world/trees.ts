@@ -3,9 +3,14 @@
 // (birch, oak, alder, rhododendron scrub) and conifer, drawn as instanced meshes in three rings
 // around the camera: lumpy crowns close by, simple crowns further out, minimal shapes far away.
 // Crowns shade as rounded masses (normals from the crown centre) with leaf-scale noise.
-// Instances are re-chosen when the camera moves 30 m.
+// Instances are re-chosen when the camera moves 30 m. Only the close trees within 70 m of the
+// shadow map's centre cast shadows (their own small instanced meshes): the shadow map is redrawn
+// every frame while the train runs, and trees beyond that cannot shadow the mapped area anyway.
 import * as THREE from 'three';
 import type { TreeSet } from './data.ts';
+
+/** Trees this close to the shadow map's centre cast shadows (the map covers at most ±45 m). */
+const SHADOW_R = 70;
 
 export interface TreeTier { nearR: number; farR: number; nearMax: number; farMax: number; shadows: boolean }
 
@@ -70,6 +75,7 @@ export class Trees {
   readonly group = new THREE.Group();
   private meshes: { mesh: THREE.InstancedMesh; kind: number; ring: number }[] = [];
   private last = new THREE.Vector3(1e9, 0, 0);
+  private lastFocus = new THREE.Vector3(1e9, 0, 0);
   private data: TreeSet; private tier: TreeTier;
   /** Cleared ground (x, z, radius): the top of the viewpoint knoll west of the viaduct. */
   clearings: [number, number, number][] = [[-290, 84, 16]];
@@ -92,29 +98,32 @@ export class Trees {
           diffuseColor.rgb *= mix(0.62, 1.25, leaves); }`);
     };
     mat.customProgramCacheKey = () => 'trees-2';
-    const rings = [0, 1, 2].map(shapes);
-    const caps = [tier.nearMax, tier.nearMax, tier.farMax];
+    const rings = [0, 1, 2, 0].map(shapes);   // ring 3: close trees near the shadow centre (close shapes)
+    const caps = [tier.nearMax, tier.nearMax, tier.farMax, Math.ceil(tier.nearMax / 4)];
     rings.forEach((sh, ring) => {
       for (const [geo, kind] of [[sh.broad, 0], [sh.con, 1]] as const) {
         const max = caps[ring], m = new THREE.InstancedMesh(geo, mat, max);
         m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);
-        m.count = 0; m.name = `trees_${kind ? 'conifer' : 'broadleaf'}_${['near', 'mid', 'far'][ring]}`;
-        m.castShadow = ring === 0 && tier.shadows; m.receiveShadow = ring < 2;
+        m.count = 0; m.name = `trees_${kind ? 'conifer' : 'broadleaf'}_${['near', 'mid', 'far', 'shadow'][ring]}`;
+        m.castShadow = ring === 3 && tier.shadows; m.receiveShadow = ring !== 2;
         this.group.add(m); this.meshes.push({ mesh: m, kind, ring });
       }
     });
   }
 
   /** Refill the instance lists around the camera. */
-  update(cam: THREE.Vector3, force = false) {
-    if (!force && cam.distanceToSquared(this.last) < 30 * 30) return;
-    this.last.copy(cam);
+  update(cam: THREE.Vector3, force = false, focus: THREE.Vector3 = cam) {
+    if (!force && cam.distanceToSquared(this.last) < 30 * 30 && focus.distanceToSquared(this.lastFocus) < 15 * 15) return;
+    this.last.copy(cam); this.lastFocus.copy(focus);
+    const s2 = SHADOW_R * SHADOW_R;
     const d = this.data.data, n = this.data.count, r0 = (this.tier.nearR * 0.4) ** 2, r1 = this.tier.nearR ** 2, fr2 = this.tier.farR ** 2;
     const counts = this.meshes.map(() => 0), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), col = new THREE.Color();
     for (let i = 0; i < n; i++) {
       const o = i * 7, x = d[o], y = d[o + 1], z = d[o + 2], dd = (x - cam.x) ** 2 + (z - cam.z) ** 2;
       if (dd > fr2 || this.clearings.some(([cx, cz, r]) => (x - cx) ** 2 + (z - cz) ** 2 < r * r)) continue;
-      const kind = d[o + 4], ring = dd < r0 ? 0 : dd < r1 ? 1 : 2, k = ring * 2 + kind, e = this.meshes[k];
+      let ring = dd < r0 ? 0 : dd < r1 ? 1 : 2;
+      if (ring === 0 && this.tier.shadows && (x - focus.x) ** 2 + (z - focus.z) ** 2 < s2) ring = 3;
+      const kind = d[o + 4], k = ring * 2 + kind, e = this.meshes[k];
       if (counts[k] >= e.mesh.instanceMatrix.count) continue;
       const h = d[o + 3], wobble = 0.85 + 0.3 * ((i * 0.618) % 1);
       q.setFromAxisAngle(up, d[o + 6]);

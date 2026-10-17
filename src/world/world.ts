@@ -59,8 +59,9 @@ export class World {
     this.colliders = [this.terrain.near, this.viaduct.mesh, ...track.children.filter((c) => c.name === 'ballast_line'), ...this.settlement.colliders];
   }
 
-  update(camPos: THREE.Vector3, time: number) {
-    this.trees?.update(camPos);
+  /** focus: the centre of the shadow map (trees near it cast shadows) */
+  update(camPos: THREE.Vector3, time: number, focus: THREE.Vector3 = camPos) {
+    this.trees?.update(camPos, false, focus);
     this.ground?.update(camPos);
     this.waterUpd(time);
   }

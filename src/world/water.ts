@@ -146,6 +146,8 @@ function riverRocks(data: WorldData) {
     m4.compose(new THREE.Vector3(x, y, z), q, new THREE.Vector3(sz, sz, sz)); m.setMatrixAt(i, m4);
     const v = 0.7 + rnd() * 0.4; m.setColorAt(i, col.setRGB(v, v * 0.98, v * (0.9 + rnd() * 0.12)));
   });
-  m.computeBoundingSphere(); m.castShadow = true; m.receiveShadow = true;
+  // boulders receive shadows but cast none: one instanced mesh for the whole river would cost about
+  // 27k triangles in a shadow map that is redrawn every frame while the train runs
+  m.computeBoundingSphere(); m.castShadow = false; m.receiveShadow = true;
   return m;
 }
