@@ -6,6 +6,8 @@ import { B5 } from '../specs/black5.ts';
 import { weakSpecs } from '../specs/spec.ts';
 import { AVATAR } from '../controls/walk.ts';
 import { SITE } from '../world/site.ts';
+import { solveMotion } from '../loco/motion/solver.ts';
+import { solveValveGear } from '../loco/motion/walschaerts.ts';
 
 export function installGX(app: App) {
   const GX = {
@@ -14,6 +16,12 @@ export function installGX(app: App) {
     THREE,
     view: (name: string) => { app.setView(name); app.frame(); return name; },
     step: (n = 1) => { app.step(n); app.frame(); return app.simTime; },
+    /** simulation steps without a frame (fast: no rendering) */
+    sim: (n = 1) => { app.step(n); return app.simTime; },
+    /** steps plus a frame's updates (sound, camera, effects) but no rendering */
+    tick: (n = 1) => { app.step(n); app.frame(false); return app.simTime; },
+    /** valve travel (m) of both sides at wheel angle theta and a cut-off: the exhaust beats must fall where it passes zero */
+    valveAt: (theta: number, cutoff: number) => { const rig = app.rigs[0], st = solveMotion(rig.geo, theta); return { L: solveValveGear(rig.vg, rig.geo.drive, st.left, cutoff).valveTravel, R: solveValveGear(rig.vg, rig.geo.drive, st.right, cutoff).valveTravel }; },
     setWheelAngle: (deg: number) => { app.setWheelAngle((deg * Math.PI) / 180); app.frame(); },
     setHour: (h: number) => { app.atmosphere.params.hour = h; app.atmosphere.invalidate(); app.frame(); return app.atmosphere.sun; },
     setMotion: (on: boolean) => app.setMotion(on),
@@ -91,6 +99,20 @@ export function installGX(app: App) {
       const f = app.walker.feet;
       return { x: +f.x.toFixed(3), y: +f.y.toFixed(3), z: +f.z.toFixed(3), onGround: app.walker.onGround };
     },
+    /** Phase 6: the run. on: start/stop; mph: viaduct speed; hold: constant speed (m/s) for checks. */
+    run: (o: { on?: boolean; mph?: number; hold?: number | null; auto?: boolean; place?: 'viaduct' | 'station'; s?: number; v?: number }) => {
+      const r = app.run; if (!r) return null;
+      if (o.place) app.placeTrain(o.place);
+      if (o.s !== undefined) { r.placeAt(o.s, false); r.v = o.v ?? r.v; app.placeTrain0(); }
+      if (o.mph !== undefined) r.viaductSpeed = o.mph * 0.44704;
+      if (o.hold !== undefined) r.hold = o.hold;
+      if (o.auto !== undefined) r.auto = o.auto;
+      if (o.on !== undefined) app.setRun(o.on);
+      return GX.runState();
+    },
+    runState: () => { const r = app.run!; return { s: +r.s.toFixed(3), v: +r.v.toFixed(3), state: r.state, status: r.status, viaduct: r.route.viaduct, length: +r.length.toFixed(2), mass: r.massT, theta: app.theta, simTime: app.simTime, cutoff: app.footplate.c.reverser, regulator: app.footplate.c.regulator, pressure: +app.footplate.pressure.toFixed(1), puffs: app.exhaust.count }; },
+    beatTrace: () => app.beatTrace.splice(0),
+    beatLog: () => app.sounds.beatLog.slice(),
     teleport: (x: number, y: number, z: number, yaw = 0) => { app.setMode('walk'); app.walker.teleport(x, y, z, yaw); app.walker.applyTo(app.persp); app.frame(); const f = app.walker.feet; return { x: f.x, y: f.y, z: f.z, onGround: app.walker.onGround }; },
   };
   (window as unknown as { GX: typeof GX }).GX = GX;

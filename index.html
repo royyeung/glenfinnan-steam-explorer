@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  <div id="title" hidden><b>45407</b> · Glenfinnan · <span id="modeName">Orbit</span></div>
+  <div id="title" hidden><b>45407</b> · Glenfinnan · <span id="modeName">Orbit</span><span id="runStatus"></span></div>
   <div id="osAttr" hidden>Terrain and map: contains OS data © Crown copyright and database right 2026. Gorge, river and railway formation shaped by hand (no LiDAR here yet).</div>
   <div id="help" hidden></div>
   <div id="perf" hidden></div>
@@ -92,9 +92,19 @@
       <button class="btn" id="mOrbit" aria-pressed="true">Orbit</button>
       <button class="btn" id="mWalk" aria-pressed="false">Walk</button>
     </div>
+    <div class="group" id="runGroup" hidden role="group" aria-label="The train">
+      <button class="btn" id="runBtn" aria-pressed="true">Stop the train</button>
+      <select class="btn" id="mph" aria-label="Speed over the viaduct">
+        <option value="5">Viaduct 5 mph</option><option value="10">Viaduct 10 mph</option><option value="15">Viaduct 15 mph</option><option value="20">Viaduct 20 mph</option><option value="25">Viaduct 25 mph</option>
+      </select>
+      <select class="btn" id="driver" aria-label="Who drives">
+        <option value="auto">Automatic driver</option><option value="you">You drive (cab controls)</option>
+      </select>
+      <button class="btn" id="followBtn" aria-pressed="true" title="The orbit camera travels with the train">Follow train</button>
+    </div>
     <div class="group">
       <button class="btn" id="motion" aria-pressed="false" title="Turn the wheels in place (rolling road)">Motion</button>
-      <label>Reverser <input type="range" id="cutoff" min="-100" max="100" step="5" value="65" aria-label="Reverser: forward or backward gear" /></label>
+      <label id="cutoffLabel">Reverser <input type="range" id="cutoff" min="-100" max="100" step="5" value="65" aria-label="Reverser: forward or backward gear" /></label>
       <button class="btn" id="infoBtn" aria-pressed="false" title="Show labelled parts">Info</button>
       <label>Time <input type="range" id="hour" min="4" max="22" step="0.25" aria-label="Time of day" /></label>
     </div>

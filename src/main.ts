@@ -96,6 +96,27 @@ function wireUI() {
     pl.onchange = () => { app.placeTrain(pl.value as 'viaduct' | 'station'); };
     const ds = $('diesel'); ds.setAttribute('aria-pressed', String(app.dieselOn));
     ds.onclick = () => { app.setDiesel(!app.dieselOn); ds.setAttribute('aria-pressed', String(app.dieselOn)); };
+    // the run: start/stop, viaduct speed, who drives, follow camera; status in the title bar
+    if (app.run) {
+      const run = app.run;
+      $('runGroup').hidden = false; $('motion').hidden = true; $('cutoffLabel').hidden = true;
+      const rb = $('runBtn'), sync = () => { const on = app.runOn && run.running; rb.textContent = on ? 'Stop the train' : 'Run the train'; rb.setAttribute('aria-pressed', String(on)); };
+      rb.onclick = () => { app.setRun(!(app.runOn && run.running)); sync(); };
+      const mph = $<HTMLSelectElement>('mph'); mph.value = String(Math.round(run.viaductSpeed / 0.44704));
+      mph.onchange = () => { run.viaductSpeed = Number(mph.value) * 0.44704; };
+      const drv = $<HTMLSelectElement>('driver'); drv.value = run.auto ? 'auto' : 'you';
+      drv.onchange = () => { run.auto = drv.value === 'auto'; if (!run.auto) { app.setRun(true); help.textContent = 'You are driving: in the cab, open the large ejector to release the brakes, set the reverser forward, then open the regulator. The brake valve stops you.'; } };
+      app.onManualControl = () => { if (run.auto) { run.auto = false; drv.value = 'you'; app.setRun(true); } };
+      const fb = $('followBtn');
+      fb.onclick = () => { app.followTrain = !app.followTrain; fb.setAttribute('aria-pressed', String(app.followTrain)); };
+      const st = $('runStatus');
+      setInterval(() => {
+        sync();
+        const v = Math.abs(app.speed), mphNow = v / 0.44704;
+        st.textContent = app.runOn ? ` · ${mphNow.toFixed(0)} mph (${(v * 3.6).toFixed(0)} km/h) · ${run.auto ? run.status : 'You are driving'}` : '';
+      }, 250);
+      sync();
+    }
     const go = $<HTMLSelectElement>('goto');
     go.onchange = () => { if (go.value) { app.setView(go.value); setMode(app.mode === 'walk' ? 'walk' : 'orbit'); } go.value = ''; };
   }

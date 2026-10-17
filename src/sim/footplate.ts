@@ -15,7 +15,11 @@ export class Footplate {
   vacRes = 21;         // in Hg, reservoir side
   mainRes = 140;       // psi, air main reservoir
   brakePipe = 72;      // psi, air brake pipe
-  wheelOmega = 0;      // rad/s driving-wheel speed on the rolling road
+  wheelOmega = 0;      // rad/s driving-wheel speed (rolling road; set from the train's speed when on the line)
+  /** on the line (Glenfinnan): the train model moves the wheels, not this rolling road */
+  onTrack = false;
+  /** on the line: cylinder steam demand from the delivered power (1 = about 1.4 MW) */
+  steamDemand = 0;
   safetyLift = 0;      // 0..1 safety valves blowing
   steamUse = 0;        // relative, for sounds (exhaust)
   awsTimer = 0;
@@ -44,8 +48,9 @@ export class Footplate {
     // --- steam: production vs use
     const injL = c.injL > 0.3 && c.waterL > 0.5 && this.pressure > 60 ? 1 : 0;
     const injR = c.injR > 0.3 && c.waterR > 0.5 && this.pressure > 60 ? 1 : 0;
-    const cyl = c.regulator * Math.max(0.15, Math.abs(c.reverser)) * Math.min(1, Math.abs(this.wheelOmega) / 2 + 0.3);
-    this.steamUse = cyl;
+    // steam to the cylinders: on the line, from the power the train model says they deliver
+    const cyl = this.onTrack ? this.steamDemand : c.regulator * Math.max(0.15, Math.abs(c.reverser)) * Math.min(1, Math.abs(this.wheelOmega) / 2 + 0.3);
+    this.steamUse = this.onTrack ? Math.max(cyl, c.regulator * Math.abs(c.reverser) * 0.8) : cyl;
     const use = 2.2 * cyl + 0.25 * c.blower + 0.3 * c.ejectorLarge + 0.05 * c.ejectorSmall + 0.08 * c.compressor + 0.25 * (injL + injR) + 0.2 * c.whistle + 0.6 * c.drainCocks * c.regulator;
     const make = 1.25 * this.fire * (this.water > 0.05 ? 1 : 0.2);
     this.pressure += (make - use) * 3.2 * dt;
@@ -72,11 +77,13 @@ export class Footplate {
     this.brakePipe += (Math.min(bpTarget, this.mainRes) - this.brakePipe) * Math.min(1, dt * (c.airBrake > 0.9 ? 4 : 1.2));
     this.mainRes -= Math.max(0, (bpTarget - this.brakePipe)) * 0.002;
     // --- wheels on the rolling road: steam drives them, brakes and friction slow them
-    const drive = cyl > 0.02 && this.pressure > 40 ? Math.sign(c.reverser) * c.regulator * Math.min(1, Math.abs(c.reverser) * 1.6) * (this.pressure / 225) : 0;
-    const accel = 1.8 * drive - this.wheelOmega * 0.05 - Math.sign(this.wheelOmega) * this.braking * 2.5;
-    this.wheelOmega += accel * dt;
-    if (this.braking > 0.2 && Math.abs(this.wheelOmega) < 0.05 && Math.abs(drive) < 0.05) this.wheelOmega = 0;
-    this.wheelOmega = Math.max(-12, Math.min(12, this.wheelOmega));
+    if (!this.onTrack) {
+      const drive = cyl > 0.02 && this.pressure > 40 ? Math.sign(c.reverser) * c.regulator * Math.min(1, Math.abs(c.reverser) * 1.6) * (this.pressure / 225) : 0;
+      const accel = 1.8 * drive - this.wheelOmega * 0.05 - Math.sign(this.wheelOmega) * this.braking * 2.5;
+      this.wheelOmega += accel * dt;
+      if (this.braking > 0.2 && Math.abs(this.wheelOmega) < 0.05 && Math.abs(drive) < 0.05) this.wheelOmega = 0;
+      this.wheelOmega = Math.max(-12, Math.min(12, this.wheelOmega));
+    }
     // momentary controls spring back
     for (const k of CONTROLS) if (k.momentary && this.held !== k.id) this.c[k.id] = Math.max(k.min, this.c[k.id] - dt * 6);
   }

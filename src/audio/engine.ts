@@ -7,7 +7,14 @@ export interface SpatialSource { name: string; panner: PannerNode; gain: GainNod
 export class AudioEngine {
   ctx: AudioContext | null = null;
   master!: GainNode;
-  bus!: GainNode; // everything mixes here, before the limiter
+  bus!: GainNode; // everything mixes here, before the limiter (through the enclosure filter)
+  /** sounds that are never muffled by the coach body (your own footsteps, the coach's own rumble) */
+  dry!: GainNode;
+  private muffle!: BiquadFilterNode;
+  private muffleGain!: GainNode;
+  /** listener velocity (m/s), for the Doppler shift of moving sources */
+  readonly listenerVel = new THREE.Vector3();
+  readonly listenerPos = new THREE.Vector3();
   analyser!: AnalyserNode;
   private limiter!: DynamicsCompressorNode;
   private echo!: GainNode;
@@ -31,7 +38,13 @@ export class AudioEngine {
       this.limiter.attack.value = 0.003; this.limiter.release.value = 0.25;
       this.master = this.ctx.createGain();
       this.analyser = this.ctx.createAnalyser(); this.analyser.fftSize = 2048;
-      this.bus.connect(this.limiter).connect(this.master).connect(this.analyser).connect(this.ctx.destination);
+      // enclosure: inside a coach the outside world is heard through the body and windows
+      this.muffle = new BiquadFilterNode(this.ctx, { type: 'lowpass', frequency: 20000, Q: 0.5 });
+      this.muffleGain = this.ctx.createGain();
+      this.dry = this.ctx.createGain();
+      this.bus.connect(this.muffle).connect(this.muffleGain).connect(this.limiter);
+      this.dry.connect(this.limiter);
+      this.limiter.connect(this.master).connect(this.analyser).connect(this.ctx.destination);
       // echo send (Phase 5): two short delays with feedback, opened under and beside the viaduct
       this.echo = this.ctx.createGain(); this.echo.gain.value = 0;
       const d1 = new DelayNode(this.ctx, { delayTime: 0.11, maxDelayTime: 1 }), d2 = new DelayNode(this.ctx, { delayTime: 0.23, maxDelayTime: 1 });
@@ -54,8 +67,29 @@ export class AudioEngine {
     this.master.gain.setTargetAtTime(this.muted ? 0 : this.volume, this.ctx.currentTime, 0.05);
   }
 
-  /** A positioned sound: connect your nodes into `gain`. refDistance in metres. */
-  spatial(name: string, pos: THREE.Vector3, refDistance = 4, rolloff = 1): SpatialSource {
+  /** Where the listener is: outside, in a coach (closed body: muffled outside, quieter) or on the
+   *  open footplate. Levels are estimates. */
+  enclosure: 'out' | 'coach' | 'cab' = 'out';
+  setEnclosure(e: 'out' | 'coach' | 'cab') {
+    if (!this.ctx || e === this.enclosure) return;
+    this.enclosure = e;
+    const t = this.ctx.currentTime;
+    this.muffle.frequency.setTargetAtTime(e === 'coach' ? 900 : 20000, t, 0.12);
+    this.muffleGain.gain.setTargetAtTime(e === 'coach' ? 0.5 : 1, t, 0.12);
+  }
+
+  /** Doppler factor for a source at pos moving at vel, heard by the listener (speed of sound 343 m/s). */
+  doppler(pos: THREE.Vector3, vel: THREE.Vector3) {
+    const dx = pos.x - this.listenerPos.x, dy = pos.y - this.listenerPos.y, dz = pos.z - this.listenerPos.z, d = Math.hypot(dx, dy, dz);
+    if (d < 0.5) return 1;
+    const ux = dx / d, uy = dy / d, uz = dz / d, c = 343;
+    const vl = this.listenerVel.x * ux + this.listenerVel.y * uy + this.listenerVel.z * uz, vs = vel.x * ux + vel.y * uy + vel.z * uz;
+    return Math.max(0.8, Math.min(1.25, (c + vl) / (c + vs)));
+  }
+
+  /** A positioned sound: connect your nodes into `gain`. refDistance in metres. dry: not muffled
+   *  by the coach body. */
+  spatial(name: string, pos: THREE.Vector3, refDistance = 4, rolloff = 1, dry = false): SpatialSource {
     const ctx = this.ctx!;
     const panner = new PannerNode(ctx, {
       panningModel: this.hrtf ? 'HRTF' : 'equalpower', distanceModel: 'inverse',
@@ -63,7 +97,7 @@ export class AudioEngine {
       positionX: pos.x, positionY: pos.y, positionZ: pos.z,
     });
     const gain = ctx.createGain();
-    gain.connect(panner).connect(this.bus);
+    gain.connect(panner).connect(dry ? this.dry : this.bus);
     const s = { name, panner, gain };
     this.sources.push(s);
     return s;
@@ -81,9 +115,11 @@ export class AudioEngine {
   }
 
   private fwd = new THREE.Vector3(); private up = new THREE.Vector3();
-  updateListener(camera: THREE.Camera) {
+  /** vel: the listener's velocity (m/s), for Doppler */
+  updateListener(camera: THREE.Camera, vel?: THREE.Vector3) {
     if (!this.ctx) return;
     const L = this.ctx.listener, t = this.ctx.currentTime, p = camera.getWorldPosition(new THREE.Vector3());
+    this.listenerPos.copy(p); if (vel) this.listenerVel.copy(vel);
     camera.getWorldDirection(this.fwd); this.up.set(0, 1, 0).applyQuaternion(camera.getWorldQuaternion(new THREE.Quaternion()));
     if (L.positionX) {
       L.positionX.setTargetAtTime(p.x, t, 0.02); L.positionY.setTargetAtTime(p.y, t, 0.02); L.positionZ.setTargetAtTime(p.z, t, 0.02);

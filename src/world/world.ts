@@ -31,6 +31,8 @@ export class World {
   trees!: Trees;
   ground!: GroundCover;
   colliders: THREE.Object3D[] = [];
+  /** arc lengths of the two ends of the modelled track */
+  trackEnds: [number, number] = [0, 0];
   private waterUpd: (t: number) => void = () => {};
   viaduct!: ReturnType<typeof buildViaduct>;
   settlement!: ReturnType<typeof buildSettlement>;
@@ -48,6 +50,7 @@ export class World {
     this.trees = new Trees(d.trees, tier.trees);
     // track from west of the station to well east of the viaduct (the core of the map)
     const s0 = Math.max(0, path.station - 900), s1 = Math.min(path.length - 2, path.viaduct[1] + 1200);
+    this.trackEnds = [s0, s1];
     const track = buildTrack(path, s0, s1, tex.ballast);
     this.viaduct = buildViaduct(d, tex.concrete);
     this.settlement = buildSettlement(d, tex.asphaltSet);
@@ -63,8 +66,9 @@ export class World {
   }
 
   /** Put every vehicle on the track with the engine's front buffer at arc length sFront, running
-   *  towards decreasing s (westbound, to Mallaig, chimney first: REFERENCE §9). */
-  placeTrain(sFront: number, vehicles: Placeable[]) {
+   *  towards decreasing s (westbound, to Mallaig, chimney first: REFERENCE §9). light: update only
+   *  each vehicle's own matrix (every simulation step while running; children update at render). */
+  placeTrain(sFront: number, vehicles: Placeable[], light = false) {
     const path = this.data.track, pf = new THREE.Vector3(), pr = new THREE.Vector3(), u = new THREE.Vector3(), up = new THREE.Vector3(), x = new THREE.Vector3(), m = new THREE.Matrix4();
     for (const v of vehicles) {
       const [zf, zr] = v.supports;
@@ -75,8 +79,14 @@ export class World {
       m.makeBasis(x, up, u);
       v.obj.quaternion.setFromRotationMatrix(m);
       v.obj.position.copy(pf).add(pr).multiplyScalar(0.5).addScaledVector(u, -(zf + zr) / 2);
-      v.obj.updateMatrixWorld(true);
+      if (light) v.obj.updateWorldMatrix(false, false); else v.obj.updateMatrixWorld(true);
     }
+  }
+
+  /** Curvature (1/m) of the line at arc length s (from the tangent turning over 10 m). */
+  curvature(s: number) {
+    const p = this.data.track, a = p.tangent(s - 5), b = p.tangent(s + 5);
+    return Math.acos(Math.min(1, a.x * b.x + a.z * b.z)) / 10;
   }
 
   /** Arc lengths for the two standard places. */

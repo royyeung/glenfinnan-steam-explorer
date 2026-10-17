@@ -6,7 +6,7 @@ import type { AudioEngine, SpatialSource } from './engine.ts';
 
 type Noise = 'white' | 'pink' | 'brown';
 
-function noiseBuffer(ctx: AudioContext, kind: Noise, seconds = 4, seed = 1) {
+export function noiseBuffer(ctx: AudioContext, kind: Noise, seconds = 4, seed = 1) {
   const n = Math.floor(ctx.sampleRate * seconds), buf = ctx.createBuffer(2, n, ctx.sampleRate);
   let s = seed * 9301 + 49297;
   const rnd = () => { s = (s * 16807) % 2147483647; return (s / 2147483647) * 2 - 1; };
@@ -29,13 +29,13 @@ function noiseBuffer(ctx: AudioContext, kind: Noise, seconds = 4, seed = 1) {
   return buf;
 }
 
-function loop(ctx: AudioContext, buf: AudioBuffer) {
+export function loop(ctx: AudioContext, buf: AudioBuffer) {
   const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
   src.loopStart = 0.05; src.loopEnd = buf.duration - 0.05; src.start(ctx.currentTime, Math.random() * buf.duration * 0.5);
   return src;
 }
 
-const filt = (ctx: AudioContext, type: BiquadFilterType, freq: number, Q = 0.7) => new BiquadFilterNode(ctx, { type, frequency: freq, Q });
+export const filt = (ctx: AudioContext, type: BiquadFilterType, freq: number, Q = 0.7) => new BiquadFilterNode(ctx, { type, frequency: freq, Q });
 
 export interface LocoSoundPoints { chimney: THREE.Vector3; safetyValves: THREE.Vector3; airPump: THREE.Vector3; firehole: THREE.Vector3; cylL: THREE.Vector3; cylR: THREE.Vector3; injector: THREE.Vector3; motionL: THREE.Vector3; motionR: THREE.Vector3 }
 
@@ -239,6 +239,9 @@ export class Soundscape {
   private whistleGain: GainNode | null = null;
   private ejectorGain: GainNode | null = null;
   private exhaust: SpatialSource | null = null;
+  private whistleOsc: OscillatorNode[] = [];
+  private whistleSrc: SpatialSource | null = null;
+  private ejectorSrc: SpatialSource | null = null;
 
   /**
    * Phase 3: footplate-driven sounds, called every frame. blower 0..1, safety 0..1 (valves lifting),
@@ -256,12 +259,14 @@ export class Soundscape {
       const bp = filt(ctx, 'bandpass', 520, 0.9);
       for (const [f, a] of [[196, 0.5], [247, 0.32], [294, 0.22]] as const) { // a soft chord gives the hooter its hollow tone
         const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const og = ctx.createGain(); og.gain.value = a * 0.25; o.connect(og).connect(bp); o.start();
+        this.whistleOsc.push(o);
       }
+      this.whistleSrc = src;
       const breath = ctx.createGain(); breath.gain.value = 0.12;
       loop(ctx, noiseBuffer(ctx, 'pink', 3, 61)).connect(filt(ctx, 'bandpass', 900, 0.7)).connect(breath).connect(g);
       bp.connect(g);
       this.whistleGain = g;
-      const ej = this.a.spatial('ejector', new THREE.Vector3(p.chimney.x, p.chimney.y, p.chimney.z), 4, 1);
+      const ej = this.ejectorSrc = this.a.spatial('ejector', new THREE.Vector3(p.chimney.x, p.chimney.y, p.chimney.z), 4, 1);
       const eg = ctx.createGain(); eg.gain.value = 0; eg.connect(ej.gain);
       loop(ctx, noiseBuffer(ctx, 'white', 3, 67)).connect(filt(ctx, 'bandpass', 3000, 0.8)).connect(eg);
       this.ejectorGain = eg;
@@ -276,7 +281,7 @@ export class Soundscape {
   /** Footstep at the listener: softer and duller on carpet, ringing on steel and boards. */
   footstep(surface: 'ground' | 'platform' | 'steel' | 'carpet', pos: THREE.Vector3) {
     const ctx = this.a.ctx; if (!ctx) return;
-    const src = this.a.spatial('step', pos, 1.5, 1), t = ctx.currentTime + 0.005;
+    const src = this.a.spatial('step', pos, 1.5, 1, true), t = ctx.currentTime + 0.005;
     const n = ctx.createBufferSource(); n.buffer = this.stepNoise ??= noiseBuffer(ctx, 'white', 1, 71);
     const e = ctx.createGain(), f = { ground: 600, platform: 1400, steel: 2200, carpet: 350 }[surface];
     const lv = { ground: 0.12, platform: 0.16, steel: 0.2, carpet: 0.07 }[surface] * (0.8 + 0.4 * this.rand());
@@ -318,7 +323,29 @@ export class Soundscape {
   private cocksUntil = 0;
   private wasMoving = false;
 
-  /** Phase 2: sounds of the motion. Call every simulation step with the driving-wheel angle (rad) and rate (rad/s). */
+  /**
+   * One exhaust beat ("chuff") at audio time `when`: a cylinder end releasing to the chimney. The
+   * beats come from the valve gear (sim/beats.ts), so they stay locked to the wheels at any speed.
+   * level 0..1 (steam being used), omega: wheel rate (shorter beats when fast), doppler: pitch factor.
+   */
+  beat(when: number, level: number, omega: number, doppler = 1) {
+    const ctx = this.a.ctx;
+    if (!ctx || !this.exhaust || !this.white) return;
+    const t = Math.max(ctx.currentTime, when), dur = Math.min(0.35, 0.6 / Math.max(0.6, Math.abs(omega)));
+    const n = ctx.createBufferSource(); n.buffer = this.white; n.playbackRate.value = doppler;
+    const ne = ctx.createGain(), lv = Math.min(0.9, level);
+    ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(lv, t + 0.015); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);
+    n.connect(filt(ctx, 'lowpass', 700 * doppler)).connect(ne).connect(this.exhaust.gain); n.start(t, this.rand() * 2, dur + 0.05);
+    const o2 = ctx.createOscillator(), e2 = ctx.createGain(); o2.frequency.setValueAtTime(70 * doppler, t); o2.frequency.exponentialRampToValueAtTime(40 * doppler, t + 0.12);
+    e2.gain.setValueAtTime(0, t); e2.gain.linearRampToValueAtTime(lv * 0.6, t + 0.01); e2.gain.exponentialRampToValueAtTime(0.002, t + 0.16);
+    o2.connect(e2).connect(this.exhaust.gain); o2.start(t); o2.stop(t + 0.18);
+    this.beatLog.push(t); this.beatCount++; if (this.beatLog.length > 64) this.beatLog.shift();
+  }
+  /** audio times of the last beats scheduled (verification harness) */
+  readonly beatLog: number[] = [];
+  beatCount = 0;
+
+  /** Phase 2: sounds of the motion (rod clanks, drain cocks). Call every simulation step with the driving-wheel angle (rad) and rate (rad/s). */
   motion(theta: number, omega: number, p: LocoSoundPoints, sim?: { steam: number; cocks: number }) {
     const ctx = this.a.ctx;
     if (!ctx) return;
@@ -346,16 +373,6 @@ export class Soundscape {
       o.type = 'triangle'; o.frequency.setValueAtTime(240 + 40 * this.rand(), t);
       e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(0.12, t + 0.004); e.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
       o.connect(e).connect(src.gain); o.start(t); o.stop(t + 0.14);
-      // exhaust beat ("chuff") when working under steam: one per quarter turn (two per cylinder per revolution)
-      if (sim && sim.steam > 0.02 && this.exhaust) {
-        const n = ctx.createBufferSource(); n.buffer = this.white; const ne = ctx.createGain(), dur = Math.min(0.35, 0.6 / Math.max(0.6, Math.abs(omega)));
-        const level = Math.min(0.9, 0.25 + 1.2 * sim.steam);
-        ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(level, t + 0.015); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);
-        n.connect(filt(ctx, 'lowpass', 700)).connect(ne).connect(this.exhaust.gain); n.start(t, this.rand() * 2, dur + 0.05);
-        const o2 = ctx.createOscillator(), e2 = ctx.createGain(); o2.frequency.setValueAtTime(70, t); o2.frequency.exponentialRampToValueAtTime(40, t + 0.12);
-        e2.gain.setValueAtTime(0, t); e2.gain.linearRampToValueAtTime(level * 0.6, t + 0.01); e2.gain.exponentialRampToValueAtTime(0.002, t + 0.16);
-        o2.connect(e2).connect(this.exhaust.gain); o2.start(t); o2.stop(t + 0.18);
-      }
       if (ctx.currentTime < this.cocksUntil) {
         const n = ctx.createBufferSource(); n.buffer = this.white; const ne = ctx.createGain(), dur = Math.min(0.5, 0.9 / Math.max(0.5, Math.abs(omega)));
         ne.gain.setValueAtTime(0, t); ne.gain.linearRampToValueAtTime(0.5, t + 0.02); ne.gain.exponentialRampToValueAtTime(0.002, t + dur);
@@ -386,9 +403,16 @@ export class Soundscape {
     this.dieselSrc.gain.gain.setTargetAtTime(on ? 0.22 : 0, ctx.currentTime, 0.3);
   }
 
-  moveLoco(p: LocoSoundPoints) {
+  /** Keep every engine sound on the engine as it moves; doppler: pitch factor for the whistle. */
+  moveLoco(p: LocoSoundPoints, doppler = 1) {
     const m: [string, THREE.Vector3][] = [['blower', p.chimney], ['safety', p.safetyValves], ['pump', p.airPump], ['fire', p.firehole]];
     for (const [k, v] of m) if (this.loco[k]) this.a.moveSource(this.loco[k], v);
+    for (const k of ['cylL', 'cylR', 'motionL', 'motionR', 'injector'] as const) if (this.motionSrc[k]) this.a.moveSource(this.motionSrc[k], p[k]);
+    if (this.exhaust) this.a.moveSource(this.exhaust, p.chimney);
+    if (this.ejectorSrc) this.a.moveSource(this.ejectorSrc, p.chimney);
+    if (this.whistleSrc) this.a.moveSource(this.whistleSrc, new THREE.Vector3(p.safetyValves.x, p.safetyValves.y + 0.3, p.safetyValves.z).lerp(p.chimney, 0.12));
+    const ctx = this.a.ctx;
+    if (ctx) for (const o of this.whistleOsc) o.detune.setTargetAtTime(1200 * Math.log2(doppler), ctx.currentTime, 0.05);
   }
 
   dispose() { for (const t of this.timers) { clearInterval(t); clearTimeout(t); } this.timers = []; }

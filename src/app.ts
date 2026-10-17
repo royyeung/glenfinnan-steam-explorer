@@ -32,6 +32,11 @@ import { buildClass47 } from './diesel/class47.ts';
 import { C47, c47BogieCentres } from './specs/class47.ts';
 import { FORMATION, MK2, type CoachType } from './specs/mk2.ts';
 import { paintCoachLetter, paintCoachNumber } from './render/decals.ts';
+import { TrainRun, MASS, MPH } from './sim/run.ts';
+import { BeatClock } from './sim/beats.ts';
+import { Exhaust } from './render/exhaust.ts';
+import { RunningSounds, RAIL_LENGTH } from './audio/running.ts';
+import type { Mover } from './controls/walk.ts';
 
 const BASE = import.meta.env.BASE_URL;
 const SITE_PLATFORM_TOP = 0.915;
@@ -104,6 +109,27 @@ export class App {
   theta = 0;
   motionOn = false;
   motionSpeed = 10 / 3.6; // m/s on the "rolling road"
+  /** Phase 6: the train running on the line at Glenfinnan (null on the test site) */
+  run: TrainRun | null = null;
+  /** the run moves the train (world mode; off in the deterministic harness unless ?run=1) */
+  runOn = false;
+  /** the orbit camera travels with the train */
+  followTrain = true;
+  readonly beatClock = new BeatClock();
+  exhaust!: Exhaust;
+  runSounds = new RunningSounds(this.audio);
+  /** every axle: distance behind the engine's front buffer, and its vehicle (sound voice) */
+  private axles: { d: number; vi: number }[] = [];
+  private appliedTheta = NaN;
+  private lastFrameSim = 0;
+  private wheelNodes: { coach: THREE.Object3D[]; diesel: THREE.Object3D[] } | null = null;
+  private distance = 0;          // metres run (coach and diesel wheel rotation)
+  private followPrev: THREE.Vector3 | null = null;
+  private camPrev = new THREE.Vector3(); private camVel = new THREE.Vector3();
+  /** exhaust beats of the last steps (verification harness): sim time, wheel angle, valve travel check */
+  beatTrace: { simT: number; theta: number; side: 'L' | 'R'; speed: number }[] = [];
+  private beatsPending: { simT: number; level: number }[] = [];
+  private jointsPending: { simT: number; vi: number }[] = [];
   ready = false;
   silhouette = false;
   frameMs = 0;
@@ -140,6 +166,9 @@ export class App {
     this.atmosphere.attachRenderer(r);
     this.post = new Post(r, this.scene, this.persp, this.tier);
     this.resize();
+    // steam and smoke (one draw call): fewer puffs on phones
+    this.exhaust = new Exhaust(this.tierName === 'low' ? 220 : this.tierName === 'medium' ? 450 : 800);
+    this.scene.add(this.exhaust.mesh);
 
     // asset sizes for an honest byte-based progress bar
     // the manifest is always re-checked; model and texture URLs carry a content hash, so a browser
@@ -242,6 +271,25 @@ export class App {
     ];
     this.trainFrame = this.vehicles.map((v) => ({ ...v, z1: v.z0 }));
     if (this.world) this.world.placeTrain(this.world.places[this.placeName], this.vehicles);
+    // axles (for the rail joints): distance behind the engine's front buffer, and which vehicle
+    {
+      const D = (z: number) => ENGINE_ORIGIN_D - z, cw = MK2.bogieWheelbase.v / 2, dc = c47BogieCentres() / 2, dw = C47.bogieWheelbase.v / 2;
+      for (const d of Object.values(engineAxlesD())) this.axles.push({ d, vi: 0 });
+      for (const d of tenderAxlesD()) this.axles.push({ d, vi: 1 });
+      this.train.coaches.forEach((c, i) => { const z0 = this.vehicles[2 + i].z0; for (const b of [bcz, -bcz]) for (const w of [cw, -cw]) this.axles.push({ d: D(z0 + b + w), vi: 2 + i }); });
+      const dz0 = this.vehicles[2 + this.train.coaches.length].z0;
+      for (const b of [dc, -dc]) for (const w of [dw, 0, -dw]) this.axles.push({ d: D(dz0 + b + w), vi: 2 + this.train.coaches.length });
+    }
+    // the run (Glenfinnan): across the viaduct, to the station, away west, round again
+    if (this.world) {
+      const w = this.world, path = w.data.track, [t0, t1] = w.trackEnds, { length, mass } = this.trainSize();
+      this.run = new TrainRun({ viaduct: path.viaduct, stop: w.places.station, west: t0 + 30, east: t1 - 10 - length, height: (s) => path.at(s).y }, w.places[this.placeName], mass, length);
+      if (params.mph) this.run.viaductSpeed = params.mph * MPH;
+      this.run.placeAt(w.places[this.placeName], this.placeName === 'station');
+      this.runOn = params.run;
+      this.footplate.onTrack = this.runOn;
+      this.run.onRestart = () => { this.exhaust?.clear(); };
+    }
     this.train.onDoor = (pos, opening) => this.sounds.door(pos, opening);
     for (const c of this.train.coaches) {
       paintDecals(c.lod, this.tier.anisotropy);
@@ -278,6 +326,8 @@ export class App {
     for (const l of [this.cabRig.fireLight, this.cabRig.cabLamp]) { l.position.z = zEngine(l.userData.d); this.engine.add(l); }
     this.cabUI = new CabUI(this.canvas, [this.engine.levels[0].object, this.tender.levels[0].object], this.footplate);
     this.cabUI.onChange = (id, val) => {
+      // working the driving controls yourself takes over from the automatic driver
+      if (['regulator', 'reverser', 'brake', 'airBrake', 'ejectorLarge'].includes(id)) this.onManualControl();
       if (id === 'reverser') this.setCutoff(val, false);
       if (id === 'fireDoors' || id === 'coalDoors' || id === 'cabLight' || id === 'drainCocks') this.sounds.clank(this.engine.localToWorld(new THREE.Vector3(0, 2.2, zEngine(10.5))), id === 'fireDoors' ? 0.8 : 1.2);
     };
@@ -442,17 +492,26 @@ export class App {
   placeTrain(name: 'viaduct' | 'station') {
     if (!this.world) return;
     this.placeName = name;
-    this.world.placeTrain(this.world.places[name], this.vehicles);
+    const s = this.world.places[name];
+    // the run carries on from here: standing at the station, rolling across the viaduct
+    this.run?.placeAt(s, name === 'station' || !this.runOn);
+    this.world.placeTrain(s, this.vehicles);
     this.scene.updateMatrixWorld(true);
-    this.soundPointsCache = null;
+    this.soundPointsCache = null; this.followPrev = null; this.exhaust?.clear();
     if (this.audio.running) { this.sounds.moveLoco(this.soundPoints()); this.sounds.dieselIdle(this.dieselSoundAt(), this.dieselOn); }
-    this.rebuildColliders();
+  }
+  /** Put the vehicles where the run says the train is (after moving it by hand). */
+  placeTrain0() {
+    if (!this.world || !this.run) return;
+    this.world.placeTrain(this.run.s, this.vehicles);
+    this.scene.updateMatrixWorld(true);
+    this.soundPointsCache = null; this.followPrev = null; this.exhaust?.clear();
   }
   /** Show or hide the diesel at the rear (and its sound and collision). */
   setDiesel(on: boolean) {
     this.dieselOn = on; this.diesel.visible = on;
     if (this.audio.running) this.sounds.dieselIdle(this.dieselSoundAt(), on);
-    this.rebuildColliders();
+    if (this.run) { const { length, mass } = this.trainSize(), [, t1] = this.world!.trackEnds; this.run.length = length; this.run.massT = mass; this.run.route.east = t1 - 10 - length; }
   }
   /** The diesel's engine room, mid-body, in world space. */
   dieselSoundAt() { return this.diesel.localToWorld(new THREE.Vector3(0, 2.6, -1.0)); }
@@ -508,7 +567,7 @@ export class App {
   }
   /** What the walker can do at the nearest doorway: climb in from beside it, or step down from it. */
   boardingOffer(): { label: string; to: THREE.Vector3; yaw: number } | null {
-    if (this.mode !== 'walk') return null;
+    if (this.mode !== 'walk' || Math.abs(this.speed) > 0.2) return null; // doors locked while moving
     const f = this.walker.feet, flat = (a: THREE.Vector3) => Math.hypot(a.x - f.x, a.z - f.z);
     const yawTo = (a: THREE.Vector3, b: THREE.Vector3) => Math.atan2(-(b.x - a.x), -(b.z - a.z));
     let best: { label: string; to: THREE.Vector3; yaw: number } | null = null, bd = Infinity;
@@ -527,8 +586,33 @@ export class App {
     return true;
   }
 
+  /** Walking colliders: the fixed ground, platform and viaduct in one BVH; each vehicle in its own
+   *  frame, so you can walk on and through the train while it runs. */
   rebuildColliders() {
-    this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? []), this.engine.levels[0].object, this.tender.levels[0].object, ...this.train.closeLevels, ...(this.dieselOn ? [this.diesel.levels[0].object] : [])]);
+    const movers: Mover[] = [
+      { obj: this.engine, roots: [this.engine.levels[0].object] }, { obj: this.tender, roots: [this.tender.levels[0].object] },
+      ...this.train.coaches.map((c) => ({ obj: c.lod as THREE.Object3D, roots: [c.lod.levels[0].object] })),
+      { obj: this.diesel, roots: [this.diesel.levels[0].object], enabled: () => this.dieselOn },
+    ];
+    this.walker.setColliders([...(this.site?.colliders ?? []), ...(this.world?.colliders ?? [])], movers);
+  }
+  /** Train length (front buffer to rear buffer, m) and mass (t), with or without the diesel. */
+  trainSize() {
+    // straight-train-frame positions (z0): the objects themselves carry world positions once placed
+    const n = this.train.coaches.length, last = this.dieselOn ? this.vehicles[2 + n].z0 - C47.lengthOverBuffers.v / 2 : this.vehicles[1 + n].z0 - MK2.lengthOverBuffers.v / 2;
+    const mass = MASS.engine + MASS.tender + this.train.coaches.reduce((m, c) => m + (c.vehicle.type === 'buffet1' ? MASS.mk1buffet : MASS.mk2), 0) + (this.dieselOn ? MASS.class47 : 0);
+    return { length: ENGINE_ORIGIN_D - last, mass };
+  }
+  /** Called when you work a driving control in the cab (the HUD switches to "You drive"). */
+  onManualControl: () => void = () => {};
+  /** Train speed (m/s, + forward) */
+  get speed() { return this.runOn && this.run ? this.run.v : 0; }
+  /** Start or stop the automatic run (world mode). */
+  setRun(on: boolean) {
+    if (!this.run) return;
+    if (on && !this.runOn) { this.runOn = true; this.footplate.onTrack = true; this.run.running = true; if (this.run.state === 'running' && this.run.v === 0) { this.run.state = 'standing'; } }
+    else if (!on) this.run.running = false;
+    else this.run.running = true;
   }
   weather: WeatherName = 'fair';
   setWeather(w: WeatherName) {
@@ -538,6 +622,27 @@ export class App {
   }
 
   setMotion(on: boolean) { this.motionOn = on; }
+
+  /** After the steps: turn every wheel and the valve gear, and keep the sounds on the moving engine. */
+  private applyRun() {
+    if (this.theta !== this.appliedTheta) {
+      this.appliedTheta = this.theta;
+      for (const r of this.rigs) { if (r.cutoff !== this.footplate.c.reverser) r.cutoff = this.footplate.c.reverser; r.setWheelAngle(this.theta); }
+      this.cutoff = this.footplate.c.reverser;
+      const rc = MK2.wheelDia.v / 2, rd = C47.wheelDia.v / 2;
+      if (!this.wheelNodes) {
+        this.wheelNodes = { coach: [], diesel: [] };
+        for (const c of this.train.coaches) c.lod.levels[0].object.traverse((o) => { if (/^cws_\d$/.test(o.name)) this.wheelNodes!.coach.push(o); });
+        this.diesel.levels[0].object.traverse((o) => { if (/^dws_\d$/.test(o.name)) this.wheelNodes!.diesel.push(o); });
+      }
+      for (const w of this.wheelNodes.coach) w.rotation.x = this.distance / rc;
+      for (const w of this.wheelNodes.diesel) w.rotation.x = this.distance / rd;
+    }
+    if (Math.abs(this.speed) > 0.01 || this.soundPointsCache === null) {
+      this.soundPointsCache = null;
+      if (this.audio.running) { const p = this.soundPoints(); this.sounds.moveLoco(p, this.audio.doppler(p.chimney, this.trainVelocity())); this.sounds.dieselIdle(this.dieselSoundAt(), this.dieselOn); }
+    }
+  }
 
   setWheelAngle(theta: number) { this.theta = theta; for (const r of this.rigs) r.setWheelAngle(theta); }
 
@@ -555,20 +660,101 @@ export class App {
 
   /** Advance the simulation by n fixed steps (used directly in deterministic mode). */
   step(n = 1) {
-    const h = 1 / SIM_HZ;
+    const h = 1 / SIM_HZ, rD = B5.driverDia.v / 2, run = this.runOn ? this.run : null;
     for (let i = 0; i < n; i++) {
       this.simTime += h;
-      if (this.mode === 'walk') {
-        const before = this.walker.feet.clone();
-        this.inputs.update(); this.walker.step(h);
-        this.stepDist += Math.hypot(this.walker.feet.x - before.x, this.walker.feet.z - before.z);
-        if (this.stepDist > 0.72 && this.walker.onGround && this.audio.running) { this.stepDist = 0; this.sounds.footstep(this.surface(), this.walker.feet.clone()); }
+      // the train first (the automatic driver sets the footplate controls), then the footplate
+      let ds = 0;
+      if (run) {
+        const s0 = run.s;
+        run.step(h, this.footplate);
+        ds = s0 - run.s;
+        if (Math.abs(ds) > 50) ds = 0; // jumped back to the east end
+        this.footplate.wheelOmega = run.v / rD;
+        this.world!.placeTrain(run.s, this.vehicles, true);
       }
       this.footplate.step(h);
-      const fpOmega = this.footplate.wheelOmega;
-      const omega = this.motionOn ? this.motionSpeed / (B5.driverDia.v / 2) : fpOmega;
-      if (omega !== 0) this.setWheelAngle(this.theta + omega * h);
-      if (this.audio.running) this.sounds.motion(this.theta, omega, this.soundPointsCache ??= this.soundPoints(), this.motionOn ? undefined : { steam: this.footplate.steamUse, cocks: this.footplate.c.drainCocks });
+      if (this.mode === 'walk') {
+        const before = this.walker.feet.clone(), ride = this.walker.ride ? this.walker.ride.local.clone() : null;
+        this.inputs.update(); this.walker.step(h);
+        // footsteps count your own steps, not the train carrying you
+        const moved = ride && this.walker.ride ? this.walker.ride.local.distanceTo(ride) : Math.hypot(this.walker.feet.x - before.x, this.walker.feet.z - before.z);
+        this.stepDist += moved;
+        if (this.stepDist > 0.72 && this.walker.onGround && this.audio.running) { this.stepDist = 0; this.sounds.footstep(this.surface(), this.walker.feet.clone()); }
+      }
+      // wheels: from the distance run on the line; on the test site from the rolling road
+      const dTheta = run ? ds / rD : (this.motionOn ? this.motionSpeed / rD : this.footplate.wheelOmega) * h;
+      const omega = dTheta / h;
+      if (dTheta !== 0) {
+        this.beatClock.setCutoff(this.footplate.c.reverser);
+        const working = this.footplate.steamUse > 0.02 || (this.motionOn && !run);
+        for (const b of this.beatClock.crossed(this.theta, this.theta + dTheta)) {
+          const t = this.simTime - h + b.frac * h;
+          if (params.debug) { this.beatTrace.push({ simT: t, theta: b.theta, side: b.beat.side, speed: omega * rD }); if (this.beatTrace.length > 400) this.beatTrace.shift(); }
+          if (working) this.beatsPending.push({ simT: t, level: Math.min(0.9, 0.25 + 1.2 * this.footplate.steamUse) });
+        }
+        // rail joints under every axle
+        if (run && ds !== 0) for (const a of this.axles) {
+          if (a.vi === 2 + this.train.coaches.length && !this.dieselOn) continue;
+          const s1 = run.s + a.d, s0 = s1 + ds, j0 = Math.floor(s0 / RAIL_LENGTH), j1 = Math.floor(s1 / RAIL_LENGTH);
+          if (j0 !== j1) this.jointsPending.push({ simT: this.simTime - h + h * Math.abs((s0 - Math.max(j0, j1) * RAIL_LENGTH) / ds), vi: a.vi });
+        }
+        this.theta += dTheta; this.distance += ds;
+        if (!run) this.setWheelAngle(this.theta);
+      }
+      if (this.audio.running) this.sounds.motion(this.theta, omega, this.soundPointsCache ??= this.soundPoints(), this.motionOn && !run ? undefined : { steam: this.footplate.steamUse, cocks: this.footplate.c.drainCocks });
+    }
+    this.flushEvents();
+  }
+
+  /** Schedule the beats and joints of the steps just run, at their exact times relative to now. */
+  private flushEvents() {
+    const ctx = this.audio.ctx, now = this.simTime;
+    if (ctx && this.audio.running) {
+      const at = (t: number) => ctx.currentTime + 0.06 + (t - now);
+      const pts = this.soundPointsCache ??= this.soundPoints(), dop = this.audio.doppler(pts.chimney, this.trainVelocity());
+      for (const b of this.beatsPending) this.sounds.beat(at(b.simT), b.level, this.footplate.wheelOmega || this.motionSpeed / (B5.driverDia.v / 2), dop);
+      for (const j of this.jointsPending) this.runSounds.joint(j.vi, at(j.simT), this.speed);
+    }
+    // a puff from the chimney for every beat (the last few if many steps ran at once)
+    for (const b of this.beatsPending.slice(-8)) this.puff(b.level);
+    this.beatsPending.length = 0; this.jointsPending.length = 0;
+  }
+
+  /** World velocity of the train (m/s). */
+  trainVelocity(out = new THREE.Vector3()) {
+    if (!this.runOn || !this.run) return out.set(0, 0, 0);
+    const e = this.engine.matrixWorld.elements;
+    return out.set(e[8], e[9], e[10]).normalize().multiplyScalar(this.run.v);
+  }
+
+  /** One exhaust beat seen at the chimney top: thrown up, carried back by the train's own speed. */
+  private puff(level: number) {
+    const top = this.engine.localToWorld(new THREE.Vector3(0, B5.height.v + 0.05, zEngine(B5.chimneyD.v)));
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.engine.quaternion);
+    const vel = this.trainVelocity().addScaledVector(up, 3 + 9 * level).add(new THREE.Vector3((Math.random() - 0.5) * 0.8, 0, (Math.random() - 0.5) * 0.8));
+    const fire = this.footplate.fire;
+    this.exhaust.emit({ pos: top, vel, size: 0.55, grow: 1.5, life: 5 + 3 * level, smoke: 0.25 + 0.35 * Math.max(0, fire - 0.5), alpha: 0.35 + 0.5 * level, rise: 0.8 });
+  }
+
+  /** Steam that is not beats: the blower's haze at the chimney, the safety valves, the drain cocks and
+   *  the whistle. Emitted per frame (rates per second). */
+  private steamEffects(dt: number) {
+    if (dt <= 0) return;
+    const fp = this.footplate, c = fp.c, tv = this.trainVelocity(), q = this.engine.quaternion, rnd = () => Math.random() - 0.5;
+    const W = (x: number, y: number, d: number) => this.engine.localToWorld(new THREE.Vector3(x, y, zEngine(d)));
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
+    const chance = (rate: number) => Math.random() < rate * dt;
+    // blower haze when standing or drifting (no beats)
+    if (fp.steamUse < 0.02 && chance(1.5 + 4 * c.blower)) this.exhaust.emit({ pos: W(rnd() * 0.2, B5.height.v + 0.05, B5.chimneyD.v), vel: tv.clone().addScaledVector(up, 1.5 + 2.5 * c.blower), size: 0.4, grow: 0.9, life: 4, smoke: 0.4, alpha: 0.12 + 0.15 * c.blower, rise: 0.6 });
+    // safety valves: a roaring white plume
+    if (fp.safetyLift > 0.05 && chance(25 * fp.safetyLift)) this.exhaust.emit({ pos: W(rnd() * 0.3, B5.fireboxTopH.v + 0.15, B5.safetyValveD.v), vel: tv.clone().addScaledVector(up, 9 + 4 * Math.random()), size: 0.3, grow: 1.2, life: 2.6, smoke: 0, alpha: 0.5 * fp.safetyLift, rise: 1.2 });
+    // whistle: a short jet just behind the chimney
+    if (c.whistle > 0.3 && chance(18)) this.exhaust.emit({ pos: W(0, B5.fireboxTopH.v + 0.45, B5.safetyValveD.v - 0.75), vel: tv.clone().addScaledVector(up, 5), size: 0.2, grow: 0.8, life: 1.4, smoke: 0, alpha: 0.4, rise: 1 });
+    // drain cocks: sideways bursts low at the cylinders, both sides
+    if (c.drainCocks > 0.5 && (fp.steamUse > 0.02 || this.motionOn) && chance(16)) for (const sd of [1, -1]) {
+      const side = new THREE.Vector3(sd, 0, 0).applyQuaternion(q);
+      this.exhaust.emit({ pos: W(sd * 1.05, 0.55, 2.2 + rnd() * 0.6), vel: tv.clone().addScaledVector(side, 5 + 3 * Math.random()).addScaledVector(up, 0.5), size: 0.25, grow: 1.1, life: 1.8, smoke: 0, alpha: 0.45, rise: 0.5 });
     }
   }
 
@@ -582,7 +768,9 @@ export class App {
     (this.scene.fog as THREE.FogExp2).density = on ? 0 : this.atmosphere.params.haze;
   }
 
-  frame() {
+  /** One frame: simulation (unless deterministic), cameras, effects, sound, then the render
+   *  (render=false: everything but the render, for the harness's real-time sound checks). */
+  frame(render = true) {
     const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000);
     this.last = now;
     if (!params.fixed) {
@@ -591,10 +779,21 @@ export class App {
       this.acc -= n / SIM_HZ;
       this.step(n);
     }
+    // effects advance by the simulated time since the last frame (deterministic mode: whatever GX ran)
+    const fdt = params.fixed ? this.simTime - this.lastFrameSim : dt, moving = Math.abs(this.speed) > 0.05;
+    this.lastFrameSim = this.simTime;
+    if (this.runOn) this.applyRun();
+    // the orbit camera travels with the train (the engine's movement since the last frame)
+    const eng = this.engine.getWorldPosition(new THREE.Vector3());
+    if (this.followPrev && this.followTrain && this.mode !== 'walk' && this.camera === this.persp) {
+      const d = eng.clone().sub(this.followPrev);
+      if (d.lengthSq() > 0) { this.persp.position.add(d); this.orbit.target.add(d); if (this.focus) { for (const v of [this.focus.p0, this.focus.p1, this.focus.t0, this.focus.t1]) v.add(d); } }
+    }
+    this.followPrev = eng;
     if (this.mode === 'walk') this.walker.applyTo(this.persp);
     else if (this.orbit.enabled) { this.stepFocus(dt); this.orbit.update(); }
     this.updateGates(params.fixed ? 1 : dt);
-    this.train?.update(this.camera, this.mode === 'walk' ? this.walker.feet : null, params.fixed ? 1 : dt);
+    this.train?.update(this.camera, this.mode === 'walk' ? this.walker.feet : null, params.fixed ? 1 : dt, moving);
     // the cab interior is only drawn when the camera is within 9 m of the cab
     if (this.cabGroups.length) {
       const near = this.camera.getWorldPosition(new THREE.Vector3()).distanceTo(this.engine.localToWorld(new THREE.Vector3(0, 2.6, zEngine(11.3)))) < 9;
@@ -612,12 +811,41 @@ export class App {
     if (Math.abs(near - this.persp.near) > 1e-3) { this.persp.near = near; this.persp.updateProjectionMatrix(); }
     this.world?.update(this.camera.getWorldPosition(new THREE.Vector3()), this.simTime);
     if (this.world && this.audio.running) this.sounds.landscapeUpdate(this.camera.getWorldPosition(new THREE.Vector3()), this.world);
+    // steam and smoke: wind by weather, light from the sun and sky
+    if (this.exhaust) {
+      this.steamEffects(fdt);
+      const wind = { sunny: 2, fair: 3, overcast: 4, mist: 1 }[this.weather] ?? 3;
+      this.exhaust.wind.set(0.85, 0, -0.5).multiplyScalar(wind); // from the south-west (prevailing; estimate)
+      const L = this.atmosphere.light, sunC = L.color.clone().multiplyScalar(L.intensity);
+      const sky = (this.scene.fog as THREE.FogExp2).color.clone().multiplyScalar(1.5 * Math.PI * this.atmosphere.params.envIntensity * 0.5);
+      this.exhaust.setLight(this.atmosphere.sunDir, sunC, sky);
+      this.exhaust.update(fdt);
+    }
+    // listener speed (Doppler) and where you are (outside, in a coach, on the footplate)
+    const camNow = this.camera.getWorldPosition(new THREE.Vector3());
+    if (fdt > 0) { const v = camNow.clone().sub(this.camPrev).divideScalar(fdt); this.camVel.lerp(v.lengthSq() > 2500 ? this.camVel : v, 0.3); }
+    this.camPrev.copy(camNow);
+    if (this.audio.running) {
+      const cabC = this.engine.worldToLocal(camNow.clone()), inCab = Math.abs(cabC.x) < 1.4 && cabC.z < zEngine(B5.cabFrontD.v) && cabC.z > zEngine(B5.cabFrontD.v + 3.2) && cabC.y > 1.4 && cabC.y < 4;
+      const where = this.train.insideIndex >= 0 ? 'coach' : inCab ? 'cab' : 'out';
+      this.audio.setEnclosure(where);
+      if (this.run) {
+        const tv = this.trainVelocity(), n = this.train.coaches.length;
+        const veh = this.vehicles.map((v, i) => {
+          const p = v.obj.getWorldPosition(new THREE.Vector3()); p.y += 0.6;
+          const sAt = this.run!.s + ENGINE_ORIGIN_D - v.z0;
+          return { pos: i === n + 2 && !this.dieselOn ? p.setY(p.y - 1e4) : p, curvature: this.world!.curvature(sAt) };
+        });
+        this.runSounds.update(veh, tv, this.speed, where);
+      }
+    }
     this.atmosphere.setFocus(this.mode === 'walk' ? this.walker.feet : this.camera === this.ortho && this.orthoView ? new THREE.Vector3(...this.orthoView.centre) : this.orbit.target);
     // moving rods cast shadows on High/Medium (not on Low): keep shadows live while the wheels turn
-    this.atmosphere.dynamicShadows = this.tierName !== 'low' && (this.motionOn || this.footplate.wheelOmega !== 0);
+    this.atmosphere.dynamicShadows = moving || (this.tierName !== 'low' && (this.motionOn || this.footplate.wheelOmega !== 0));
     this.atmosphere.update(this.simTime);
     this.weathering.update();
-    this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera);
+    this.audio.updateListener(this.camera === this.ortho ? this.persp : this.camera, this.camVel);
+    if (!render) return;
     const t0 = performance.now();
     this.renderer.info.reset();
     this.gpuTimerBegin();
